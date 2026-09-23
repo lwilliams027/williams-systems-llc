@@ -8,6 +8,7 @@ import { ScrollToPlugin } from 'gsap/ScrollToPlugin';
 import { SplitText } from 'gsap/SplitText';
 import { DrawSVGPlugin } from 'gsap/DrawSVGPlugin';
 import { MotionPathPlugin } from 'gsap/MotionPathPlugin';
+import { initInquiryForm } from './inquiry.js';
 
 gsap.registerPlugin(ScrollTrigger, ScrollToPlugin, SplitText, DrawSVGPlugin, MotionPathPlugin);
 
@@ -29,6 +30,7 @@ setYear();
 initHeader();
 initMobileNav();
 initAnchors();
+initInquiryForm({ reduced: REDUCED });
 
 if (REDUCED) {
   gsap.set(HIDDEN, { visibility: 'visible' });

@@ -4,3 +4,10 @@ dist/
 Thumbs.db
 *.log
 .vite/
+
+# Local secrets (never commit)
+*.local
+.env
+.supabase-token
+.supabase-temp.json
+ADMIN-LOGIN.txt
