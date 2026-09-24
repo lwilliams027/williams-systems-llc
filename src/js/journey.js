@@ -11,8 +11,15 @@
                    other deliverables and they cycle to the front one by one,
                    ending on the website — the camera zooms into it and scrolls
                    down the site inside the window
-     5. desk    ⤵  everything swings over 180° from face-on to top-down and the
-                   windows lie flat on a blueprint desk
+     5. desk    ⤵  the camera swings up and over 180° to look straight down on
+                   the website lying on a blueprint desk
+     5a. bulb   💡 a lit bulb swings in and lights the page up (light mode); it
+                   unscrews, the lights go out (back to dark) and it falls —
+                   the camera follows it down
+     5a½ switch    it lands by a wall switch; a hand flips it (lights on) and
+                   the flick whips the camera up to the login page
+     5b. secure    a sign-in is refused (screen shakes), a padlock rises, and
+                   the camera flies through the keyhole
      6. rise    ↑  camera climbs past the process steps, which flip down in 3D
      7. end     ⊖  zoom out onto the call to action
 
@@ -43,8 +50,14 @@ const LEN = {             // chapter lengths, in screens of scroll
   cycle:   1.8,           // windows cycle to the front (a full turn, landing on the website)
   focus:   0.7,           // zoom into the website window
   site:    1.5,           // scroll down the website inside it
-  desk:    1.1,           // swing over 180° to top-down; windows lie flat
+  desk:    1.1,           // camera swings over 180° to look down on the site
   deskHold: 0.3,
+  bulbIn:  0.7,           // a lit bulb swings in; the page lights up
+  unscrew: 1.1,           // it unscrews… and the lights go out (dark mode)
+  bulbFall: 1.3,          // it falls; the camera follows it down
+  toSwitch: 0.6,          // …onto a wall switch in the dark
+  flick:   1.0,           // a hand flips it — lights on
+  flipUp:  0.7,           // the flick whips the camera up to the login page
   toSecure: 0.6,          // desk fades back, a sign-in screen comes up
   denied:  1.1,           // two refused sign-ins; the screen shakes
   lockUp:  0.9,           // a padlock rises and snaps shut
@@ -100,6 +113,22 @@ function renderCode() {
   });
 }
 
+function buildBulbStreaks() {
+  const box = $('#bulbStreaks');
+  if (!box || box.childElementCount) return;
+  let seed = 11;
+  const rand = () => ((seed = (seed * 16807) % 2147483647) / 2147483647);
+  for (let i = 0; i < 46; i++) {
+    const l = document.createElement('i');
+    l.className = 'fall-line' + (rand() < 0.2 ? ' blue' : '');
+    l.style.left = `${rand() * 100}%`;
+    l.style.top = `${rand() * 100}%`;
+    l.style.height = `${Math.round(50 + rand() * 180)}px`;
+    l.style.setProperty('--a', (0.2 + rand() * 0.45).toFixed(2));
+    box.append(l);
+  }
+}
+
 function buildStars() {
   const box = $('#riseStars');
   if (!box || box.childElementCount) return;
@@ -117,8 +146,9 @@ function buildStars() {
 }
 
 /* ---------------------------------------------------------------- */
-/*  The windows: one render() places every window from four progress  */
-/*  values, so grow → stack → cycle → desk is one continuous move.    */
+/*  The windows: one render() places every window from a handful of   */
+/*  progress values, so grow → stack → cycle → focus → scroll →        */
+/*  customize → 180° is one continuous move.                           */
 /* ---------------------------------------------------------------- */
 function createWindowRig({ stage, card, world, floor, wins }) {
   const editor = wins[0];
@@ -126,7 +156,7 @@ function createWindowRig({ stage, card, world, floor, wins }) {
   const FOCUS = 1;                                   // the website window gets zoomed into
   const siteBody = $('.site-body', wins[FOCUS]);
   const siteScroll = $('.site-scroll', wins[FOCUS]);
-  const P = { zoom: 0, stack: 0, cycle: 0, focus: 0, site: 0, desk: 0 };
+  const P = { zoom: 0, stack: 0, cycle: 0, focus: 0, site: 0, custom: 0, dark: 0, desk: 0 };
 
   // Full-size window box, centred in the stage.
   const target = () => {
@@ -148,14 +178,6 @@ function createWindowRig({ stage, card, world, floor, wins }) {
     };
   };
 
-  // Grid slot on the desk: three on the first row, the rest below.
-  const deskPose = (i, T) => {
-    const perRow = 3, row = Math.floor(i / perRow);
-    const inRow = Math.min(perRow, N - row * perRow), col = i % perRow;
-    const gap = T.w * 0.1, rows = Math.ceil(N / perRow);
-    return { x: (col - (inRow - 1) / 2) * (T.w + gap), y: (row - (rows - 1) / 2) * (T.h + gap), z: 0, ry: 0, o: 1 };
-  };
-
   function render() {
     const T = target();
     const sr = stage.getBoundingClientRect();
@@ -171,44 +193,45 @@ function createWindowRig({ stage, card, world, floor, wins }) {
       Object.assign(wins[i].style, { left: `${T.x}px`, top: `${T.y}px`, width: `${T.w}px`, height: `${T.h}px` });
     }
 
-    // World: shrinks into the stack, then swings over (rotateX up and back
-    // while spinning 180°) and settles as a top-down view of the desk.
+    // World: shrinks into the Win+Tab stack. For the 180°, the camera swings
+    // up and over the website: the world tips back (rotateX), spins half a turn
+    // (rotateZ) and pulls away, so it ends looking straight down on the site
+    // lying on the desk. Only the website takes part; the stack is long gone.
     const e = P.stack, d = P.desk;
-    const gap = T.w * 0.1;
-    const deskScale = Math.min(0.36, (T.vw * 0.92) / (3 * T.w + 2 * gap), (T.vh * 0.8) / (2 * T.h + gap));
-    const ws = lerp(lerp(1, 0.56, e), deskScale, d);
-    const rx = 62 * Math.sin(Math.PI * d);
+    const stackScale = lerp(1, 0.56, e);
+    const ws = stackScale * lerp(1, 0.62, d);
+    const rx = 58 * d;
     const rz = 180 * d;
     world.style.transform = `rotateX(${rx}deg) rotateZ(${rz}deg) scale(${ws})`;
-    floor.style.opacity = String(Math.sin(Math.PI * Math.min(1, d * 1.4)) * 0.6 + d * 0.4);
+    floor.style.opacity = String(d);
 
-    // Focus: the website window leaves the stack and fills the screen. It
-    // cancels the world's stack scale so it lands at exactly full size.
+    // Focus: the website leaves the stack and fills the screen (cancelling the
+    // stack scale); for customization it steps back a little under the bulb.
     const fo = P.focus;
-    const stackScale = lerp(1, 0.56, e);
+    const c = P.custom;
 
     for (let i = 0; i < N; i++) {
       let s = i - P.cycle;
       while (s < -0.5) s += N;                        // wrap: leaving the front → re-enter at the back
       const a = stackPose(s, T);
-      let base = { x: a.x * e, y: a.y * e, z: a.z * e, ry: a.ry * e, o: i === 0 && e === 0 ? 1 : a.o * (i === 0 ? 1 : e), k: 1 };
+      let x = a.x * e, y = a.y * e, zz = a.z * e, ry = a.ry * e, k = 1;
+      let o = i === 0 && e === 0 ? 1 : a.o * (i === 0 ? 1 : e);
       if (i === FOCUS) {
-        base = { x: lerp(base.x, 0, fo), y: lerp(base.y, 0, fo), z: lerp(base.z, 0, fo), ry: lerp(base.ry, 0, fo),
-          o: lerp(base.o, 1, fo), k: lerp(1, 1 / stackScale, fo) };
+        x = lerp(x, 0, fo); y = lerp(y, 0, fo); zz = lerp(zz, 0, fo); ry = lerp(ry, 0, fo);
+        o = lerp(o, 1, fo);
+        k = lerp(1, 1 / stackScale, fo) * lerp(1, 0.72, c);
       } else {
-        base.o *= 1 - fo * 0.9;                       // the rest fall back into the dark
+        o *= 1 - fo;                                  // the rest drop out completely
       }
-      const b = deskPose(i, T);
-      const x = lerp(base.x, b.x, d), y = lerp(base.y, b.y, d), zz = lerp(base.z, b.z, d);
-      const ry = lerp(base.ry, b.ry, d), o = lerp(base.o, b.o, d), k = lerp(base.k, 1, d);
-      wins[i].style.transform = `translate3d(${x}px, ${y}px, ${zz}px) rotateY(${ry}deg) rotateZ(${-rz}deg) scale(${k})`;
+      wins[i].style.transform = `translate3d(${x}px, ${y}px, ${zz}px) rotateY(${ry}deg) scale(${k})`;
       wins[i].style.opacity = String(o);
       wins[i].style.zIndex = String(i === FOCUS && fo > 0 ? 200 : 100 - Math.round(s * 10));
     }
 
-    // Scroll the mini website inside its window.
+    // Scroll the mini website inside its window, and light/dark mode from the bulb.
     const room = Math.max(0, siteScroll.offsetHeight - siteBody.clientHeight);
     siteScroll.style.transform = `translateY(${-room * P.site}px)`;
+    siteBody.classList.toggle('dark', P.dark > 0.5);
   }
 
   return { P, render };
@@ -324,11 +347,78 @@ export function initJourney({ reduced = false } = {}) {
     .addLabel('site')
     .to(rig.P, { site: 1, duration: S('site'), ease: 'power1.inOut' }, 'site');
 
-  /* ---- 5 · swing over 180° to top-down; windows lie flat on the desk -- */
+
+  /* ---- 5 · the 180°: camera swings over to look down on the site ------ */
   master
     .addLabel('desk')
     .to(rig.P, { desk: 1, duration: S('desk'), ease: 'power2.inOut' }, 'desk')
     .to({}, { duration: S('deskHold') });
+
+  /* ---- 5a · customization: unscrew → lights out → fall ---------------- */
+  const bulbScene = $('#sceneBulb');
+  const bulb = $('#bulb');
+  const bulbRig = $('#bulbRig');
+  const threads = $('#bulbThreads');
+  buildBulbStreaks();
+  gsap.set(bulbScene, { autoAlpha: 0 });
+  gsap.set([bulbRig, bulb], { y: () => -window.innerHeight * 0.5 });
+  gsap.set('#bulbCopy', { autoAlpha: 0, y: 24 });
+  const thread = { t: 0 };
+  const turnThreads = () => threads.setAttribute('patternTransform', `rotate(-18) translate(0 ${thread.t})`);
+  const lamp = { v: 0 };   // 1 = the bulb's light is on → the page is in light mode
+  const setLamp = () => document.documentElement.classList.toggle('light', lamp.v > 0.5);
+  const U = S('unscrew'), F = S('bulbFall');
+  master
+    .addLabel('bulb')
+    .to(code, { autoAlpha: 0, scale: 0.92, duration: S('bulbIn') * 0.6, ease: 'power2.in' }, 'bulb')
+    .to(bulbScene, { autoAlpha: 1, duration: S('bulbIn') * 0.4 }, `bulb+=${S('bulbIn') * 0.3}`)
+    .to([bulbRig, bulb], { y: 0, duration: S('bulbIn') * 0.7, ease: 'back.out(1.4)' }, `bulb+=${S('bulbIn') * 0.3}`)
+    .to('#bulbCopy', { autoAlpha: 1, y: 0, duration: S('bulbIn') * 0.4, ease: 'power3.out' }, `bulb+=${S('bulbIn') * 0.6}`)
+    // The bulb swings into place lit — the whole page lights up to light mode.
+    .to(lamp, { v: 1, duration: S('bulbIn') * 0.05, onUpdate: setLamp }, `bulb+=${S('bulbIn') * 0.55}`)
+    // Unscrewing: the threads roll, the bulb wobbles and steps down out of the socket, the light stutters.
+    .addLabel('unscrew', `bulb+=${S('bulbIn')}`)
+    .to(thread, { t: 36, duration: U * 0.8, onUpdate: turnThreads }, 'unscrew')
+    .to(bulb, { keyframes: { rotation: [0, -5, 5, -5, 5, -4, 4, 0] }, duration: U * 0.8 }, 'unscrew')
+    .to(bulb, { y: 22, duration: U * 0.8, ease: 'steps(6)' }, 'unscrew')
+    .to('#bulbGlow', { keyframes: { opacity: [1, 1, 0.7, 1, 0.35, 0.9, 0.2] }, duration: U * 0.8 }, 'unscrew')
+    // It comes loose — lights out: the whole site drops back to dark mode.
+    .to('#bulbGlow', { opacity: 0, duration: U * 0.05 }, `unscrew+=${U * 0.82}`)
+    .to('#bulbGlass', { fill: '#3A4050', stroke: '#565E70', duration: U * 0.05 }, `unscrew+=${U * 0.82}`)
+    .to('#bulbFil', { stroke: '#6B7385', duration: U * 0.05 }, `unscrew+=${U * 0.82}`)
+    .to(lamp, { v: 0, duration: U * 0.04, onUpdate: setLamp }, `unscrew+=${U * 0.82}`)
+    // …and it falls. The ceiling flies away upward and streaks rush past while
+    // the bulb stays in frame: the camera is falling with it.
+    .addLabel('drop', `unscrew+=${U}`)
+    .to('#bulbCopy', { autoAlpha: 0, y: -30, duration: F * 0.2 }, 'drop')
+    .to(bulbRig, { y: () => -window.innerHeight * 0.8, duration: F * 0.45, ease: 'power2.in' }, 'drop')
+    .to(bulb, { y: () => window.innerHeight * 0.3, duration: F * 0.35, ease: 'power2.in' }, 'drop')
+    .to(bulb, { rotation: 260, duration: F }, 'drop')
+    .to('#bulbStreaks', { opacity: 1, duration: F * 0.15 }, `drop+=${F * 0.15}`)
+    .fromTo('#bulbStreaks', { y: 0 }, { y: () => -window.innerHeight * 2.2, duration: F * 0.85, ease: 'power1.in' }, `drop+=${F * 0.15}`)
+    .to(bulb, { y: () => window.innerHeight * 1.2, duration: F * 0.3, ease: 'power2.in' }, `drop+=${F * 0.7}`)
+    .to('#bulbStreaks', { opacity: 0, duration: F * 0.15 }, `drop+=${F * 0.85}`);
+
+  /* ---- 5a½ · the switch: a hand flips it — lights on ----------------- */
+  const switchScene = $('#sceneSwitch');
+  const hand = $('#hand');
+  gsap.set(switchScene, { autoAlpha: 0 });
+  gsap.set(hand, { y: () => window.innerHeight * 0.6 });
+  const TOUCH = 27;          // hand y where the fingertip meets the lever (down); flipping it up is 28px
+  const K = S('flick');
+  master
+    .addLabel('switch', `drop+=${F}`)
+    // Still falling after the bulb: the wall with the switch rises into view.
+    .set(switchScene, { autoAlpha: 1 }, 'switch')
+    .fromTo(switchScene, { yPercent: 100 }, { yPercent: 0, duration: S('toSwitch'), ease: 'power3.out' }, 'switch')
+    .to(bulbScene, { yPercent: -100, duration: S('toSwitch'), ease: 'power3.out' }, 'switch')
+    .addLabel('flick', `switch+=${S('toSwitch')}`)
+    .to(hand, { y: TOUCH, duration: K * 0.45, ease: 'power2.out' }, 'flick')                    // reach up
+    .to(hand, { y: TOUCH - 28, duration: K * 0.12, ease: 'power2.in' }, `flick+=${K * 0.5}`)   // push
+    .to('#switchLever', { y: 0, duration: K * 0.08, ease: 'power3.in' }, `flick+=${K * 0.54}`) // click
+    .to(lamp, { v: 1, duration: K * 0.04, onUpdate: setLamp }, `flick+=${K * 0.62}`)         // lights on
+    .fromTo('#switchHint', { autoAlpha: 0 }, { autoAlpha: 1, duration: K * 0.1 }, `flick+=${K * 0.64}`)
+    .to(hand, { y: TOUCH + 70, duration: K * 0.25, ease: 'power2.in' }, `flick+=${K * 0.74}`);
 
   /* ---- 5b · security: refused, shake, lock, through the keyhole ------ */
   const secure = $('#sceneSecure');
@@ -362,11 +452,14 @@ export function initJourney({ reduced = false } = {}) {
   };
 
   master
-    .addLabel('secure')
-    .to(code, { autoAlpha: 0, scale: 0.92, duration: S('toSecure') * 0.7, ease: 'power2.in' }, 'secure')
-    .to(secure, { autoAlpha: 1, duration: S('toSecure') * 0.5 }, `secure+=${S('toSecure') * 0.4}`)
-    .fromTo(login, { autoAlpha: 0, y: 40 }, { autoAlpha: 1, y: 0, duration: S('toSecure') * 0.5, ease: 'power3.out' }, `secure+=${S('toSecure') * 0.5}`)
-    .addLabel('denied');
+    .addLabel('secure', `flick+=${K}`)
+    .set(bulbScene, { autoAlpha: 0 }, 'secure')   // long gone above
+    // The flick whips the camera up: the switch wall drops away below, the login comes down from above.
+    .set(secure, { autoAlpha: 1, yPercent: -100 }, 'secure')
+    .to(switchScene, { yPercent: 100, duration: S('flipUp'), ease: 'power3.inOut' }, 'secure')
+    .to(secure, { yPercent: 0, duration: S('flipUp'), ease: 'power3.inOut' }, 'secure')
+    .fromTo(login, { autoAlpha: 0, y: -30 }, { autoAlpha: 1, y: 0, duration: S('flipUp') * 0.5, ease: 'power3.out' }, `secure+=${S('flipUp') * 0.5}`)
+    .addLabel('denied', `secure+=${S('flipUp')}`);
   attempt(master.labels.denied, 1);
   master
     // clear and try again…
@@ -398,6 +491,7 @@ export function initJourney({ reduced = false } = {}) {
   const climb = () => Math.max(0, riseTrack.offsetHeight - window.innerHeight);
   master
     .set(secure, { autoAlpha: 0 }, 'up')              // the keyhole's dark fills the screen: swap scenes under it
+    .to(lamp, { v: 0, duration: 0.05, onUpdate: setLamp }, 'up')   // and it's dark on the other side
     .to(rise, { autoAlpha: 1, duration: S('toRise') * 0.35 }, 'up')
     .fromTo('#riseStars', { y: 0 }, { y: () => window.innerHeight * 0.9, duration: S('toRise') + S('climb') }, 'up')
     .fromTo('.rise-head', { autoAlpha: 0, y: -30 }, { autoAlpha: 1, y: 0, duration: S('toRise') * 0.5, ease: 'power2.out' }, `up+=${S('toRise') * 0.5}`)

@@ -90,7 +90,7 @@ function gradientFill(svg, paths, id) {
   grad.id = id;
   Object.entries({ gradientUnits: 'userSpaceOnUse', x1: 0, x2: 0, y1: y, y2: y + h })
     .forEach(([k, v]) => grad.setAttribute(k, v));
-  const stops = [BLUE, BLUE, '#FFFFFF', '#FFFFFF'].map((c) => {
+  const stops = [BLUE, BLUE, 'currentColor', 'currentColor'].map((c) => {
     const s = document.createElementNS(NS, 'stop');
     s.setAttribute('stop-color', c);
     grad.append(s);

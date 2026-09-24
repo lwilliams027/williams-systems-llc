@@ -151,7 +151,7 @@ function buildIntroFill(paths, color) {
     grad.id = 'introFillGrad';
     Object.entries({ gradientUnits: 'userSpaceOnUse', x1: 0, x2: 0, y1: y, y2: y + h })
       .forEach(([k, v]) => grad.setAttribute(k, v));
-    [color, color, '#FFFFFF', '#FFFFFF'].forEach((c) => {
+    [color, color, 'currentColor', 'currentColor'].forEach((c) => {
       const stop = document.createElementNS(NS, 'stop');
       stop.setAttribute('stop-color', c);
       grad.append(stop);

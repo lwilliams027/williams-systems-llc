@@ -8,7 +8,10 @@
    13. CTA            14. Footer             15. Responsive / motion
    ===================================================================== */
 
-/* ---------- 1. Tokens ---------- */
+/* ---------- 1. Tokens ----------
+   DARK is the default theme. `html.light` flips to light mode — the journey's
+   lit lightbulb switches it on, and unscrewing the bulb switches it off again.
+   (--ink is "the page background" in both themes.) */
 :root {
   --ink:        #0B0C10;
   --ink-2:      #101218;
@@ -20,11 +23,16 @@
   --text:       #F2F3F5;
   --text-2:     #A9AFBC;
   --text-3:     #6E7585;
+  --heading:    #FFFFFF;
+  --streak:     255, 255, 255;             /* rgb of the motion streaks */
+  --panel:      rgba(16, 18, 24, 0.72);
+  --header-bg:  rgba(11, 12, 16, 0.74);
+  --floor:      #0D1117;
 
   --accent:      #007ACC;   /* VS Code blue */
   --accent-2:    #1F9CF0;
   --accent-ink:  #FFFFFF;
-  --accent-fg:   #3794FF;   /* accent-coloured text on dark */
+  --accent-fg:   #3794FF;   /* accent-coloured text (AA on white) */
   --accent-soft: rgba(0, 122, 204, 0.12);
   --accent-line: rgba(0, 122, 204, 0.32);
   --ok:          #3DDC84;
@@ -43,12 +51,38 @@
   --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
 }
 
+html.light {
+  --ink: #FFFFFF;
+  --ink-2: #F5F6F8;
+  --surface: #FFFFFF;
+  --surface-2: #EEF0F3;
+  --line: #E4E7EC99;
+  --line-solid: #E4E7EC;
+  --line-2: #D3D8DF;
+  --text: #0B0C10;
+  --text-2: #4A5160;
+  --text-3: #7A8292;
+  --heading: #0B0C10;
+  --streak: 11, 12, 16;
+  --panel: rgba(255, 255, 255, 0.88);
+  --header-bg: rgba(255, 255, 255, 0.8);
+  --floor: #F2F5F9;
+  --accent-fg: #006BB3;
+  --accent-soft: rgba(0, 122, 204, 0.10);
+  --ok: #1F9D55;
+  color-scheme: light;
+}
+
 /* ---------- 2. Base ---------- */
 *, *::before, *::after { box-sizing: border-box; }
 html {
   -webkit-text-size-adjust: 100%;
   scrollbar-gutter: stable;
   color-scheme: dark;
+}
+/* Lights out / on: colours ease over a quarter second. */
+body, .header, .scene, .journey, .scroll-cue, .fall-word, .build-panel, .rise-step, .login, .login-field {
+  transition: background-color 0.25s, color 0.25s, border-color 0.25s;
 }
 body {
   margin: 0;
@@ -148,7 +182,7 @@ h1, h2, h3, h4, p { margin: 0; }
   box-shadow: 0 14px 44px -10px rgba(0, 122, 204, 0.6);
 }
 .btn-ghost { border-color: var(--line-2); color: var(--text); }
-.btn-ghost:hover { border-color: var(--text-3); background: rgba(255, 255, 255, 0.03); }
+.btn-ghost:hover { border-color: var(--text-3); background: rgba(var(--streak), 0.04); }
 .btn-sm { padding: 11px 18px; font-size: 0.9rem; }
 .btn-lg { padding: 20px 36px; font-size: 1.1rem; }
 
@@ -191,7 +225,7 @@ h1, h2, h3, h4, p { margin: 0; }
   transition: transform 0.45s var(--ease-out), background 0.3s, border-color 0.3s, backdrop-filter 0.3s;
 }
 .header.scrolled {
-  background: rgba(11, 12, 16, 0.74);
+  background: var(--header-bg);
   backdrop-filter: blur(16px) saturate(140%);
   -webkit-backdrop-filter: blur(16px) saturate(140%);
   border-bottom-color: var(--line-solid);
@@ -207,6 +241,9 @@ h1, h2, h3, h4, p { margin: 0; }
   font-family: var(--font-display); font-weight: 700; font-size: 1.05rem; letter-spacing: -0.01em;
 }
 .brand-lockup { height: 40px; width: auto; display: block; }
+.brand-lockup.on-light { display: none; }
+html.light .brand-lockup.on-light { display: block; }
+html.light .brand-lockup.on-dark { display: none; }
 .brand-mark { display: inline-flex; align-items: center; color: var(--text); }
 .brand-mark .logo { height: 22px; width: auto; transition: color 0.25s; }
 .brand:hover .brand-mark .logo { color: var(--accent-fg); }
@@ -217,7 +254,7 @@ h1, h2, h3, h4, p { margin: 0; }
   color: var(--text-2); font-size: 0.95rem; font-weight: 500;
   transition: color 0.2s, background 0.2s;
 }
-.nav a:hover { color: var(--text); background: rgba(255, 255, 255, 0.05); }
+.nav a:hover { color: var(--text); background: rgba(var(--streak), 0.05); }
 .header-actions { display: flex; align-items: center; gap: 12px; }
 
 .menu-toggle {
@@ -361,11 +398,11 @@ h1, h2, h3, h4, p { margin: 0; }
   display: flex; flex-direction: column; align-items: center; gap: 12px;
   padding: 8px;
   z-index: 5;
-  color: rgba(255,255,255,0.85);
+  color: var(--text-2);
   visibility: hidden;   /* shown by dropCue() */
 }
 .scroll-cue-label { color: var(--text-2); letter-spacing: 0.22em; font-size: 0.7rem; }
-.scroll-cue:hover { color: #fff; }
+.scroll-cue:hover { color: var(--text); }
 .scroll-cue-arrow { display: flex; flex-direction: column; align-items: center; will-change: transform; }
 .scroll-cue-line { display: block; width: 1px; height: 36px; background: currentColor; opacity: 0.7; transform-origin: top; }
 .scroll-cue svg { margin-top: -3px; }
@@ -393,7 +430,7 @@ h1, h2, h3, h4, p { margin: 0; }
 .fall-layer { position: absolute; left: 0; right: 0; top: 0; pointer-events: none; will-change: transform; }
 .fall-line {
   position: absolute; width: 1px;
-  background: linear-gradient(to bottom, rgba(255,255,255,0), rgba(255,255,255,var(--a, 0.3)));
+  background: linear-gradient(to bottom, rgba(var(--streak), 0), rgba(var(--streak), var(--a, 0.3)));
 }
 .fall-line.blue { background: linear-gradient(to bottom, rgba(55,148,255,0), rgba(55,148,255,var(--a, 0.3))); }
 .fall-word {
@@ -407,7 +444,7 @@ h1, h2, h3, h4, p { margin: 0; }
   position: absolute; white-space: nowrap;
   font-family: var(--font-display); font-weight: 800; letter-spacing: -0.03em;
   font-size: clamp(4rem, 15vw, 14rem); line-height: 1;
-  color: transparent; -webkit-text-stroke: 1px rgba(255,255,255,0.08);
+  color: transparent; -webkit-text-stroke: 1px rgba(var(--streak), 0.1);
 }
 
 .faller {
@@ -445,7 +482,7 @@ h1, h2, h3, h4, p { margin: 0; }
 .landing-title {
   font-family: var(--font-serif); font-style: italic; font-weight: 400;
   font-size: clamp(2.4rem, 6vw, 5.2rem); line-height: 1; letter-spacing: -0.015em;
-  color: #fff; max-width: 14ch;
+  color: var(--heading); max-width: 14ch;
   visibility: hidden;   /* revealed line by line by the fall */
 }
 .landing-sub { color: var(--text-2); max-width: 42ch; font-size: clamp(1rem, 1.4vw, 1.2rem); }
@@ -481,7 +518,8 @@ h1, h2, h3, h4, p { margin: 0; }
   width: clamp(270px, 30vw, 400px); min-height: min(60vh, 470px);
   padding: clamp(24px, 2.4vw, 34px);
   border: 1px solid rgba(55,148,255,0.25); border-radius: 18px;
-  background: rgba(16,18,24,0.72);
+  box-shadow: 0 20px 50px -30px rgba(11,12,16,0.25);
+  background: var(--panel);
   display: flex; flex-direction: column; gap: 16px;
 }
 .build-num { color: var(--accent-fg); }
@@ -523,7 +561,7 @@ h1, h2, h3, h4, p { margin: 0; }
 /* The desk the windows lie on in the top-down view. */
 .flip-floor {
   position: absolute; left: -220%; right: -220%; top: -220%; bottom: -220%;   /* still covers the screen at desk scale */
-  background-color: #0D1117;
+  background-color: var(--floor);
   background-image:
     linear-gradient(rgba(55,148,255,0.10) 1px, transparent 1px),
     linear-gradient(90deg, rgba(55,148,255,0.10) 1px, transparent 1px);
@@ -603,6 +641,59 @@ h1, h2, h3, h4, p { margin: 0; }
 .ms-cta h5 { color: #fff; margin-bottom: 16px; }
 .ms-foot { display: flex; gap: 20px; padding: 18px 32px 26px; border-top: 1px solid #EEF0F3; font-size: 0.75rem; color: #8B93A7; }
 
+/* Mini website: dark mode (the lightbulb switches it). */
+.site-body, .site-body * { transition: background-color 0.35s, color 0.35s, border-color 0.35s, box-shadow 0.35s; }
+.site-body.dark { background: #0F1115; color: #E6E8EC; }
+.site-body.dark .ms-nav, .site-body.dark .ms-logos, .site-body.dark .ms-foot { border-color: #232833; color: #8B93A7; }
+.site-body.dark .ms-logo, .site-body.dark .ms-card b, .site-body.dark .ms-price b, .site-body.dark .ms-price strong { color: #FFFFFF; }
+.site-body.dark .ms-hero > p, .site-body.dark .ms-card, .site-body.dark .ms-price { color: #9AA3B5; }
+.site-body.dark .ms-btn.ghost { color: #E6E8EC; box-shadow: inset 0 0 0 1px #343A47; }
+.site-body.dark .ms-shot { background: #161A22; border-color: #262B36; }
+.site-body.dark .ms-shot .side, .site-body.dark .ms-shot .bar { background: #262B36; }
+.site-body.dark .ms-logos { color: #4F5767; }
+.site-body.dark .ms-card, .site-body.dark .ms-price { border-color: #262B36; background: #141820; }
+.site-body.dark .ms-cta { background: #1B2233; }
+
+/* ---------- Journey · customization (unscrew → lights out → fall) ---------- */
+.scene-bulb { --cord: 18vh; }
+.bulb-streaks { position: absolute; left: 0; right: 0; top: 0; height: 320%; pointer-events: none; opacity: 0; will-change: transform; }
+.bulb-rig {
+  position: absolute; left: 50%; top: 0; z-index: 2;
+  width: 120px; margin-left: -60px;
+  display: flex; flex-direction: column; align-items: center;
+  will-change: transform;
+}
+.bulb-ceiling { width: 120px; height: 10px; border-radius: 0 0 8px 8px; background: var(--text-3); }
+.bulb-cord { width: 2px; height: var(--cord); background: var(--text-3); }
+.bulb-socket { width: 40px; height: 30px; border-radius: 6px 6px 3px 3px; background: #3A4050; }
+.bulb-glow {
+  position: absolute; left: 50%; top: calc(var(--cord) + 90px);
+  width: 90vmin; height: 90vmin; margin: -45vmin 0 0 -45vmin;
+  background: radial-gradient(circle, rgba(255,205,90,0.55), rgba(255,205,90,0.16) 32%, transparent 62%);
+  pointer-events: none; z-index: -1;
+}
+.bulb {
+  position: absolute; left: 50%; z-index: 3;
+  top: calc(var(--cord) + 40px - 4px);   /* base sits up inside the socket */
+  width: 72px; margin-left: -36px;
+  transform-origin: 50% 40%;
+  will-change: transform;
+}
+.bulb-svg { display: block; width: 100%; height: auto; overflow: visible; }
+.bulb-glass { fill: #FFF3C4; stroke: #F2C94C; stroke-width: 1.5; }
+.bulb-fil { fill: none; stroke: #F59E0B; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.bulb-copy {
+  position: absolute; z-index: 4;
+  left: max(var(--gutter), calc((100vw - var(--container)) / 2)); bottom: 10vh;
+  max-width: 32ch;
+}
+.bulb-title {
+  margin: 10px 0 8px;
+  font-family: var(--font-serif); font-style: italic; font-weight: 400;
+  font-size: clamp(2.2rem, 5vw, 4.4rem); line-height: 1; color: var(--heading);
+}
+.bulb-sub { color: var(--text-2); font-size: 1rem; }
+
 /* SaaS dashboard mock */
 .saas-body { display: flex; background: #141820; }
 .saas-body aside { width: 64px; background: #10131A; border-right: 1px solid #262B36; padding: 18px 16px; display: flex; flex-direction: column; gap: 16px; }
@@ -669,6 +760,39 @@ h1, h2, h3, h4, p { margin: 0; }
 .term-line.ok { color: var(--ok); }
 .code-caption { position: absolute; left: var(--gutter); bottom: 26px; }
 
+/* ---------- Journey · the light switch ---------- */
+.scene-switch { display: grid; place-items: center; }
+.switch-plate {
+  position: relative; z-index: 2;
+  width: 96px; height: 150px; border-radius: 14px;
+  background: linear-gradient(160deg, #F4F5F7, #D9DCE2);
+  box-shadow: 0 30px 60px rgba(0,0,0,0.5), inset 0 1px 0 #fff;
+  display: flex; flex-direction: column; align-items: center; justify-content: space-between;
+  padding: 14px 0;
+}
+.switch-screw { width: 8px; height: 8px; border-radius: 50%; background: #B4B9C3; box-shadow: inset 0 1px 1px rgba(0,0,0,0.3); }
+.switch-slot {
+  width: 30px; height: 62px; border-radius: 6px;
+  background: #1E2129; box-shadow: inset 0 3px 6px rgba(0,0,0,0.6);
+  display: flex; justify-content: center; padding: 4px 0;
+}
+.switch-lever {
+  display: block; width: 22px; height: 26px; border-radius: 4px;
+  background: linear-gradient(#FFFFFF, #CDD1D8);
+  box-shadow: 0 2px 3px rgba(0,0,0,0.4);
+  transform: translateY(28px);   /* down = off; journey.js flips it up */
+}
+.hand {
+  position: absolute; left: 50%; top: 50%; z-index: 3;
+  width: 120px; margin-left: -33px;   /* the index finger (x≈38 of 140) sits on the lever */
+  overflow: visible; will-change: transform;
+}
+.hand-skin { fill: #E6B48F; stroke: #B77F57; stroke-width: 2; }
+.hand-nail { fill: #F3D2BB; }
+.hand-line { fill: none; stroke: #B77F57; stroke-width: 2; stroke-linecap: round; }
+.hand-cuff { fill: var(--accent); }
+.switch-hint { position: absolute; left: 0; right: 0; top: calc(50% - 130px); text-align: center; color: var(--text-2); opacity: 0; }
+
 /* ---------- 6d½. Journey · security (denied → lock → keyhole) ---------- */
 .secure-flash {
   position: absolute; inset: 0; z-index: 6; pointer-events: none; opacity: 0;
@@ -702,11 +826,11 @@ h1, h2, h3, h4, p { margin: 0; }
 .lock-wrap { width: min(44vw, 210px); z-index: 2; will-change: transform; }
 .lock { display: block; width: 100%; height: auto; overflow: visible; color: #C9CFDA; will-change: transform; }
 .lock-body { fill: #1C2029; stroke: var(--accent); stroke-width: 3; }
-.lock-hole { fill: var(--ink); }
+.lock-hole { fill: #0B0C10; }   /* always dark: the camera flies into it */
 .secure-copy { display: flex; flex-direction: column; align-items: center; gap: 14px; text-align: center; max-width: 46ch; padding: 0 var(--gutter); }
 .secure-title {
   font-family: var(--font-serif); font-style: italic; font-weight: 400;
-  font-size: clamp(2.2rem, 5vw, 4rem); line-height: 1; color: #fff;
+  font-size: clamp(2.2rem, 5vw, 4rem); line-height: 1; color: var(--heading);
 }
 .secure-sub { color: var(--text-2); }
 .secure-copy .chips { justify-content: center; }
@@ -714,7 +838,7 @@ h1, h2, h3, h4, p { margin: 0; }
 /* ---------- 6e. Journey · rise (up, 3D flips) ---------- */
 .scene-rise { perspective: 1100px; }
 .rise-stars { position: absolute; left: 0; right: 0; top: -100%; height: 200%; pointer-events: none; }
-.rise-star { position: absolute; width: 2px; height: 2px; border-radius: 50%; background: #fff; opacity: var(--a, 0.4); }
+.rise-star { position: absolute; width: 2px; height: 2px; border-radius: 50%; background: var(--text); opacity: var(--a, 0.4); }
 .rise-head {
   position: absolute; z-index: 3;
   left: max(var(--gutter), calc((100vw - var(--container)) / 2));
@@ -724,7 +848,7 @@ h1, h2, h3, h4, p { margin: 0; }
 .rise-title {
   margin-top: 12px;
   font-family: var(--font-serif); font-style: italic; font-weight: 400;
-  font-size: clamp(2.2rem, 4.6vw, 4.2rem); line-height: 1; color: #fff;
+  font-size: clamp(2.2rem, 4.6vw, 4.2rem); line-height: 1; color: var(--heading);
 }
 .rise-rail { position: absolute; left: 50%; top: 0; bottom: 0; width: 1px; background: var(--line-2); z-index: 1; }
 .rise-rail i { position: absolute; inset: 0; background: var(--accent); transform: scaleY(0); transform-origin: 50% 100%; }
@@ -751,7 +875,7 @@ h1, h2, h3, h4, p { margin: 0; }
 .end-mark { width: min(40vw, 170px); height: auto; color: var(--text); }
 .end-title {
   font-family: var(--font-serif); font-style: italic; font-weight: 400;
-  font-size: clamp(2.8rem, 7vw, 6rem); line-height: 1; color: #fff;
+  font-size: clamp(2.8rem, 7vw, 6rem); line-height: 1; color: var(--heading);
 }
 .end-sub { color: var(--text-2); max-width: 44ch; font-size: clamp(1rem, 1.4vw, 1.2rem); }
 .end-foot { position: absolute; left: 0; right: 0; bottom: 22px; color: var(--text-3); font-size: 0.64rem; }
@@ -792,6 +916,8 @@ h1, h2, h3, h4, p { margin: 0; }
 .journey-static .flip-floor { display: none; }
 .journey-static .win { position: relative; opacity: 1; width: min(1100px, 100%); height: min(70vh, 620px); }
 .journey-static .login { display: none; }
+.journey-static .bulb-streaks { display: none; }
+.journey-static .bulb-copy { position: relative; left: auto; bottom: auto; margin: 50vh auto 0; text-align: center; }
 .journey-static .pass-dots { clip-path: none; }
 .journey-static .code-ch { visibility: visible; }
 
@@ -1095,7 +1221,7 @@ fieldset.field .field-label { margin-bottom: 8px; }
   display: grid; place-items: center; color: var(--text-3);
   transition: background 0.2s, color 0.2s;
 }
-.file-remove:hover { background: rgba(255, 255, 255, 0.06); color: var(--text); }
+.file-remove:hover { background: rgba(var(--streak), 0.06); color: var(--text); }
 .file-remove:disabled { opacity: 0.3; cursor: default; }
 
 .hp { position: absolute; left: -10000px; width: 1px; height: 1px; overflow: hidden; }
@@ -1182,3 +1308,5 @@ fieldset.field .field-label { margin-bottom: 8px; }
   .scroll-cue { display: none; }
   * { transition-duration: 0.01ms !important; }
 }
+
+.journey-static .hand, .journey-static .switch-hint { display: none; }

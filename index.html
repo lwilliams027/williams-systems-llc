@@ -38,7 +38,8 @@
   <header class="header" id="header">
     <div class="header-inner">
       <a href="#top" class="brand" aria-label="Williams Systems LLC — home">
-        <img class="brand-lockup" src="/brand/logo-horizontal-white.svg" alt="Williams Systems LLC" width="252" height="40" />
+        <img class="brand-lockup on-light" src="/brand/logo-horizontal-black.svg" alt="Williams Systems LLC" width="252" height="40" />
+        <img class="brand-lockup on-dark" src="/brand/logo-horizontal-white.svg" alt="" aria-hidden="true" width="252" height="40" />
       </a>
 
       <a href="mailto:adapter127@gmail.com?subject=Free%20quote%20request" class="btn btn-primary btn-sm" data-magnetic>Get a free quote</a>
@@ -252,6 +253,60 @@
           <p class="scene-eyebrow mono code-caption" id="codeCaption">02 · How it comes together</p>
         </div>
 
+        <!-- 3a · Customization: the bulb unscrews, the lights go out (the whole
+             site flips to dark mode), and it falls — the camera follows it down. -->
+        <div class="scene scene-bulb scene-later" id="sceneBulb">
+          <div class="bulb-streaks" id="bulbStreaks" aria-hidden="true"></div>
+
+          <div class="bulb-rig" id="bulbRig" aria-hidden="true">
+            <span class="bulb-ceiling"></span>
+            <span class="bulb-cord"></span>
+            <span class="bulb-socket"></span>
+            <div class="bulb-glow" id="bulbGlow"></div>
+          </div>
+
+          <div class="bulb" id="bulb" aria-hidden="true">
+            <svg class="bulb-svg" viewBox="0 0 80 120">
+              <defs>
+                <pattern id="bulbThreads" width="8" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(-18)">
+                  <rect width="8" height="6" fill="#9AA1B0"/><rect width="8" height="2.4" fill="#5C6373"/>
+                </pattern>
+              </defs>
+              <rect x="27" y="0" width="26" height="22" rx="3" fill="url(#bulbThreads)"/>
+              <path class="bulb-glass" id="bulbGlass" d="M29 22v3c0 4-2 8.3-6 11.3A30 30 0 1 0 57 36.3c-4-3-6-7.3-6-11.3v-3Z"/>
+              <path class="bulb-fil" id="bulbFil" d="M33 44l4 14 3-8 3 8 4-14"/>
+            </svg>
+          </div>
+
+          <div class="bulb-copy" id="bulbCopy">
+            <p class="scene-eyebrow mono">03 · Customization</p>
+            <h2 class="bulb-title">Make it yours.</h2>
+            <p class="bulb-sub">Light mode or dark mode, your brand and your colors. Every build is shaped around you.</p>
+          </div>
+        </div>
+
+        <!-- 3a½ · The switch: following the bulb down, the camera lands on a wall
+             switch in the dark. A hand flips it — lights on — and the flick whips
+             the camera up to the login page. -->
+        <div class="scene scene-switch scene-later" id="sceneSwitch">
+          <div class="switch-plate" id="switchPlate" aria-hidden="true">
+            <span class="switch-screw"></span>
+            <span class="switch-slot"><i class="switch-lever" id="switchLever"></i></span>
+            <span class="switch-screw"></span>
+          </div>
+          <svg class="hand" id="hand" viewBox="0 0 140 300" aria-hidden="true">
+            <rect class="hand-skin" x="14" y="108" width="112" height="162" rx="32"/>
+            <circle class="hand-skin" cx="118" cy="132" r="13"/>
+            <circle class="hand-skin" cx="98" cy="118" r="14"/>
+            <circle class="hand-skin" cx="74" cy="112" r="14"/>
+            <rect class="hand-skin" x="22" y="2" width="32" height="150" rx="16"/>
+            <path class="hand-nail" d="M28 20a10 10 0 0 1 20 0v12H28Z"/>
+            <rect class="hand-skin" x="28" y="176" width="70" height="28" rx="14" transform="rotate(-22 63 190)"/>
+            <rect class="hand-cuff" x="20" y="262" width="100" height="40" rx="6"/>
+          </svg>
+          <p class="switch-hint mono" id="switchHint">Lights on.</p>
+        </div>
+
         <!-- 3b · Security: a sign-in is refused (the screen shakes), a padlock
              rises and locks, then the camera flies through the keyhole. -->
         <div class="scene scene-secure scene-later" id="sceneSecure">
@@ -274,7 +329,7 @@
             </div>
 
             <div class="secure-copy" id="secureCopy">
-              <p class="scene-eyebrow mono">03 · Security</p>
+              <p class="scene-eyebrow mono">04 · Security</p>
               <h2 class="secure-title">Locked down from day one.</h2>
               <p class="secure-sub">Encryption, role-based access, audit logs, and backups are built in, not bolted on.</p>
               <ul class="chips"><li>TLS everywhere</li><li>Role-based access</li><li>Audit logs</li><li>Nightly backups</li></ul>
@@ -286,7 +341,7 @@
         <div class="scene scene-rise scene-later" id="sceneRise">
           <div class="rise-stars" id="riseStars" aria-hidden="true"></div>
           <div class="rise-head">
-            <p class="scene-eyebrow mono">04 · How we work</p>
+            <p class="scene-eyebrow mono">05 · How we work</p>
             <h2 class="rise-title">From first call to launch.</h2>
           </div>
           <div class="rise-rail" aria-hidden="true"><i id="riseFill"></i></div>
