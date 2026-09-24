@@ -20,7 +20,10 @@
      5b. secure    a sign-in is refused (screen shakes), a padlock rises, and
                    the camera flies through the keyhole
      6. rise    ↑  an elevator ride up five floors: the step counter rolls 01 → 05
-     7. end     ⊖  zoom out onto the call to action
+     6b. quotes    client testimonials on a 3D carousel that turns with the scroll
+     7. finale  ✦  the last step dissolves into a starfield; it warps, the stars
+                   swirl into the logo, the headline flies together letter by
+                   letter and the services orbit the mark
 
    Chapter lengths live in LEN (in screens of scroll). Lower = more sensitive.
    ===================================================================== */
@@ -28,9 +31,11 @@ import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { DrawSVGPlugin } from 'gsap/DrawSVGPlugin';
 import { ScrambleTextPlugin } from 'gsap/ScrambleTextPlugin';
+import { SplitText } from 'gsap/SplitText';
 import { buildFall } from './fall.js';
+import { createFinale } from './finale.js';
 
-gsap.registerPlugin(ScrollTrigger, DrawSVGPlugin, ScrambleTextPlugin);
+gsap.registerPlugin(ScrollTrigger, DrawSVGPlugin, ScrambleTextPlugin, SplitText);
 
 const $  = (sel, root = document) => root.querySelector(sel);
 const $$ = (sel, root = document) => Array.from(root.querySelectorAll(sel));
@@ -60,8 +65,13 @@ const LEN = {             // chapter lengths, in screens of scroll
   keyhole: 0.9,           // fly through the keyhole
   toRise:  0.7,           // out the other side into the climb
   climb:   2.0,           // the elevator ride: five floors, one step each
-  out:     0.7,           // zoom out onto the call to action
-  hold:    0.25,
+  toQuotes: 0.7,          // the last step gives way to the testimonials carousel
+  quotes:  2.4,           // the carousel turns, one client quote to the front at a time
+  toEnd:   0.7,           // the testimonials dissolve into the starfield
+  warp:    0.9,           // the starfield warps
+  form:    1.4,           // the stars swirl in and assemble the logo
+  reveal:  1.0,           // headline flies together, services orbit, call to action
+  hold:    0.5,
 };
 const S = (k) => LEN[k] * SCREEN;
 const SCRUB = 0.7;        // seconds the animation lags the scroll (lower = snappier)
@@ -332,8 +342,9 @@ export function initJourney({ reduced = false } = {}) {
     master
       .fromTo($$('.build-icon path, .build-icon rect', panel), { drawSVG: '0%' },
         { drawSVG: '100%', duration: 0.2 * S('strip'), stagger: 0.012 * S('strip'), ease: 'power1.inOut' }, at)
-      .to(name, { scrambleText: { text: name.dataset.text, chars: 'upperCase', speed: 0.5, revealDelay: 0.3 },
-        duration: 0.18 * S('strip') }, at + 0.04 * S('strip'))
+      // Short and with no reveal delay: the letters lock in almost immediately, left to right.
+      .to(name, { scrambleText: { text: name.dataset.text, chars: 'upperCase', speed: 1, revealDelay: 0 },
+        duration: 0.06 * S('strip') }, at)
       .fromTo($$('p, .chips, .build-num', panel), { autoAlpha: 0, y: 16 },
         { autoAlpha: 1, y: 0, duration: 0.12 * S('strip'), stagger: 0.02 * S('strip'), ease: 'power2.out' }, at + 0.06 * S('strip'));
   });
@@ -550,51 +561,125 @@ export function initJourney({ reduced = false } = {}) {
     .to(lockWrap, { y: keyholeShift, duration: S('keyhole') * 0.4, ease: 'power2.inOut' }, 'keyhole')
     .fromTo(zoomCam, { p: 0 }, { p: 1, duration: S('keyhole'), ease: 'power2.in', onUpdate: renderLockZoom }, `keyhole+=${S('keyhole') * 0.15}`);
 
-  /* ---- 6 · out through the keyhole into the elevator ride ------------ */
-  // Rising floor by floor: the counter rolls 01 → 05, one step shows at a time
-  // (the next drops in from above as you pass its floor), floors slide past
-  // below you and the panel lights fill bottom-up. Counting up while going up.
+  /* ---- 6 · out through the keyhole: how we work, one step per screen -- */
+  // The camera keeps rising: each step arrives from above and the last one
+  // drops away below. Its line art draws itself, a giant outlined word drifts
+  // behind it, and the progress bar along the bottom fills left → right.
   master.addLabel('up', `keyhole+=${S('keyhole') * 1.15}`);
   gsap.set(rise, { autoAlpha: 0 });
-  buildFloors();
-  const steps = $$('.rise-step', rise);
-  const panel = $$('#risePanel li').reverse();                // [01 … 05], bottom-up
-  const lightPanel = (n) => panel.forEach((li, i) => li.classList.toggle('on', i <= n));
-  const floor = { n: 0 };
-  const setFloor = () => lightPanel(Math.round(floor.n));
-  lightPanel(0);
-  gsap.set(steps, { yPercent: -50, y: -50, autoAlpha: 0 });
-  gsap.set(steps[0], { y: 0, autoAlpha: 1 });
-  gsap.set('#riseDigits', { yPercent: -80 });                  // five numbers, 05 … 01: show 01
+  const steps = $$('.rstep', rise);
+  const prog = $$('#riseProgress li');
+  const setActive = (n) => prog.forEach((li, i) => { li.classList.toggle('done', i < n); li.classList.toggle('on', i === n); });
+  const stepAt = { n: 0 };
+  const onStep = () => setActive(Math.round(stepAt.n));
+  setActive(0);
+  gsap.set(steps, { yPercent: -100 });
+  gsap.set(steps[0], { yPercent: 0 });
 
   master
     .set(secure, { autoAlpha: 0 }, 'up')              // the keyhole's dark fills the screen: swap scenes under it
     .to(lamp, { v: 0, duration: 0.05, onUpdate: setLamp }, 'up')   // and it's dark on the other side
     .to(rise, { autoAlpha: 1, duration: S('toRise') * 0.35 }, 'up')
     .fromTo('#riseStars', { y: 0 }, { y: () => window.innerHeight * 0.9, duration: S('toRise') + S('climb') }, 'up')
-    .fromTo('.rise-head', { autoAlpha: 0, y: -30 }, { autoAlpha: 1, y: 0, duration: S('toRise') * 0.5, ease: 'power2.out' }, `up+=${S('toRise') * 0.5}`)
-    .fromTo('.rise-stage', { autoAlpha: 0, y: 30 }, { autoAlpha: 1, y: 0, duration: S('toRise') * 0.5, ease: 'power2.out' }, `up+=${S('toRise') * 0.6}`)
+    .fromTo('.rise-head', { autoAlpha: 0, y: -30 }, { autoAlpha: 1, y: 0, duration: S('toRise') * 0.5, ease: 'power2.out' }, `up+=${S('toRise') * 0.4}`)
+    .fromTo('.rise-progress', { autoAlpha: 0 }, { autoAlpha: 1, duration: S('toRise') * 0.4 }, `up+=${S('toRise') * 0.5}`)
     .addLabel('climb', `up+=${S('toRise')}`)
-    .fromTo('#riseFloors', { y: 0 }, { y: () => window.innerHeight * 4, duration: S('climb') }, 'climb');
+    // The chapter title introduces the section, then steps aside for the steps.
+    .to('.rise-title', { autoAlpha: 0, y: -20, duration: S('climb') * 0.06 }, `climb+=${S('climb') * 0.1}`);
 
-  const C = S('climb');
-  for (let k = 1; k < steps.length; k++) {
-    const at = master.labels.climb + (k - 0.5) * (C / 4.4);
+  const C = S('climb'), slot = C / steps.length;
+  steps.forEach((st, k) => {
+    const at = master.labels.climb + k * slot;
+    if (k > 0) {
+      master
+        .to(steps[k - 1], { yPercent: 100, duration: slot * 0.32, ease: 'power2.inOut' }, at)
+        .fromTo(st, { yPercent: -100 }, { yPercent: 0, duration: slot * 0.32, ease: 'power2.inOut' }, at)
+        .to('#riseFill', { scaleX: (k + 1) / steps.length, duration: slot * 0.3, ease: 'power2.inOut' }, at)
+        .to(stepAt, { n: k, duration: slot * 0.02, onUpdate: onStep }, at + slot * 0.16);
+    }
+    const show = k === 0 ? master.labels.up + S('toRise') * 0.35 : at + slot * 0.18;
     master
-      .to(steps[k - 1], { y: 60, autoAlpha: 0, duration: C * 0.06, ease: 'power2.in' }, at)
-      .fromTo(steps[k], { y: -60, autoAlpha: 0 }, { y: 0, autoAlpha: 1, duration: C * 0.08, ease: 'power3.out' }, at + C * 0.04)
-      .to('#riseDigits', { yPercent: -80 + k * 20, duration: C * 0.08, ease: 'power3.inOut' }, at)
-      .to(floor, { n: k, duration: C * 0.02, onUpdate: setFloor }, at + C * 0.04);
+      .fromTo($$('.rstep-art > *:not(g), .rstep-art g > *', st), { drawSVG: '0%' },
+        { drawSVG: '100%', duration: slot * 0.45, stagger: slot * 0.035, ease: 'power1.inOut' }, show)
+      .fromTo($$('.rstep-copy > *', st), { autoAlpha: 0, y: 26 },
+        { autoAlpha: 1, y: 0, duration: slot * 0.25, stagger: slot * 0.05, ease: 'power3.out' }, show + slot * 0.05)
+      .fromTo($('.rstep-bg', st), { xPercent: 10 }, { xPercent: -10, duration: slot * 1.3 }, show - slot * 0.1);
+  });
+
+  // Launch: the rocket lifts off (flame flickers as it goes).
+  const rocketAt = master.labels.climb + 3 * slot + slot * 0.6;
+  master
+    .to('.rstep-rocket', { y: -46, duration: slot * 0.35, ease: 'power2.in' }, rocketAt)
+    .to('.rstep-flame', { keyframes: { scaleY: [1, 1.5, 1.1, 1.7, 1.3] }, transformOrigin: '50% 0%', duration: slot * 0.35 }, rocketAt);
+
+  /* ---- 6b · testimonials: a 3D carousel that turns with the scroll ---- */
+  const quotesScene = $('#sceneQuotes');
+  const ring = $('#quotesRing');
+  const quotes = $$('.quote', ring);
+  const qDots = $$('#quotesDots li');
+  const NQ = quotes.length, STEP = 360 / NQ;
+  const ringState = { rot: 0 };
+  const placeQuotes = () => {
+    const w = ring.offsetWidth;
+    const R = ((w / 2) / Math.tan(Math.PI / NQ)) * 1.15;   // ring radius that fits the cards side by side
+    let front = 0, best = 1e9;
+    quotes.forEach((q, i) => {
+      const a = i * STEP + ringState.rot;                   // this card's angle away from the viewer
+      const norm = ((a % 360) + 540) % 360 - 180;           // -180…180, 0 = facing you
+      const facing = Math.cos((norm * Math.PI) / 180);      // 1 = front, -1 = back
+      q.style.transform = `rotateY(${a}deg) translateZ(${R}px)`;
+      q.style.opacity = String(Math.max(0.1, ((facing + 1) / 2) ** 1.8));
+      if (Math.abs(norm) < best) { best = Math.abs(norm); front = i; }
+    });
+    ring.style.transform = `translateZ(${-R}px)`;          // the front card sits at normal size
+    qDots.forEach((d, i) => d.classList.toggle('on', i === front));
+  };
+  gsap.set(quotesScene, { autoAlpha: 0 });
+  placeQuotes();
+  const TQ = S('toQuotes'), QN = S('quotes'), slotQ = QN / NQ;
+  master
+    .addLabel('quotes', `climb+=${S('climb')}`)
+    .to(rise, { autoAlpha: 0, scale: 0.94, duration: TQ * 0.6, ease: 'power2.in' }, 'quotes')
+    .fromTo(quotesScene, { autoAlpha: 0 }, { autoAlpha: 1, duration: TQ * 0.5 }, `quotes+=${TQ * 0.35}`)
+    .fromTo(ringState, { rot: 80 }, { rot: 0, duration: TQ, ease: 'power3.out', onUpdate: placeQuotes }, `quotes+=${TQ * 0.3}`)
+    .fromTo('.quotes-head', { autoAlpha: 0, y: -30 }, { autoAlpha: 1, y: 0, duration: TQ * 0.5, ease: 'power2.out' }, `quotes+=${TQ * 0.5}`);
+  for (let k = 1; k < NQ; k++) {
+    master.to(ringState, { rot: -STEP * k, duration: slotQ * 0.55, ease: 'power2.inOut', onUpdate: placeQuotes },
+      master.labels.quotes + TQ + (k - 1) * slotQ + slotQ * 0.4);
   }
 
-  /* ---- 7 · zoom out onto the call to action -------------------------- */
-  master.addLabel('out', `climb+=${S('climb')}`);
+  /* ---- 7 · finale ------------------------------------------------------ */
+  const fin = createFinale({ canvas: $('#endCanvas'), mark: $('#endMark'), orbit: $('#endOrbit'), stage, scene: end });
+  const titleSplit = SplitText.create('#endTitle', { type: 'chars', charsClass: 'char' });
+  gsap.set(end, { autoAlpha: 0 });
+  gsap.set(['.end-sub', '.end-cta', '.end-foot'], { autoAlpha: 0, y: 24 });
+  gsap.set(titleSplit.chars, { autoAlpha: 0 });
+  const E = S('toEnd'), RV = S('reveal');
+  const rnd = gsap.utils.random;
+
   master
-    .to(rise, { scale: 0.55, borderRadius: 32, autoAlpha: 0, duration: S('out'), ease: 'power2.inOut' }, 'out')
-    .fromTo(end, { autoAlpha: 0, scale: 1.12 }, { autoAlpha: 1, scale: 1, duration: S('out') * 0.8, ease: 'power2.out' }, `out+=${S('out') * 0.2}`)
-    .fromTo(['.end-mark', '.end-title', '.end-sub', '#sceneEnd .btn'], { autoAlpha: 0, y: 30 },
-      { autoAlpha: 1, y: 0, duration: S('out') * 0.4, stagger: S('out') * 0.1, ease: 'power3.out' }, `out+=${S('out') * 0.45}`)
+    // The testimonials fall away and the stars take over.
+    .addLabel('out', `quotes+=${TQ + QN}`)
+    .to(quotesScene, { autoAlpha: 0, scale: 0.94, duration: E * 0.6, ease: 'power2.in' }, 'out')
+    .fromTo(end, { autoAlpha: 0 }, { autoAlpha: 1, duration: E * 0.6, ease: 'power1.out' }, `out+=${E * 0.35}`)
+    // Warp: the stars stretch into streaks and back.
+    .addLabel('warp', `out+=${E}`)
+    .fromTo(fin.P, { warp: 0 }, { warp: 1, duration: S('warp'), ease: 'power1.inOut' }, 'warp')
+    // The stars swirl in and assemble the logo; the solid mark settles over them.
+    .addLabel('form', `warp+=${S('warp')}`)
+    .fromTo(fin.P, { form: 0 }, { form: 1, duration: S('form') }, 'form')
+    .fromTo(fin.P, { orbitIn: 0 }, { orbitIn: 1, duration: S('form') * 0.3 }, `form+=${S('form') * 0.7}`)
+    .fromTo(fin.P, { orbit: 0 }, { orbit: 1, duration: S('form') * 0.3 + RV + S('hold') }, `form+=${S('form') * 0.7}`)
+    // The headline flies together letter by letter, then the call to action.
+    .addLabel('reveal', `form+=${S('form')}`)
+    .fromTo(titleSplit.chars,
+      { autoAlpha: 0, x: () => rnd(-320, 320), y: () => rnd(-220, 220), z: () => rnd(-700, 150), rotationX: () => rnd(-120, 120), rotationY: () => rnd(-90, 90) },
+      { autoAlpha: 1, x: 0, y: 0, z: 0, rotationX: 0, rotationY: 0, duration: RV * 0.6, stagger: RV * 0.025, ease: 'power3.out' }, 'reveal')
+    .to(['.end-sub', '.end-cta'], { autoAlpha: 1, y: 0, duration: RV * 0.3, stagger: RV * 0.1, ease: 'power3.out' }, `reveal+=${RV * 0.55}`)
+    .to('.end-foot', { autoAlpha: 1, y: 0, duration: RV * 0.25 }, `reveal+=${RV * 0.75}`)
     .to({}, { duration: S('hold') });
+
+  master.eventCallback('onUpdate', () => { rig.render(); fin.render(); });
 
   if (import.meta.env.DEV) window.__journey = master;   // for tuning in the console
 
@@ -607,9 +692,10 @@ export function initJourney({ reduced = false } = {}) {
     scrub: SCRUB,
     anticipatePin: 1,
     invalidateOnRefresh: true,
-    onRefresh: rig.render,
+    onRefresh: () => { rig.render(); fin.resize(); placeQuotes(); },
   });
   rig.render();
+  fin.resize();
 
   // Clicking "Scroll to get started" plays the fall for you.
   $('#scrollCue')?.addEventListener('click', () => {

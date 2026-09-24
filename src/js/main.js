@@ -55,7 +55,7 @@ function initMotion() {
 
 /** Wait for the display/body/mono fonts so SplitText measures real lines. */
 function waitForFonts() {
-  const loads = ['700 1em Syne', '400 1em Inter', '400 1em "JetBrains Mono"', 'italic 400 1em "Instrument Serif"']
+  const loads = ['700 1em "Inter Tight"', '600 1em "Inter Tight"', '400 1em Inter', '400 1em "JetBrains Mono"']
     .map((f) => document.fonts.load(f).catch(() => {}));
   const timeout = new Promise((r) => setTimeout(r, 2500));
   return Promise.race([Promise.all(loads).then(() => document.fonts.ready), timeout]);

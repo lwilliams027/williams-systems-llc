@@ -9,7 +9,7 @@
   <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@500;600;700;800&family=Instrument+Serif:ital@0;1&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@500;600;700;800&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="/src/styles/main.css" />
   <script>
     // Mark JS as available (animation-ready states) and decide whether the
@@ -62,6 +62,8 @@
 
         <!-- 1 · Fall -->
         <div class="scene scene-fall fall-stage" id="fall">
+          <!-- Hero photo: a PLACEHOLDER for testing (public/hero/placeholder.jpg). Fades out as the fall starts. -->
+          <div class="fall-hero-media" id="fallHeroMedia" aria-hidden="true"><img src="/hero/placeholder.jpg" alt="" width="1920" height="1080" fetchpriority="high" /></div>
           <div class="faller" id="faller" aria-hidden="true">
             <div class="faller-trail"></div>
             <div class="faller-ring"></div>
@@ -340,52 +342,140 @@
           </svg>
         </div>
 
-        <!-- 4 · Rise (up): an elevator ride. The camera rises floor by floor; the
-             counter rolls 01 → 05, one step shows at a time and the next one drops
-             in from above as you pass its floor. The panel lights fill bottom-up. -->
+        <!-- 4 · How we work (the camera keeps rising): one step per screen. Each new
+             step arrives from above; its line illustration draws itself, a giant
+             outlined word drifts behind it, and the progress bar fills left → right. -->
         <div class="scene scene-rise scene-later" id="sceneRise">
           <div class="rise-stars" id="riseStars" aria-hidden="true"></div>
-          <div class="rise-floors" id="riseFloors" aria-hidden="true"></div>
           <div class="rise-head">
             <p class="scene-eyebrow mono">05 · How we work</p>
             <h2 class="rise-title">From first call to launch.</h2>
           </div>
-
-          <div class="rise-stage">
-            <div class="rise-counter" aria-hidden="true">
-              <span class="rise-counter-label mono">Step</span>
-              <div class="rise-window"><div class="rise-digits" id="riseDigits"><span>05</span><span>04</span><span>03</span><span>02</span><span>01</span></div></div>
-            </div>
-            <ol class="rise-steps" id="riseSteps">
-              <li class="rise-step"><h3>Discover</h3><p>Your goals, your users, and a written scope, timeline, and price up front.</p></li>
-              <li class="rise-step"><h3>Design</h3><p>Wireframes, real designs, then a clickable prototype we agree on.</p></li>
-              <li class="rise-step"><h3>Build</h3><p>Working software every week in short, visible increments.</p></li>
-              <li class="rise-step"><h3>Launch</h3><p>Cloud setup, CI/CD, monitoring, and a rollout plan. You own everything.</p></li>
-              <li class="rise-step"><h3>Support</h3><p>Fixes, updates, and new features from the same team, for as long as you want us.</p></li>
-            </ol>
+          <div class="rsteps" id="riseSteps">
+            <article class="rstep">
+              <div class="rstep-bg" aria-hidden="true">Discover</div>
+              <div class="rstep-copy">
+                <p class="rstep-num mono">01 <span>/ 05</span></p>
+                <h3>Discover</h3>
+                <p class="rstep-desc">Your goals, your users, and a written scope, timeline, and price up front.</p>
+                <ul class="chips"><li>Kickoff call</li><li>Written scope</li><li>Fixed quote</li></ul>
+              </div>
+              <svg class="rstep-art" viewBox="0 0 240 240" aria-hidden="true"><rect x="34" y="26" width="118" height="160" rx="10"/><path d="M58 64h70M58 88h70M58 112h44"/><circle cx="152" cy="146" r="44"/><path d="M184 178l34 34"/></svg>
+            </article>
+            <article class="rstep">
+              <div class="rstep-bg" aria-hidden="true">Design</div>
+              <div class="rstep-copy">
+                <p class="rstep-num mono">02 <span>/ 05</span></p>
+                <h3>Design</h3>
+                <p class="rstep-desc">Wireframes, real designs, then a clickable prototype we agree on before anything is built.</p>
+                <ul class="chips"><li>Wireframes</li><li>UI design</li><li>Prototype</li></ul>
+              </div>
+              <svg class="rstep-art" viewBox="0 0 240 240" aria-hidden="true"><path d="M30 190C70 60 170 60 210 190"/><path d="M30 190L80 50M210 190L160 50"/><circle cx="80" cy="50" r="7"/><circle cx="160" cy="50" r="7"/><rect x="22" y="182" width="16" height="16" rx="2"/><rect x="202" y="182" width="16" height="16" rx="2"/><path d="M120 92l-10 26h20Z"/></svg>
+            </article>
+            <article class="rstep">
+              <div class="rstep-bg" aria-hidden="true">Build</div>
+              <div class="rstep-copy">
+                <p class="rstep-num mono">03 <span>/ 05</span></p>
+                <h3>Build</h3>
+                <p class="rstep-desc">Working software every week in short, visible increments. Reviewed, tested, and demoed.</p>
+                <ul class="chips"><li>Weekly demos</li><li>Code review</li><li>Tests</li></ul>
+              </div>
+              <svg class="rstep-art" viewBox="0 0 240 240" aria-hidden="true"><path d="M72 70L36 110l36 40"/><path d="M168 70l36 40-36 40"/><path d="M134 54l-28 112"/><rect x="60" y="182" width="120" height="18" rx="4"/><rect x="80" y="160" width="80" height="16" rx="4"/></svg>
+            </article>
+            <article class="rstep">
+              <div class="rstep-bg" aria-hidden="true">Launch</div>
+              <div class="rstep-copy">
+                <p class="rstep-num mono">04 <span>/ 05</span></p>
+                <h3>Launch</h3>
+                <p class="rstep-desc">Cloud setup, CI/CD, monitoring, and a rollout plan. You own every account and every line.</p>
+                <ul class="chips"><li>CI/CD</li><li>Monitoring</li><li>Handover</li></ul>
+              </div>
+              <svg class="rstep-art" viewBox="0 0 240 240" aria-hidden="true"><g class="rstep-rocket"><path d="M120 24c30 30 38 80 30 130H90c-8-50 0-100 30-130Z"/><circle cx="120" cy="90" r="14"/><path d="M90 124l-26 38 28-8"/><path d="M150 124l26 38-28-8"/><path class="rstep-flame" d="M104 160q16 48 32 0"/></g><path d="M40 212h160"/></svg>
+            </article>
+            <article class="rstep">
+              <div class="rstep-bg" aria-hidden="true">Support</div>
+              <div class="rstep-copy">
+                <p class="rstep-num mono">05 <span>/ 05</span></p>
+                <h3>Support</h3>
+                <p class="rstep-desc">Fixes, updates, and new features from the same team, for as long as you want us.</p>
+                <ul class="chips"><li>Maintenance</li><li>Updates</li><li>Roadmap</li></ul>
+              </div>
+              <svg class="rstep-art" viewBox="0 0 240 240" aria-hidden="true"><path d="M120 26l70 28v62c0 50-32 80-70 96-38-16-70-46-70-96V54Z"/><path d="M88 118l24 24 44-48"/></svg>
+            </article>
           </div>
-
-          <!-- Elevator panel: 1 at the bottom, 5 at the top -->
-          <ol class="rise-panel" id="risePanel" aria-hidden="true">
-            <li><span class="mono">05</span><i></i></li>
-            <li><span class="mono">04</span><i></i></li>
-            <li><span class="mono">03</span><i></i></li>
-            <li><span class="mono">02</span><i></i></li>
-            <li><span class="mono">01</span><i></i></li>
-          </ol>
+          <div class="rise-progress" aria-hidden="true">
+            <div class="rise-progress-track"><i id="riseFill"></i></div>
+            <ol id="riseProgress"><li><span>01</span> Discover</li><li><span>02</span> Design</li><li><span>03</span> Build</li><li><span>04</span> Launch</li><li><span>05</span> Support</li></ol>
+          </div>
         </div>
 
-        <!-- 5 · End (zoom out) -->
+        <!-- 4b · Testimonials: quote cards on a 3D carousel that turns with the scroll.
+             PLACEHOLDERS — replace every quote, name, and company with real ones
+             before launch; do not publish invented testimonials. -->
+        <div class="scene scene-quotes scene-later" id="sceneQuotes">
+          <div class="quotes-head">
+            <p class="scene-eyebrow mono">06 · What clients say</p>
+            <h2 class="quotes-title">In their words.</h2>
+          </div>
+          <div class="quotes-stage">
+            <div class="quotes-ring" id="quotesRing">
+              <figure class="quote">
+                <span class="quote-tag mono">Website launch</span>
+                <span class="quote-mark" aria-hidden="true">“</span>
+                <blockquote>Placeholder quote. Replace with a real client's words about the site you built, how it performs, and what changed after launch.</blockquote>
+                <figcaption><i class="quote-avatar" aria-hidden="true">A</i><span><b>Client name</b><small>Role · Company</small></span></figcaption>
+              </figure>
+              <figure class="quote">
+                <span class="quote-tag mono">SaaS platform</span>
+                <span class="quote-mark" aria-hidden="true">“</span>
+                <blockquote>Placeholder quote. Replace with a real client's words about the product we shipped together and what it made possible for the business.</blockquote>
+                <figcaption><i class="quote-avatar" aria-hidden="true">B</i><span><b>Client name</b><small>Role · Company</small></span></figcaption>
+              </figure>
+              <figure class="quote">
+                <span class="quote-tag mono">Mobile app</span>
+                <span class="quote-mark" aria-hidden="true">“</span>
+                <blockquote>Placeholder quote. Replace with a real client's words about the app, the build process, and how users have responded.</blockquote>
+                <figcaption><i class="quote-avatar" aria-hidden="true">C</i><span><b>Client name</b><small>Role · Company</small></span></figcaption>
+              </figure>
+              <figure class="quote">
+                <span class="quote-tag mono">Cloud & DevOps</span>
+                <span class="quote-mark" aria-hidden="true">“</span>
+                <blockquote>Placeholder quote. Replace with a real client's words about the infrastructure work and what it did for reliability or cost.</blockquote>
+                <figcaption><i class="quote-avatar" aria-hidden="true">D</i><span><b>Client name</b><small>Role · Company</small></span></figcaption>
+              </figure>
+              <figure class="quote">
+                <span class="quote-tag mono">Ongoing support</span>
+                <span class="quote-mark" aria-hidden="true">“</span>
+                <blockquote>Placeholder quote. Replace with a real client's words about working with us after launch: responsiveness, updates, new features.</blockquote>
+                <figcaption><i class="quote-avatar" aria-hidden="true">E</i><span><b>Client name</b><small>Role · Company</small></span></figcaption>
+              </figure>
+            </div>
+          </div>
+          <ol class="quotes-dots" id="quotesDots" aria-hidden="true"><li></li><li></li><li></li><li></li><li></li></ol>
+        </div>
+
+        <!-- 5 · Finale: the elevator arrives, its doors open on a starfield that
+             warps, the stars swirl in and assemble the logo, the headline flies
+             together letter by letter and the services orbit the mark. -->
         <div class="scene scene-end scene-later" id="sceneEnd">
-          <svg class="end-mark" viewBox="130 -45 1500 850" fill="currentColor" aria-hidden="true"><path d="M500 805L500 691.86L243.14 435L500 178.14L500 65L130 435Z"/><path fill="#007ACC" d="M610 611.86L610 -45L530 35L530 805L858.79 476.21L802.22 419.64Z"/><path d="M806.72 381.72L863.28 325.15L1150 611.86L1150 -45L1230 35L1230 805Z"/><path d="M1260 805L1260 691.86L1516.86 435L1260 178.14L1260 65L1630 435Z"/></svg>
-          <h2 class="end-title">Let's build yours.</h2>
-          <p class="end-sub">Tell us what you're working on. We'll reply with a scope, a timeline, and a price, in plain English.</p>
-          <a href="mailto:adapter127@gmail.com?subject=Free%20quote%20request" class="btn btn-primary btn-lg">
-            Get a free quote
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
-          </a>
+          <canvas class="end-canvas" id="endCanvas" aria-hidden="true"></canvas>
+          <div class="end-content">
+            <div class="end-logo" id="endLogo">
+              <div class="end-orbit" id="endOrbit" aria-hidden="true">
+                <span>Web</span><span>SaaS</span><span>Mobile</span><span>Cloud</span><span>AI</span><span>Security</span>
+              </div>
+              <svg class="end-mark" id="endMark" viewBox="130 -45 1500 850" fill="currentColor" aria-hidden="true"><path d="M500 805L500 691.86L243.14 435L500 178.14L500 65L130 435Z"/><path fill="#007ACC" d="M610 611.86L610 -45L530 35L530 805L858.79 476.21L802.22 419.64Z"/><path d="M806.72 381.72L863.28 325.15L1150 611.86L1150 -45L1230 35L1230 805Z"/><path d="M1260 805L1260 691.86L1516.86 435L1260 178.14L1260 65L1630 435Z"/></svg>
+            </div>
+            <h2 class="end-title" id="endTitle">Let's build yours.</h2>
+            <p class="end-sub">Tell us what you're working on. We'll reply with a scope, a timeline, and a price, in plain English.</p>
+            <a href="mailto:adapter127@gmail.com?subject=Free%20quote%20request" class="btn btn-primary btn-lg end-cta">
+              Get a free quote
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+            </a>
+          </div>
           <p class="end-foot mono">© <span id="year"></span> Williams Systems LLC · Built by Williams Systems LLC</p>
         </div>
+
 
       </div>
     </section>
