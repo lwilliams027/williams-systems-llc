@@ -9,6 +9,7 @@ import { SplitText } from 'gsap/SplitText';
 import { initInquiryForm } from './inquiry.js';
 import { dropCue } from './fall.js';
 import { initJourney } from './journey.js';
+import { initPageMotion } from './page-motion.js';
 
 gsap.registerPlugin(ScrollTrigger, ScrollToPlugin, SplitText);
 
@@ -545,3 +546,6 @@ function setYear() {
   window.addEventListener('load', request);
   update();
 })();
+
+/* Scroll animations for About, Schedule and the product pages. */
+(document.fonts ? document.fonts.ready : Promise.resolve()).then(() => initPageMotion({ reduced: REDUCED }));
