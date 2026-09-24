@@ -253,29 +253,46 @@
           <p class="scene-eyebrow mono code-caption" id="codeCaption">02 · How it comes together</p>
         </div>
 
-        <!-- 3a · Customization: the bulb unscrews, the lights go out (the whole
-             site flips to dark mode), and it falls — the camera follows it down. -->
+        <!-- 3a · Customization: a lit bulb swings in on its cord and lights the page
+             (light mode). It's unscrewed turn by turn while the lights flicker,
+             comes loose with a spark, the lights die (dark mode) and it falls —
+             the camera follows it down into the login page. -->
         <div class="scene scene-bulb scene-later" id="sceneBulb">
           <div class="bulb-streaks" id="bulbStreaks" aria-hidden="true"></div>
 
-          <div class="bulb-rig" id="bulbRig" aria-hidden="true">
+          <div class="bulb-world" id="bulbWorld" aria-hidden="true">
             <span class="bulb-ceiling"></span>
-            <span class="bulb-cord"></span>
-            <span class="bulb-socket"></span>
-            <div class="bulb-glow" id="bulbGlow"></div>
-          </div>
-
-          <div class="bulb" id="bulb" aria-hidden="true">
-            <svg class="bulb-svg" viewBox="0 0 80 120">
-              <defs>
-                <pattern id="bulbThreads" width="8" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(-18)">
-                  <rect width="8" height="6" fill="#9AA1B0"/><rect width="8" height="2.4" fill="#5C6373"/>
-                </pattern>
-              </defs>
-              <rect x="27" y="0" width="26" height="22" rx="3" fill="url(#bulbThreads)"/>
-              <path class="bulb-glass" id="bulbGlass" d="M29 22v3c0 4-2 8.3-6 11.3A30 30 0 1 0 57 36.3c-4-3-6-7.3-6-11.3v-3Z"/>
-              <path class="bulb-fil" id="bulbFil" d="M33 44l4 14 3-8 3 8 4-14"/>
-            </svg>
+            <div class="bulb-pendulum" id="bulbPendulum">
+              <div class="bulb-beam" id="bulbBeam"><div class="bulb-dust" id="bulbDust"></div></div>
+              <div class="bulb-glow" id="bulbGlow"></div>
+              <span class="bulb-cord" id="bulbCord"></span>
+              <span class="bulb-socket" id="bulbSocket"><i></i><i></i><i></i></span>
+              <svg class="bulb-spark" id="bulbSpark" viewBox="-30 -30 60 60">
+                <path d="M0-8V-24M6-6l11-11M8 0h16M6 6l11 11M-6-6l-11-11M-8 0h-16M-6 6l-11 11"/>
+              </svg>
+              <div class="bulb" id="bulb">
+                <svg class="bulb-svg" viewBox="0 0 80 124">
+                  <defs>
+                    <pattern id="bulbThreads" width="8" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(-18)">
+                      <rect width="8" height="6" fill="#A7AEBC"/><rect width="8" height="2.4" fill="#5C6373"/>
+                    </pattern>
+                    <radialGradient id="bulbInner" cx="50%" cy="50%" r="50%">
+                      <stop offset="0" stop-color="#FFFFFF"/><stop offset="0.35" stop-color="#FFE7A3"/><stop offset="1" stop-color="#FFD166" stop-opacity="0"/>
+                    </radialGradient>
+                    <clipPath id="bulbGlassClip"><path d="M29 28v2c0 4-2 8.3-6 11.3A30 30 0 1 0 57 41.3c-4-3-6-7.3-6-11.3v-2Z"/></clipPath>
+                  </defs>
+                  <rect x="27" y="0" width="26" height="24" rx="3" fill="url(#bulbThreads)"/>
+                  <rect x="30" y="24" width="20" height="5" rx="1.5" fill="#2B2F38"/>
+                  <path class="bulb-glass" id="bulbGlass" d="M29 28v2c0 4-2 8.3-6 11.3A30 30 0 1 0 57 41.3c-4-3-6-7.3-6-11.3v-2Z"/>
+                  <g clip-path="url(#bulbGlassClip)">
+                    <circle id="bulbInner" cx="40" cy="70" r="30" fill="url(#bulbInner)"/>
+                    <ellipse class="bulb-shine" id="bulbShine" cx="29" cy="62" rx="5" ry="12"/>
+                  </g>
+                  <path class="bulb-stem" d="M35 31v32M45 31v32"/>
+                  <path class="bulb-fil" id="bulbFil" d="M35 63q2.5-7 5 0t5 0"/>
+                </svg>
+              </div>
+            </div>
           </div>
 
           <div class="bulb-copy" id="bulbCopy">
@@ -283,28 +300,6 @@
             <h2 class="bulb-title">Make it yours.</h2>
             <p class="bulb-sub">Light mode or dark mode, your brand and your colors. Every build is shaped around you.</p>
           </div>
-        </div>
-
-        <!-- 3a½ · The switch: following the bulb down, the camera lands on a wall
-             switch in the dark. A hand flips it — lights on — and the flick whips
-             the camera up to the login page. -->
-        <div class="scene scene-switch scene-later" id="sceneSwitch">
-          <div class="switch-plate" id="switchPlate" aria-hidden="true">
-            <span class="switch-screw"></span>
-            <span class="switch-slot"><i class="switch-lever" id="switchLever"></i></span>
-            <span class="switch-screw"></span>
-          </div>
-          <svg class="hand" id="hand" viewBox="0 0 140 300" aria-hidden="true">
-            <rect class="hand-skin" x="14" y="108" width="112" height="162" rx="32"/>
-            <circle class="hand-skin" cx="118" cy="132" r="13"/>
-            <circle class="hand-skin" cx="98" cy="118" r="14"/>
-            <circle class="hand-skin" cx="74" cy="112" r="14"/>
-            <rect class="hand-skin" x="22" y="2" width="32" height="150" rx="16"/>
-            <path class="hand-nail" d="M28 20a10 10 0 0 1 20 0v12H28Z"/>
-            <rect class="hand-skin" x="28" y="176" width="70" height="28" rx="14" transform="rotate(-22 63 190)"/>
-            <rect class="hand-cuff" x="20" y="262" width="100" height="40" rx="6"/>
-          </svg>
-          <p class="switch-hint mono" id="switchHint">Lights on.</p>
         </div>
 
         <!-- 3b · Security: a sign-in is refused (the screen shakes), a padlock

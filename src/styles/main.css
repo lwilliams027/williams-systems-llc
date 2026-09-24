@@ -580,8 +580,9 @@ html.light .brand-lockup.on-dark { display: none; }
   will-change: transform, opacity;
 }
 .win:not(.editor) { opacity: 0; }
-.editor.is-small .editor-side { display: none; }
-.editor.is-small .editor-term { display: none; }
+/* Explorer + terminal: width/height/opacity are driven by journey.js as the editor grows. */
+.editor .editor-side { overflow: hidden; white-space: nowrap; }
+.editor .editor-term { overflow: hidden; }
 .win-url, .win-title { text-transform: none; letter-spacing: 0.01em; font-size: 0.74rem; color: #CCCCCC; }
 .win-url { flex: 1; max-width: 420px; background: #1E1E1E; border-radius: 6px; padding: 5px 12px; color: #9D9D9D; }
 .win-body { flex: 1; min-height: 0; position: relative; }
@@ -654,34 +655,61 @@ html.light .brand-lockup.on-dark { display: none; }
 .site-body.dark .ms-card, .site-body.dark .ms-price { border-color: #262B36; background: #141820; }
 .site-body.dark .ms-cta { background: #1B2233; }
 
-/* ---------- Journey · customization (unscrew → lights out → fall) ---------- */
-.scene-bulb { --cord: 18vh; }
+/* ---------- Journey · customization (the lightbulb) ---------- */
+.scene-bulb { --cord: 20vh; }
 .bulb-streaks { position: absolute; left: 0; right: 0; top: 0; height: 320%; pointer-events: none; opacity: 0; will-change: transform; }
-.bulb-rig {
-  position: absolute; left: 50%; top: 0; z-index: 2;
-  width: 120px; margin-left: -60px;
+.bulb-world { position: absolute; inset: 0; pointer-events: none; will-change: transform; }
+.bulb-ceiling {
+  position: absolute; left: 50%; top: 0; z-index: 3;
+  width: 140px; height: 12px; margin-left: -70px;
+  border-radius: 0 0 10px 10px; background: var(--text-3);
+}
+/* Swings from the ceiling point; everything that hangs lives in here. */
+.bulb-pendulum {
+  position: absolute; left: 50%; top: 10px; width: 160px; margin-left: -80px;
   display: flex; flex-direction: column; align-items: center;
-  will-change: transform;
+  transform-origin: 50% 0; will-change: transform;
 }
-.bulb-ceiling { width: 120px; height: 10px; border-radius: 0 0 8px 8px; background: var(--text-3); }
-.bulb-cord { width: 2px; height: var(--cord); background: var(--text-3); }
-.bulb-socket { width: 40px; height: 30px; border-radius: 6px 6px 3px 3px; background: #3A4050; }
-.bulb-glow {
-  position: absolute; left: 50%; top: calc(var(--cord) + 90px);
-  width: 90vmin; height: 90vmin; margin: -45vmin 0 0 -45vmin;
-  background: radial-gradient(circle, rgba(255,205,90,0.55), rgba(255,205,90,0.16) 32%, transparent 62%);
-  pointer-events: none; z-index: -1;
+.bulb-cord { position: relative; z-index: 3; width: 2px; height: var(--cord); background: linear-gradient(var(--text-3), #6B7385); transform-origin: 50% 0; }
+.bulb-socket {
+  position: relative; z-index: 3;
+  width: 56px; height: 46px; border-radius: 10px 10px 5px 5px;
+  background: linear-gradient(90deg, #262A33, #4E5566 45%, #262A33);
+  display: flex; flex-direction: column; justify-content: flex-end; align-items: center; gap: 3px; padding-bottom: 5px;
 }
-.bulb {
-  position: absolute; left: 50%; z-index: 3;
-  top: calc(var(--cord) + 40px - 4px);   /* base sits up inside the socket */
-  width: 72px; margin-left: -36px;
-  transform-origin: 50% 40%;
-  will-change: transform;
-}
+.bulb-socket i { width: 46px; height: 2px; border-radius: 1px; background: rgba(0,0,0,0.35); }
+.bulb { position: relative; z-index: 2; width: 110px; margin-top: -18px; transform-origin: 50% 22%; will-change: transform; }
 .bulb-svg { display: block; width: 100%; height: auto; overflow: visible; }
-.bulb-glass { fill: #FFF3C4; stroke: #F2C94C; stroke-width: 1.5; }
-.bulb-fil { fill: none; stroke: #F59E0B; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.bulb-glass { fill: #FFF6D6; stroke: #F2C94C; stroke-width: 1.4; }
+.bulb-shine { fill: #FFFFFF; opacity: 0.55; }
+.bulb-stem { fill: none; stroke: #9AA1B0; stroke-width: 1.2; }
+.bulb-fil { fill: none; stroke: #FF9F1C; stroke-width: 2.2; stroke-linecap: round; }
+.bulb-glow {
+  position: absolute; left: 50%; top: calc(var(--cord) + 108px); z-index: 1;
+  width: 80vmin; height: 80vmin; margin: -40vmin 0 0 -40vmin;
+  background: radial-gradient(circle, rgba(255,210,110,0.6), rgba(255,210,110,0.18) 30%, transparent 62%);
+  pointer-events: none;
+}
+/* The cone of light under the bulb (it swings with it). */
+.bulb-beam {
+  position: absolute; left: 50%; top: calc(var(--cord) + 96px); z-index: 0;
+  width: 130vw; height: 115vh; margin-left: -65vw;
+  clip-path: polygon(50% 0, 100% 100%, 0 100%);
+  background: linear-gradient(to bottom, rgba(255,214,120,0.34), rgba(255,214,120,0.08) 55%, transparent 90%);
+  pointer-events: none;
+}
+.bulb-dust { position: absolute; inset: 0; }
+.bulb-dust i {
+  position: absolute; width: 3px; height: 3px; border-radius: 50%;
+  background: rgba(255,226,160,0.9);
+  animation: dust-float var(--d, 8s) ease-in-out infinite alternate;
+}
+@keyframes dust-float { to { transform: translate(var(--dx, 12px), var(--dy, -40px)); } }
+.bulb-spark {
+  position: absolute; left: 50%; top: calc(var(--cord) + 30px); z-index: 4;
+  width: 70px; margin-left: -35px; overflow: visible; opacity: 0;
+  fill: none; stroke: #FFD166; stroke-width: 2.4; stroke-linecap: round;
+}
 .bulb-copy {
   position: absolute; z-index: 4;
   left: max(var(--gutter), calc((100vw - var(--container)) / 2)); bottom: 10vh;
@@ -759,39 +787,6 @@ html.light .brand-lockup.on-dark { display: none; }
 .term-line b { color: var(--accent-fg); font-weight: 500; }
 .term-line.ok { color: var(--ok); }
 .code-caption { position: absolute; left: var(--gutter); bottom: 26px; }
-
-/* ---------- Journey · the light switch ---------- */
-.scene-switch { display: grid; place-items: center; }
-.switch-plate {
-  position: relative; z-index: 2;
-  width: 96px; height: 150px; border-radius: 14px;
-  background: linear-gradient(160deg, #F4F5F7, #D9DCE2);
-  box-shadow: 0 30px 60px rgba(0,0,0,0.5), inset 0 1px 0 #fff;
-  display: flex; flex-direction: column; align-items: center; justify-content: space-between;
-  padding: 14px 0;
-}
-.switch-screw { width: 8px; height: 8px; border-radius: 50%; background: #B4B9C3; box-shadow: inset 0 1px 1px rgba(0,0,0,0.3); }
-.switch-slot {
-  width: 30px; height: 62px; border-radius: 6px;
-  background: #1E2129; box-shadow: inset 0 3px 6px rgba(0,0,0,0.6);
-  display: flex; justify-content: center; padding: 4px 0;
-}
-.switch-lever {
-  display: block; width: 22px; height: 26px; border-radius: 4px;
-  background: linear-gradient(#FFFFFF, #CDD1D8);
-  box-shadow: 0 2px 3px rgba(0,0,0,0.4);
-  transform: translateY(28px);   /* down = off; journey.js flips it up */
-}
-.hand {
-  position: absolute; left: 50%; top: 50%; z-index: 3;
-  width: 120px; margin-left: -33px;   /* the index finger (x≈38 of 140) sits on the lever */
-  overflow: visible; will-change: transform;
-}
-.hand-skin { fill: #E6B48F; stroke: #B77F57; stroke-width: 2; }
-.hand-nail { fill: #F3D2BB; }
-.hand-line { fill: none; stroke: #B77F57; stroke-width: 2; stroke-linecap: round; }
-.hand-cuff { fill: var(--accent); }
-.switch-hint { position: absolute; left: 0; right: 0; top: calc(50% - 130px); text-align: center; color: var(--text-2); opacity: 0; }
 
 /* ---------- 6d½. Journey · security (denied → lock → keyhole) ---------- */
 .secure-flash {
@@ -1309,4 +1304,3 @@ fieldset.field .field-label { margin-bottom: 8px; }
   * { transition-duration: 0.01ms !important; }
 }
 
-.journey-static .hand, .journey-static .switch-hint { display: none; }
