@@ -1634,13 +1634,10 @@ fieldset.field .field-label { margin-bottom: 8px; }
   left: var(--gutter); bottom: calc(clamp(28px, 5vh, 56px) + env(safe-area-inset-bottom, 0px));
   padding-inline: 0; max-width: min(760px, calc(100vw - 2 * var(--gutter)));
 }
-/* Narrow screens: the scroll cue moves to the bottom-right as just the arrow, so it never sits on the block. */
-@media (max-width: 899.98px) {
-  .scroll-cue { left: auto; right: var(--gutter); margin-inline: 0; }
-  .scroll-cue-label { display: none; }
-}
-/* The bottom-left belongs to the headline block: the scroll cue sits bottom-right at every size. */
-.scroll-cue { left: auto; right: var(--gutter); margin-inline: 0; }
-@media (max-width: 599.98px) { .scroll-cue { display: none; } }
 .hero-title { max-width: none; }   /* the <br> sets the break: "Custom software," / "built for you." */
 .hero-head { max-width: calc(100vw - 2 * var(--gutter)); }
+/* Scroll cue back in the bottom centre. Where the screen is too narrow for the
+   headline block and the cue side by side, the block sits just above the cue. */
+@media (max-width: 1099.98px) {
+  .hero-head { bottom: calc(clamp(18px, 4vh, 40px) + 96px + env(safe-area-inset-bottom, 0px)); }
+}
