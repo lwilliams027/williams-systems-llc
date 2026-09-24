@@ -7,6 +7,7 @@ import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { ScrollToPlugin } from 'gsap/ScrollToPlugin';
 import { SplitText } from 'gsap/SplitText';
 import { initInquiryForm } from './inquiry.js';
+import { initFall, dropCue } from './fall.js';
 
 gsap.registerPlugin(ScrollTrigger, ScrollToPlugin, SplitText);
 
@@ -33,12 +34,14 @@ initInquiryForm({ reduced: REDUCED });
 if (REDUCED) {
   gsap.set(HIDDEN, { visibility: 'visible' });
   $('#intro')?.remove();
+  initFall({ reduced: true });
 } else {
   waitForFonts().then(initMotion);
 }
 
 function initMotion() {
   initHero();
+  initFall();
   initMarquee();
   initSplitTitles();
   initReveals();
@@ -95,6 +98,7 @@ function initHero() {
   // Copy fades up in one stagger (same entrance as the Face & Mane hero).
   // clearProps: the header's hide/show uses a CSS transform, so GSAP must not leave one behind.
   tl.from('#header', { y: -20, autoAlpha: 0, duration: 0.8, clearProps: 'transform' }, 'hero');
+  if ($('#scrollCue') && $('#fall')) tl.add(dropCue(), 'hero+=0.5');   // "Scroll to get started"
   const heroCopy = $$('[data-hero]');   // none while the hero is blank
   if (heroCopy.length) {
     tl.from(heroCopy, { y: 32, autoAlpha: 0, duration: 0.9, ease: 'expo.out', stagger: 0.1 }, 'hero+=0.15')
