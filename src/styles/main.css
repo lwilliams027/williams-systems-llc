@@ -1643,3 +1643,4 @@ fieldset.field .field-label { margin-bottom: 8px; }
 .scroll-cue { left: auto; right: var(--gutter); margin-inline: 0; }
 @media (max-width: 599.98px) { .scroll-cue { display: none; } }
 .hero-title { max-width: none; }   /* the <br> sets the break: "Custom software," / "built for you." */
+.hero-head { max-width: calc(100vw - 2 * var(--gutter)); }
