@@ -73,6 +73,9 @@ function initHero() {
     // below, then WILLIAMS, SYSTEMS LLC, and the two rules draw outward.
     const [lb, w1, w2, rb, word, sub] = $$('.intro-logo path');
     const rules = $$('.intro-logo rect');
+    // Blue copies of the L + wordmark, revealed top-to-bottom by a growing clip.
+    // Built before the from() tweens so the clones don't inherit their start styles.
+    const fillClip = buildIntroFill([w1, word, sub], '#007ACC');
     tl.from(lb, { x: -180, autoAlpha: 0, duration: 0.9, ease: 'power4.out' }, 0.1)
       .from(rb, { x: 180, autoAlpha: 0, duration: 0.9, ease: 'power4.out' }, 0.1)
       .from([w1, w2], { y: 240, autoAlpha: 0, duration: 0.8, ease: 'power4.out', stagger: 0.08 }, 0.3)
@@ -80,8 +83,9 @@ function initHero() {
       .from(sub, { autoAlpha: 0, duration: 0.5 }, 0.9)
       .from(rules[0], { scaleX: 0, transformOrigin: '100% 50%', duration: 0.6, ease: 'power3.out' }, 0.9)
       .from(rules[1], { scaleX: 0, transformOrigin: '0% 50%', duration: 0.6, ease: 'power3.out' }, 0.9)
-      // Flash only the L (left stroke of the W) and the WILLIAMS / SYSTEMS LLC text, light blue.
-      .to([w1, word, sub], { fill: '#7DD3FC', duration: 0.3, yoyo: true, repeat: 1, repeatDelay: 0.2, ease: 'power1.inOut' }, 1.35)
+      // VS Code blue pours into the L (left stroke of the W) and the WILLIAMS /
+      // SYSTEMS LLC text, top to bottom, and stays until the splash leaves.
+      .to(fillClip, { attr: { height: 1220 }, duration: 1.1, ease: 'power2.inOut' }, 1.4)
       .to('.intro-mark', { autoAlpha: 0, y: -24, duration: 0.35, ease: 'power2.in' }, '+=0.35')
       .to(intro, { yPercent: -100, duration: 0.9, ease: 'power4.inOut' }, '-=0.15')
       .add(() => {
@@ -105,6 +109,30 @@ function initHero() {
     .add(dropScrollCue(), 'hero+=1');
 
   initHeroShrink();
+}
+
+/**
+ * Layers colored copies of the given lockup paths over the originals, clipped
+ * by a rect that starts at zero height at the top of the logo. Animating the
+ * rect's height fills them top to bottom. Returns the rect.
+ */
+function buildIntroFill(paths, color) {
+  const NS = 'http://www.w3.org/2000/svg';
+  const svg = paths[0].ownerSVGElement;
+  const [x, y, w] = svg.getAttribute('viewBox').split(/\s+/).map(Number);
+  const defs = document.createElementNS(NS, 'defs');
+  const clip = document.createElementNS(NS, 'clipPath');
+  clip.id = 'introFillClip';
+  const rect = document.createElementNS(NS, 'rect');
+  Object.entries({ x, y, width: w, height: 0 }).forEach(([k, v]) => rect.setAttribute(k, v));
+  clip.append(rect);
+  defs.append(clip);
+  const layer = document.createElementNS(NS, 'g');
+  layer.setAttribute('clip-path', 'url(#introFillClip)');
+  layer.setAttribute('fill', color);
+  paths.forEach((p) => layer.append(p.cloneNode(false)));
+  svg.append(defs, layer);
+  return rect;
 }
 
 /**
