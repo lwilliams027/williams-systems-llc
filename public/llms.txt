@@ -8,7 +8,7 @@
 - SaaS platform development: multi-tenant products, subscriptions and billing, admin tools, analytics
 - Mobile app development: iOS and Android from one codebase (React Native)
 - Cloud and DevOps: AWS, Docker, CI/CD, monitoring, backups
-- AI and data: data pipelines and AI features
+- Personalized AI: AI assistants built around a person or business, trained on their own documents, written in their voice, connected to their tools, and private by design
 
 ## How projects work
 1. Discover: goals, users, and a written scope, timeline, and fixed price up front
@@ -21,6 +21,14 @@
 - [Home](https://lwilliams027.github.io/williams-systems-llc/): services, process, security, testimonials, FAQ
 - [About](https://lwilliams027.github.io/williams-systems-llc/about.html): who we are and how we work
 - [Schedule a call](https://lwilliams027.github.io/williams-systems-llc/schedule.html): book a free discovery call
+
+## Product pages
+- [Websites](https://lwilliams027.github.io/williams-systems-llc/websites.html): Fast, accessible marketing websites designed and built from scratch around your brand, not a template. They load quickly, show up in search, and are easy for your team to update.
+- [Web apps](https://lwilliams027.github.io/williams-systems-llc/web-apps.html): Customer portals, dashboards, and internal tools that replace spreadsheets and manual steps. Secure sign-in, the right permissions for every role, and data you can trust.
+- [SaaS platforms](https://lwilliams027.github.io/williams-systems-llc/saas.html): Multi-tenant software products with sign-up, subscriptions and billing, admin tools, and analytics built in, so you can launch, charge, and grow.
+- [Mobile apps](https://lwilliams027.github.io/williams-systems-llc/mobile-apps.html): Native-feeling iOS and Android apps from a single codebase that share the back end and design of your web product, published to the App Store and Google Play.
+- [Cloud & DevOps](https://lwilliams027.github.io/williams-systems-llc/cloud.html): Hosting, deployments, monitoring, and backups set up properly in your own cloud accounts, so releases are routine and outages are rare.
+- [Personalized AI](https://lwilliams027.github.io/williams-systems-llc/personalized-ai.html): Personalized AI assistants built around you and your business. They know your documents, your products, and the way you work, and they plug into the tools you already use.
 
 ## Contact
 - Email: adapter127@gmail.com

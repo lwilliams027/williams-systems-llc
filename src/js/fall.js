@@ -23,7 +23,7 @@ const LAYERS = [
   { cls: 'fall-mid',  travel: 2.6, lines: 26, words: 9,  big: 0 },
   { cls: 'fall-near', travel: 4.2, lines: 12, words: 0,  big: 4 },
 ];
-const WORDS = ['Front end', 'Back end', 'APIs', 'SaaS', 'Mobile', 'Cloud', 'AI & data', 'DevOps',
+const WORDS = ['Front end', 'Back end', 'APIs', 'SaaS', 'Mobile', 'Cloud', 'Personalized AI', 'DevOps',
   'React', 'Node', 'Python', 'Postgres', 'Stripe', 'CI/CD', '</>', '{ }', '01', 'deploy', 'build', 'ship'];
 const BIG = ['SaaS', 'Cloud', 'Mobile', 'Web', 'AI'];
 
