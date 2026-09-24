@@ -383,8 +383,12 @@ h1, h2, h3, h4, p { margin: 0; }
 }
 
 /* ---------- 6b. The fall (scroll-scrubbed hero scene, src/js/fall.js) ---------- */
-.fall { position: relative; height: 100vh; height: 100svh; background: var(--ink); }
-.fall-stage { position: absolute; inset: 0; overflow: hidden; }
+/* The journey: one pinned stage, five absolutely stacked scenes. */
+.journey { position: relative; height: 100vh; height: 100svh; background: var(--ink); }
+.journey-stage { position: absolute; inset: 0; overflow: hidden; }
+.scene { position: absolute; inset: 0; overflow: hidden; background: var(--ink); }
+.js .scene-later { visibility: hidden; }
+.scene-eyebrow { color: var(--accent-fg); letter-spacing: 0.18em; font-size: 0.72rem; }
 
 .fall-layer { position: absolute; left: 0; right: 0; top: 0; pointer-events: none; will-change: transform; }
 .fall-line {
@@ -446,6 +450,193 @@ h1, h2, h3, h4, p { margin: 0; }
 }
 .landing-sub { color: var(--text-2); max-width: 42ch; font-size: clamp(1rem, 1.4vw, 1.2rem); }
 .landing .btn { margin-top: 6px; }
+
+/* ---------- 6c. Journey · build (sideways, blueprint) ---------- */
+.build-grid {
+  position: absolute; inset: 0; pointer-events: none;
+  background-image:
+    linear-gradient(rgba(55,148,255,0.07) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(55,148,255,0.07) 1px, transparent 1px);
+  background-size: 48px 48px;
+  -webkit-mask-image: radial-gradient(ellipse 90% 80% at 50% 50%, #000 30%, transparent 85%);
+          mask-image: radial-gradient(ellipse 90% 80% at 50% 50%, #000 30%, transparent 85%);
+}
+.build-track {
+  position: absolute; top: 0; bottom: 0; left: 0;
+  display: flex; align-items: center; gap: clamp(24px, 4vw, 64px);
+  width: max-content;
+  padding-left: max(var(--gutter), calc((100vw - var(--container)) / 2));
+  padding-right: 20vw;
+  will-change: transform;
+}
+.build-intro { flex: none; width: min(78vw, 600px); padding-right: 3vw; }
+.build-title {
+  font-family: var(--font-display); font-weight: 700;
+  font-size: clamp(2.3rem, 5vw, 4.6rem); line-height: 1.02; letter-spacing: -0.03em;
+  margin: 16px 0 24px;
+}
+.build-hint { color: var(--text-3); }
+.build-panel {
+  flex: none; position: relative;
+  width: clamp(270px, 30vw, 400px); min-height: min(60vh, 470px);
+  padding: clamp(24px, 2.4vw, 34px);
+  border: 1px solid rgba(55,148,255,0.25); border-radius: 18px;
+  background: rgba(16,18,24,0.72);
+  display: flex; flex-direction: column; gap: 16px;
+}
+.build-num { color: var(--accent-fg); }
+.build-icon { width: clamp(72px, 7vw, 100px); height: auto; color: var(--accent-fg); overflow: visible; }
+.build-name {
+  font-family: var(--font-display); font-weight: 700; letter-spacing: -0.01em;
+  font-size: clamp(1.45rem, 2.2vw, 2rem); line-height: 1.1;
+  min-height: 1.1em; white-space: nowrap;
+}
+.build-panel p { color: var(--text-2); font-size: 0.98rem; }
+.build-panel .chips { margin-top: auto; }
+
+/* Editor chrome (shared by the zoom card and the full editor) — VS Code Dark+ */
+.editor-card {
+  flex: none; width: min(46vw, 460px); aspect-ratio: 16 / 10;
+  border-radius: 12px; overflow: hidden;
+  background: #1E1E1E; border: 1px solid #333;
+  box-shadow: 0 30px 80px rgba(0,0,0,0.6);
+  will-change: transform;
+}
+.editor-bar {
+  height: 36px; flex: none;
+  display: flex; align-items: center; gap: 14px; padding: 0 12px;
+  background: #252526; border-bottom: 1px solid #191919;
+}
+.editor-dots { display: inline-flex; gap: 6px; }
+.editor-dots i { width: 10px; height: 10px; border-radius: 50%; background: #FF5F57; }
+.editor-dots i:nth-child(2) { background: #FEBC2E; }
+.editor-dots i:nth-child(3) { background: #28C840; }
+.editor-tab {
+  text-transform: none; letter-spacing: 0.01em; font-size: 0.74rem; color: #CCCCCC;
+  padding: 8px 14px; background: #1E1E1E; border-top: 1px solid var(--accent);
+  align-self: flex-end;
+}
+.editor-card-body { padding: 18px; display: flex; flex-direction: column; gap: 11px; }
+.editor-card-body i { display: block; height: 8px; border-radius: 4px; background: #3C3C3C; }
+.editor-card-body i.k { background: rgba(86,156,214,0.55); }
+.editor-card-body i.s { background: rgba(206,145,120,0.55); }
+
+/* ---------- 6d. Journey · code (zoom in, typing) ---------- */
+.scene-code { display: grid; place-items: center; padding: 64px var(--gutter) 72px; }
+.editor {
+  width: min(1100px, 100%); height: min(74vh, 660px);
+  display: flex; flex-direction: column;
+  background: #1E1E1E; border: 1px solid #333; border-radius: 12px; overflow: hidden;
+  box-shadow: 0 40px 120px rgba(0,0,0,0.6);
+}
+.editor-body { flex: 1; display: flex; min-height: 0; }
+.editor-side {
+  width: 210px; flex: none; background: #252526;
+  padding: 14px 0; display: flex; flex-direction: column; gap: 5px;
+  font-size: 0.78rem; color: #BBBBBB; text-transform: none; letter-spacing: 0;
+}
+.editor-side span { padding: 2px 16px; }
+.editor-side .side-h { font-size: 0.66rem; letter-spacing: 0.1em; text-transform: uppercase; color: #8B8B8B; margin-bottom: 4px; }
+.editor-side .in { padding-left: 30px; }
+.editor-side .active { background: #37373D; color: #FFFFFF; }
+.editor-code {
+  flex: 1; margin: 0; padding: 18px 22px; overflow: hidden;
+  font-size: clamp(0.74rem, 1.12vw, 1rem); line-height: 1.75;
+  color: #D4D4D4; text-transform: none; letter-spacing: 0; white-space: pre;
+}
+.code-line { display: block; min-height: 1.75em; }
+.code-line .ln { display: inline-block; width: 2.2em; margin-right: 1.4em; color: #6E7681; text-align: right; user-select: none; }
+.t-k { color: #569CD6; } .t-f { color: #DCDCAA; } .t-p { color: #9CDCFE; }
+.t-s { color: #CE9178; } .t-c { color: #6A9955; } .t-n { color: #B5CEA8; }
+.code-ch { visibility: hidden; }
+.code-ch.on { visibility: visible; }
+.caret {
+  display: inline-block; width: 2px; height: 1.15em; margin-left: -1px;
+  background: #AEAFAD; vertical-align: text-bottom;
+  animation: caret-blink 1s steps(1) infinite;
+}
+@keyframes caret-blink { 50% { opacity: 0; } }
+.editor-term {
+  flex: none; min-height: 76px;
+  border-top: 1px solid #333; background: #181818;
+  padding: 12px 20px; display: flex; flex-direction: column; gap: 4px;
+  font-size: 0.82rem; color: #CCCCCC; text-transform: none; letter-spacing: 0;
+}
+.term-line b { color: var(--accent-fg); font-weight: 500; }
+.term-line.ok { color: var(--ok); }
+.code-caption { position: absolute; left: var(--gutter); bottom: 26px; }
+
+/* ---------- 6e. Journey · rise (up, 3D flips) ---------- */
+.scene-rise { perspective: 1100px; }
+.rise-stars { position: absolute; left: 0; right: 0; top: -100%; height: 200%; pointer-events: none; }
+.rise-star { position: absolute; width: 2px; height: 2px; border-radius: 50%; background: #fff; opacity: var(--a, 0.4); }
+.rise-head {
+  position: absolute; z-index: 3;
+  left: max(var(--gutter), calc((100vw - var(--container)) / 2));
+  top: calc(var(--header-h) + 24px);
+  max-width: 30ch;
+}
+.rise-title {
+  margin-top: 12px;
+  font-family: var(--font-serif); font-style: italic; font-weight: 400;
+  font-size: clamp(2.2rem, 4.6vw, 4.2rem); line-height: 1; color: #fff;
+}
+.rise-rail { position: absolute; left: 50%; top: 0; bottom: 0; width: 1px; background: var(--line-2); z-index: 1; }
+.rise-rail i { position: absolute; inset: 0; background: var(--accent); transform: scaleY(0); transform-origin: 50% 100%; }
+.rise-track {
+  position: absolute; left: 50%; right: var(--gutter); top: 0; z-index: 2;
+  margin: 0; list-style: none;
+  padding: 45vh 0 45vh 48px;
+  display: flex; flex-direction: column; gap: 26vh;
+  will-change: transform;
+}
+.rise-step { display: flex; gap: 24px; align-items: flex-start; max-width: 520px; transform-origin: 50% 100%; }
+.rise-num {
+  flex: none; font-family: var(--font-serif); font-style: italic;
+  font-size: clamp(2.6rem, 4vw, 3.6rem); line-height: 0.9; color: var(--accent-fg);
+}
+.rise-step h3 { font-family: var(--font-display); font-weight: 700; font-size: clamp(1.5rem, 2.4vw, 2.1rem); margin-bottom: 8px; }
+.rise-step p { color: var(--text-2); }
+
+/* ---------- 6f. Journey · end (zoom out) ---------- */
+.scene-end {
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 20px; padding: 0 var(--gutter); text-align: center;
+}
+.end-mark { width: min(40vw, 170px); height: auto; color: var(--text); }
+.end-title {
+  font-family: var(--font-serif); font-style: italic; font-weight: 400;
+  font-size: clamp(2.8rem, 7vw, 6rem); line-height: 1; color: #fff;
+}
+.end-sub { color: var(--text-2); max-width: 44ch; font-size: clamp(1rem, 1.4vw, 1.2rem); }
+.end-foot { position: absolute; left: 0; right: 0; bottom: 22px; color: var(--text-3); font-size: 0.64rem; }
+
+/* Phones */
+@media (max-width: 767.98px) {
+  .build-panel { width: 78vw; min-height: 56vh; }
+  .editor-card { width: 80vw; }
+  .editor { height: 70vh; }
+  .editor-side { display: none; }
+  .editor-code { padding: 14px 12px; font-size: 0.7rem; }
+  .code-line .ln { width: 1.6em; margin-right: 0.8em; }
+  .rise-rail { left: calc(var(--gutter) + 6px); }
+  .rise-track { left: calc(var(--gutter) + 6px); padding-left: 28px; gap: 22vh; }
+  .rise-head { right: var(--gutter); }
+  .scene-rise::before {
+    content: ""; position: absolute; left: 0; right: 0; top: 0; height: 42%; z-index: 2;
+    background: linear-gradient(var(--ink) 60%, transparent); pointer-events: none;
+  }
+}
+
+/* Reduced motion: no pin — the scenes simply stack as normal sections. */
+.journey-static { height: auto; }
+.journey-static .journey-stage { position: static; overflow: visible; }
+.journey-static .scene { position: relative; inset: auto; min-height: 100svh; visibility: visible; }
+.journey-static .build-track { position: relative; flex-wrap: wrap; width: auto; padding: 120px var(--gutter); }
+.journey-static .rise-track { position: relative; left: auto; right: auto; padding: 260px var(--gutter) 80px; gap: 48px; }
+.journey-static .rise-rail { display: none; }
+.journey-static .editor-card { display: none; }
+.journey-static .code-ch { visibility: visible; }
 
 @keyframes pulse {
   0%   { box-shadow: 0 0 0 0 rgba(61, 220, 132, 0.55); }

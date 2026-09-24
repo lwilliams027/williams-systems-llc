@@ -1,23 +1,21 @@
 /* =====================================================================
-   The fall — a scroll-scrubbed scene on the home page.
+   The fall — chapter 1 of the scroll journey (see journey.js, which pins
+   the stage and scrubs this timeline along with the later chapters).
 
-   The first screen is blank apart from a "Scroll to get started" cue. As the
-   visitor scrolls, the section pins and the scroll plays the scene like
-   scrubbing a video: the logo mark falls in from above in four tumbling
+   The first screen is blank apart from a "Scroll to get started" cue. The
+   scroll plays the scene like scrubbing a video: the logo mark falls in from above in four tumbling
    pieces, the page streams past it (three parallax depths of streaks and
    words, so the eye follows the mark downward), then it slows, snaps
    together, the L fills VS Code blue, a ring pulses out, and the headline
    lands underneath. Scrolling back up plays it in reverse.
    ===================================================================== */
 import { gsap } from 'gsap';
-import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { SplitText } from 'gsap/SplitText';
 
 const $  = (sel, root = document) => root.querySelector(sel);
 const $$ = (sel, root = document) => Array.from(root.querySelectorAll(sel));
 
 const BLUE = '#007ACC';
-const SCROLL_SCREENS = 3.2;   // how many screen-heights of scroll the fall lasts
 
 // Depth layers: how far each travels (in screen heights) over the fall.
 const LAYERS = [
@@ -133,10 +131,15 @@ export function dropCue() {
   return tl;
 }
 
-export function initFall({ reduced = false } = {}) {
+/**
+ * Builds the fall as a paused-free timeline (no ScrollTrigger of its own) for
+ * journey.js to nest in its master timeline. Returns null for reduced motion,
+ * after setting the landed end state.
+ */
+export function buildFall({ reduced = false } = {}) {
   const section = $('#fall');
-  if (!section) return;
-  const stage  = $('.fall-stage', section);
+  if (!section) return null;
+  const stage  = section;
   const faller = $('#faller');
   const rotor  = $('.faller-rotor', faller);
   const trail  = $('.faller-trail', faller);
@@ -159,7 +162,7 @@ export function initFall({ reduced = false } = {}) {
     gsap.set([title, ...extras], { visibility: 'visible' });
     fill.state.p = 1; fill.render();
     if (cue) cue.hidden = true;
-    return;
+    return null;
   }
 
   const layers = buildScenery(stage);
@@ -182,18 +185,7 @@ export function initFall({ reduced = false } = {}) {
   gsap.set(split.lines, { yPercent: 110 });
   gsap.set(extras, { autoAlpha: 0, y: 24 });
 
-  const tl = gsap.timeline({
-    defaults: { ease: 'none' },
-    scrollTrigger: {
-      trigger: section,
-      start: 'top top',
-      end: () => '+=' + window.innerHeight * SCROLL_SCREENS,
-      pin: true,
-      scrub: 0.8,
-      anticipatePin: 1,
-      invalidateOnRefresh: true,
-    },
-  });
+  const tl = gsap.timeline({ defaults: { ease: 'none' } });
 
   // 0 → 2: the cue clears and the mark drops into frame, accelerating.
   if (cue) tl.to(cue, { autoAlpha: 0, y: 30, duration: 0.4 }, 0);
@@ -227,10 +219,7 @@ export function initFall({ reduced = false } = {}) {
     .fromTo(fill.state, { p: 0 }, { p: 1, duration: 1, ease: 'power2.inOut', onUpdate: fill.render }, 7.6)
     .to(split.lines, { yPercent: 0, duration: 0.9, stagger: 0.12, ease: 'power4.out' }, 7.9)
     .to(extras, { autoAlpha: 1, y: 0, duration: 0.7, stagger: 0.15, ease: 'power3.out' }, 8.5)
-    .to({}, { duration: 0.8 });   // a beat of stillness at the end
+    .to({}, { duration: 0.6 });   // a beat of stillness before the camera moves on
 
-  // Clicking the cue plays the whole fall for you.
-  cue?.addEventListener('click', () => {
-    gsap.to(window, { scrollTo: tl.scrollTrigger.end, duration: 3.4, ease: 'power1.inOut' });
-  });
+  return tl;
 }

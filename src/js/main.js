@@ -7,7 +7,8 @@ import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { ScrollToPlugin } from 'gsap/ScrollToPlugin';
 import { SplitText } from 'gsap/SplitText';
 import { initInquiryForm } from './inquiry.js';
-import { initFall, dropCue } from './fall.js';
+import { dropCue } from './fall.js';
+import { initJourney } from './journey.js';
 
 gsap.registerPlugin(ScrollTrigger, ScrollToPlugin, SplitText);
 
@@ -34,14 +35,14 @@ initInquiryForm({ reduced: REDUCED });
 if (REDUCED) {
   gsap.set(HIDDEN, { visibility: 'visible' });
   $('#intro')?.remove();
-  initFall({ reduced: true });
+  initJourney({ reduced: true });
 } else {
   waitForFonts().then(initMotion);
 }
 
 function initMotion() {
   initHero();
-  initFall();
+  initJourney();
   initMarquee();
   initSplitTitles();
   initReveals();
