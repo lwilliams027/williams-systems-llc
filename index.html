@@ -139,42 +139,89 @@
               <ul class="chips"><li>PyTorch</li><li>LLM APIs</li></ul>
             </article>
 
-            <!-- Zoom target: a small editor window the camera flies into -->
-            <div class="editor-card" id="editorCard" aria-hidden="true">
-              <div class="editor-bar"><span class="editor-dots"><i></i><i></i><i></i></span><span class="editor-tab mono">project.config.js</span></div>
-              <div class="editor-card-body">
-                <i style="width:42%"></i><i style="width:66%" class="k"></i><i style="width:52%"></i><i style="width:74%" class="s"></i><i style="width:38%"></i><i style="width:58%" class="k"></i><i style="width:30%"></i>
-              </div>
-            </div>
+            <!-- Spacer: the real editor (in #sceneCode) is drawn exactly over this spot, then grows. -->
+            <div class="editor-card" id="editorCard" aria-hidden="true"></div>
           </div>
         </div>
 
-        <!-- 3 · Code (zoom in) -->
+        <!-- 3 · Code → Win+Tab stack → top-down desk.
+             ONE editor element: it sits where the strip's #editorCard spacer is,
+             grows to full size (no crossfade), types, then joins the 3D window
+             stack with the others, which finally lie flat on the desk. -->
         <div class="scene scene-code scene-later" id="sceneCode">
-          <div class="editor" id="editor">
-            <div class="editor-bar">
-              <span class="editor-dots"><i></i><i></i><i></i></span>
-              <span class="editor-tab mono">project.config.js</span>
+          <div class="flip-world" id="flipWorld">
+            <div class="flip-floor" id="flipFloor" aria-hidden="true"></div>
+
+            <div class="win editor" id="editor">
+              <div class="editor-bar">
+                <span class="editor-dots"><i></i><i></i><i></i></span>
+                <span class="editor-tab mono">project.config.js</span>
+              </div>
+              <div class="editor-body">
+                <aside class="editor-side mono" aria-hidden="true">
+                  <span class="side-h">Explorer</span>
+                  <span>▾ your-product</span>
+                  <span class="in">▸ app</span>
+                  <span class="in">▸ api</span>
+                  <span class="in">▸ mobile</span>
+                  <span class="in">▸ infra</span>
+                  <span class="in active">project.config.js</span>
+                  <span class="in">package.json</span>
+                </aside>
+                <pre class="editor-code mono"><code id="codeTarget" aria-label="An example project configuration: front end, back end, SaaS billing and auth, mobile, and cloud, then build and ship."></code></pre>
+              </div>
+              <div class="editor-term mono" id="editorTerm" aria-hidden="true">
+                <span class="term-line"><b>$</b> npm run ship</span>
+                <span class="term-line ok">✓ built&nbsp;&nbsp;✓ tested&nbsp;&nbsp;✓ deployed</span>
+              </div>
             </div>
-            <div class="editor-body">
-              <aside class="editor-side mono" aria-hidden="true">
-                <span class="side-h">Explorer</span>
-                <span>▾ your-product</span>
-                <span class="in">▸ app</span>
-                <span class="in">▸ api</span>
-                <span class="in">▸ mobile</span>
-                <span class="in">▸ infra</span>
-                <span class="in active">project.config.js</span>
-                <span class="in">package.json</span>
-              </aside>
-              <pre class="editor-code mono"><code id="codeTarget" aria-label="An example project configuration: front end, back end, SaaS billing and auth, mobile, and cloud, then build and ship."></code></pre>
+
+            <div class="win win-site" aria-hidden="true">
+              <div class="editor-bar"><span class="editor-dots"><i></i><i></i><i></i></span><span class="win-url mono">https://yourbrand.com</span></div>
+              <div class="win-body site-body">
+                <div class="site-nav"><i class="logo"></i><span></span><i></i><i></i><i></i><b></b></div>
+                <div class="site-hero"><i class="h1"></i><i class="h1 short"></i><i class="p"></i><i class="p short"></i><b class="cta"></b></div>
+                <div class="site-cards"><i></i><i></i><i></i></div>
+              </div>
             </div>
-            <div class="editor-term mono" id="editorTerm" aria-hidden="true">
-              <span class="term-line"><b>$</b> npm run ship</span>
-              <span class="term-line ok">✓ built&nbsp;&nbsp;✓ tested&nbsp;&nbsp;✓ deployed</span>
+
+            <div class="win win-saas" aria-hidden="true">
+              <div class="editor-bar"><span class="editor-dots"><i></i><i></i><i></i></span><span class="win-title mono">Dashboard</span></div>
+              <div class="win-body saas-body">
+                <aside><i class="on"></i><i></i><i></i><i></i><i></i></aside>
+                <div class="saas-main">
+                  <div class="kpis">
+                    <div><span>Users</span><b>12,480</b></div>
+                    <div><span>MRR</span><b>$48.2k</b></div>
+                    <div><span>Churn</span><b>1.8%</b></div>
+                  </div>
+                  <div class="chart"><i style="--h:38%"></i><i style="--h:52%"></i><i style="--h:45%"></i><i style="--h:61%"></i><i style="--h:58%"></i><i style="--h:72%"></i><i style="--h:66%"></i><i style="--h:80%"></i><i style="--h:77%"></i><i style="--h:88%"></i><i style="--h:84%"></i><i style="--h:95%"></i></div>
+                </div>
+              </div>
+            </div>
+
+            <div class="win win-mobile" aria-hidden="true">
+              <div class="editor-bar"><span class="editor-dots"><i></i><i></i><i></i></span><span class="win-title mono">Mobile app · iOS &amp; Android</span></div>
+              <div class="win-body mobile-body">
+                <div class="phone"><i class="notch"></i><i class="img"></i><i class="l"></i><i class="l short"></i><b></b></div>
+                <div class="phone"><i class="notch"></i><i class="row"></i><i class="row"></i><i class="row"></i><i class="row"></i><b></b></div>
+              </div>
+            </div>
+
+            <div class="win win-cloud" aria-hidden="true">
+              <div class="editor-bar"><span class="editor-dots"><i></i><i></i><i></i></span><span class="win-title mono">Cloud console</span></div>
+              <div class="win-body cloud-body mono">
+                <span><em class="up">▲</em> deploy &nbsp; main@a1c9f &nbsp;<em class="ok">✓</em></span>
+                <span><em class="ok">●</em> web &nbsp;&nbsp;&nbsp;&nbsp;&nbsp; healthy</span>
+                <span><em class="ok">●</em> api &nbsp;&nbsp;&nbsp;&nbsp;&nbsp; healthy</span>
+                <span><em class="ok">●</em> worker &nbsp;&nbsp; healthy</span>
+                <span><em class="ok">●</em> database &nbsp;healthy</span>
+                <span><em class="up">↻</em> backups &nbsp;&nbsp;nightly</span>
+                <span><em class="up">◆</em> ci/cd &nbsp;&nbsp;&nbsp;&nbsp;on every push</span>
+              </div>
             </div>
           </div>
-          <p class="scene-eyebrow mono code-caption">02 · How it comes together</p>
+          <p class="scene-eyebrow mono code-caption" id="codeCaption">02 · How it comes together</p>
         </div>
 
         <!-- 4 · Rise (up) -->

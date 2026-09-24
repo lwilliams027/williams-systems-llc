@@ -1,17 +1,20 @@
 /* =====================================================================
    The journey — the whole home page as one scroll-scrubbed "camera move".
 
-   One pinned stage, one master timeline, scrubbed by scroll. Scenes and the
-   direction the camera travels into each:
+   One pinned stage, one master timeline, scrubbed by scroll:
 
-     1. fall    ↓  logo falls through the page onto the headline   (fall.js)
+     1. fall    ↓  logo falls through the page onto the headline      (fall.js)
      2. build   →  sideways along a blueprint strip: icons draw, names decode
-     3. code    ⊕  zoom into an editor window; the code types itself
-     4. rise    ↑  camera climbs past the process steps, which flip up in 3D
-     5. end     ⊖  zoom out onto the call to action
+     3. zoom    ⊕  the small editor in the strip grows to full screen (one
+                   element — no crossfade) and types a project config
+     4. stack   ⟲  Win+Tab / Flip 3D: the editor tilts into a 3D stack with the
+                   other deliverables and they cycle to the front one by one
+     5. desk    ⤵  the stack swings over 180° from face-on to top-down and the
+                   windows lie flat on a blueprint desk
+     6. rise    ↑  camera climbs past the process steps, which flip down in 3D
+     7. end     ⊖  zoom out onto the call to action
 
-   Timing is in "units"; SCREEN units = one screen-height of scroll. Tweak the
-   chapter lengths below to make any part play faster or slower.
+   Chapter lengths live in LEN (in screens of scroll). Lower = more sensitive.
    ===================================================================== */
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
@@ -23,24 +26,31 @@ gsap.registerPlugin(ScrollTrigger, DrawSVGPlugin, ScrambleTextPlugin);
 
 const $  = (sel, root = document) => root.querySelector(sel);
 const $$ = (sel, root = document) => Array.from(root.querySelectorAll(sel));
+const lerp = (a, b, t) => a + (b - a) * t;
+const clamp01 = gsap.utils.clamp(0, 1);
 
-// The fall timeline is ~10 units long; at 6.25 units per screen it takes 1.6
-// screens of scroll (it was 3.2 on its own — twice as fast now).
-const SCREEN = 6.25;
+// The fall timeline is ~10 units; SCREEN units = one screen of scroll, so the
+// fall takes ~1.2 screens.
+const SCREEN = 8.5;
 const LEN = {             // chapter lengths, in screens of scroll
-  toBuild: 0.7,           // fall scene slides away left, strip slides in
-  strip:   2.2,           // sideways travel along the strip
-  zoom:    0.8,           // fly into the editor card
-  type:    1.1,           // code types itself
-  toRise:  0.7,           // camera tilts up into the next scene
-  climb:   1.8,           // climb past the steps
-  out:     0.7,           // zoom out onto the call to action
-  hold:    0.25,
+  toBuild: 0.5,           // fall scene slides away left, strip slides in
+  strip:   1.6,           // sideways along the strip
+  zoom:    0.6,           // editor grows from the strip to full screen
+  type:    0.8,           // code types itself, terminal ships it
+  stackIn: 0.35,          // editor tilts back into the Win+Tab stack
+  cycle:   1.3,           // windows cycle to the front, one full rotation
+  desk:    0.8,           // swing over to top-down; windows lie flat
+  deskHold: 0.2,
+  toRise:  0.5,           // camera tilts up into the next scene
+  climb:   1.2,           // climb past the steps
+  out:     0.5,           // zoom out onto the call to action
+  hold:    0.2,
 };
 const S = (k) => LEN[k] * SCREEN;
+const SCRUB = 0.3;        // seconds the animation lags the scroll (lower = snappier)
 
 /* ---------------------------------------------------------------- */
-/*  Code for the editor scene — VS Code Dark+ token classes          */
+/*  Code for the editor — VS Code Dark+ token classes               */
 /* ---------------------------------------------------------------- */
 const CODE = [
   [['c', '// your-product/project.config.js']],
@@ -98,6 +108,86 @@ function buildStars() {
   }
 }
 
+/* ---------------------------------------------------------------- */
+/*  The windows: one render() places every window from four progress  */
+/*  values, so grow → stack → cycle → desk is one continuous move.    */
+/* ---------------------------------------------------------------- */
+function createWindowRig({ stage, card, world, floor, wins }) {
+  const editor = wins[0];
+  const N = wins.length;
+  const P = { zoom: 0, stack: 0, cycle: 0, desk: 0 };
+
+  // Full-size window box, centred in the stage.
+  const target = () => {
+    const vw = stage.clientWidth, vh = stage.clientHeight;
+    const g = Math.max(20, Math.min(40, vw * 0.04));
+    const w = Math.min(1100, vw - 2 * g);
+    const h = Math.min(vh * 0.7, 640, w * 1.1);
+    return { x: (vw - w) / 2, y: (vh - h) / 2 + vh * 0.02, w, h, vw, vh };
+  };
+
+  // Flip 3D pose for a (fractional) slot: 0 = front, higher = further back.
+  // The stack recedes up and to the right (like Windows Flip 3D), shifted so
+  // the whole stack, not just the front window, sits centred on screen.
+  const stackPose = (s, T) => {
+    const sx = T.w * 0.17, sy = T.h * 0.15, mid = (N - 1) / 2;
+    return {
+      x: (s - mid * 0.55) * sx, y: -(s - mid * 0.55) * sy, z: -s * 420, ry: -34,
+      o: s < 0 ? clamp01(1 + 2 * s) : clamp01((N - 0.5 - s) * 2),
+    };
+  };
+
+  // Grid slot on the desk: three on the first row, the rest below.
+  const deskPose = (i, T) => {
+    const perRow = 3, row = Math.floor(i / perRow);
+    const inRow = Math.min(perRow, N - row * perRow), col = i % perRow;
+    const gap = T.w * 0.1, rows = Math.ceil(N / perRow);
+    return { x: (col - (inRow - 1) / 2) * (T.w + gap), y: (row - (rows - 1) / 2) * (T.h + gap), z: 0, ry: 0, o: 1 };
+  };
+
+  function render() {
+    const T = target();
+    const sr = stage.getBoundingClientRect();
+    const cr = card.getBoundingClientRect();
+
+    // Editor box: from the strip's spacer to full size (layout, not scale, so text stays crisp).
+    const z = P.zoom;
+    const ex = lerp(cr.left - sr.left, T.x, z), ey = lerp(cr.top - sr.top, T.y, z);
+    const ew = lerp(cr.width, T.w, z), eh = lerp(cr.height, T.h, z);
+    Object.assign(editor.style, { left: `${ex}px`, top: `${ey}px`, width: `${ew}px`, height: `${eh}px` });
+    editor.classList.toggle('is-small', ew < 640);
+    for (let i = 1; i < N; i++) {
+      Object.assign(wins[i].style, { left: `${T.x}px`, top: `${T.y}px`, width: `${T.w}px`, height: `${T.h}px` });
+    }
+
+    // World: shrinks into the stack, then swings over (rotateX up and back
+    // while spinning 180°) and settles as a top-down view of the desk.
+    const e = P.stack, d = P.desk;
+    const gap = T.w * 0.1;
+    const deskScale = Math.min(0.36, (T.vw * 0.92) / (3 * T.w + 2 * gap), (T.vh * 0.8) / (2 * T.h + gap));
+    const ws = lerp(lerp(1, 0.56, e), deskScale, d);
+    const rx = 62 * Math.sin(Math.PI * d);
+    const rz = 180 * d;
+    world.style.transform = `rotateX(${rx}deg) rotateZ(${rz}deg) scale(${ws})`;
+    floor.style.opacity = String(Math.sin(Math.PI * Math.min(1, d * 1.4)) * 0.6 + d * 0.4);
+
+    for (let i = 0; i < N; i++) {
+      let s = i - P.cycle;
+      while (s < -0.5) s += N;                        // wrap: leaving the front → re-enter at the back
+      const a = stackPose(s, T);
+      const st = { x: a.x * e, y: a.y * e, z: a.z * e, ry: a.ry * e, o: i === 0 && e === 0 ? 1 : a.o * (i === 0 ? 1 : e) };
+      const b = deskPose(i, T);
+      const x = lerp(st.x, b.x, d), y = lerp(st.y, b.y, d), zz = lerp(st.z, b.z, d);
+      const ry = lerp(st.ry, b.ry, d), o = lerp(st.o, b.o, d);
+      wins[i].style.transform = `translate3d(${x}px, ${y}px, ${zz}px) rotateY(${ry}deg) rotateZ(${-rz}deg)`;
+      wins[i].style.opacity = String(o);
+      wins[i].style.zIndex = String(100 - Math.round(s * 10));
+    }
+  }
+
+  return { P, render };
+}
+
 export function initJourney({ reduced = false } = {}) {
   const section = $('#journey');
   if (!section) return;
@@ -110,6 +200,7 @@ export function initJourney({ reduced = false } = {}) {
     return;
   }
 
+  const stage = $('.journey-stage', section);
   const fallScene = $('#fall');
   const build = $('#sceneBuild');
   const track = $('#buildTrack');
@@ -118,8 +209,10 @@ export function initJourney({ reduced = false } = {}) {
   const rise  = $('#sceneRise');
   const riseTrack = $('#riseTrack');
   const end   = $('#sceneEnd');
+  const wins  = [$('#editor'), ...$$('.win:not(.editor)', code)];
+  const rig = createWindowRig({ stage, card, world: $('#flipWorld'), floor: $('#flipFloor'), wins });
 
-  const master = gsap.timeline({ defaults: { ease: 'none' } });
+  const master = gsap.timeline({ defaults: { ease: 'none' }, onUpdate: rig.render });
 
   /* ---- 1 · fall ---------------------------------------------------- */
   const fall = buildFall();
@@ -128,7 +221,9 @@ export function initJourney({ reduced = false } = {}) {
 
   /* ---- 2 · sideways onto the build strip --------------------------- */
   gsap.set(build, { xPercent: 100, autoAlpha: 1 });
+  gsap.set(code, { autoAlpha: 0 });
   master
+    .set(code, { autoAlpha: 1 }, 'fallEnd')      // the editor rides along over its spacer
     .to(fallScene, { xPercent: -100, duration: S('toBuild'), ease: 'power2.inOut' }, 'fallEnd')
     .to(build, { xPercent: 0, duration: S('toBuild'), ease: 'power2.inOut' }, 'fallEnd')
     .addLabel('strip');
@@ -139,39 +234,34 @@ export function initJourney({ reduced = false } = {}) {
     .fromTo('.build-grid', { backgroundPosition: '0px 0px' },
       { backgroundPosition: () => `${-travel() * 0.35}px 0px`, duration: S('strip') }, 'strip');
 
-  // Each panel animates as it crosses into view: the icon draws, the name
-  // decodes from scrambled characters, the details fade up.
+  // Each panel animates as it crosses into view: icon draws, name decodes, details fade up.
   const vw = window.innerWidth;
   $$('.build-panel', track).forEach((panel) => {
-    const f = gsap.utils.clamp(0, 0.92, (panel.offsetLeft - vw * 0.8) / travel());
+    const f = gsap.utils.clamp(0, 0.9, (panel.offsetLeft - vw * 0.8) / travel());
     const at = master.labels.strip + f * S('strip');
     const name = $('.build-name', panel);
     name.setAttribute('aria-label', name.dataset.text);
     name.textContent = '';
     master
       .fromTo($$('.build-icon path, .build-icon rect', panel), { drawSVG: '0%' },
-        { drawSVG: '100%', duration: 0.5 * SCREEN, stagger: 0.03 * SCREEN, ease: 'power1.inOut' }, at)
+        { drawSVG: '100%', duration: 0.2 * S('strip'), stagger: 0.012 * S('strip'), ease: 'power1.inOut' }, at)
       .to(name, { scrambleText: { text: name.dataset.text, chars: 'upperCase', speed: 0.5, revealDelay: 0.3 },
-        duration: 0.45 * SCREEN }, at + 0.1 * SCREEN)
+        duration: 0.18 * S('strip') }, at + 0.04 * S('strip'))
       .fromTo($$('p, .chips, .build-num', panel), { autoAlpha: 0, y: 16 },
-        { autoAlpha: 1, y: 0, duration: 0.3 * SCREEN, stagger: 0.05 * SCREEN, ease: 'power2.out' }, at + 0.15 * SCREEN);
+        { autoAlpha: 1, y: 0, duration: 0.12 * S('strip'), stagger: 0.02 * S('strip'), ease: 'power2.out' }, at + 0.06 * S('strip'));
   });
 
-  /* ---- 3 · zoom into the editor, then it types ---------------------- */
+  /* ---- 3 · the editor grows out of the strip, then types ------------- */
   master.addLabel('zoom');
-  const fill = () => Math.max(window.innerWidth / card.offsetWidth, window.innerHeight / card.offsetHeight) * 1.15;
   const others = [...track.children].filter((el) => el !== card);
   master
-    .to(card, { scale: fill, duration: S('zoom'), ease: 'power2.in', transformOrigin: '50% 50%' }, 'zoom')
-    .to(others, { autoAlpha: 0, duration: S('zoom') * 0.4 }, 'zoom')
-    .to('.build-grid', { autoAlpha: 0, duration: S('zoom') * 0.5 }, 'zoom')
-    .fromTo(code, { autoAlpha: 0 }, { autoAlpha: 1, duration: S('zoom') * 0.3 }, `zoom+=${S('zoom') * 0.7}`)
-    .fromTo('#editor', { scale: 1.3 }, { scale: 1, duration: S('zoom') * 0.5, ease: 'power2.out' }, `zoom+=${S('zoom') * 0.7}`)
+    .to(rig.P, { zoom: 1, duration: S('zoom'), ease: 'power2.inOut' }, 'zoom')
+    .to(others, { scale: 1.25, autoAlpha: 0, duration: S('zoom') * 0.7, ease: 'power2.in', transformOrigin: '50% 50%' }, 'zoom')
+    .to('.build-grid', { scale: 1.4, autoAlpha: 0, duration: S('zoom'), ease: 'power2.in' }, 'zoom')
     .addLabel('type')
-    // The strip (with its giant zoomed card) is fully covered now; hide it so it
-    // can't show through later transitions. A timeline set, so it undoes on reverse.
-    .set(build, { autoAlpha: 0 }, 'type')
-    .set(fallScene, { autoAlpha: 0 }, 'type');
+    // Everything behind is covered/gone now; hide it so it can't show through later.
+    .set([build, fallScene], { autoAlpha: 0 }, 'type')
+    .fromTo('#codeCaption', { autoAlpha: 0 }, { autoAlpha: 1, duration: S('type') * 0.2 }, 'type');
 
   const chars = $$('.code-ch', code);
   const caret = document.createElement('span');
@@ -190,21 +280,34 @@ export function initJourney({ reduced = false } = {}) {
     else chars[n - 1].after(caret);
   };
   master
-    .fromTo(typer, { n: 0 }, { n: chars.length, duration: S('type'), onUpdate: renderTyping }, 'type')
+    .fromTo(typer, { n: 0 }, { n: chars.length, duration: S('type') * 0.8, onUpdate: renderTyping }, 'type')
     .fromTo('.term-line', { autoAlpha: 0, y: 8 },
-      { autoAlpha: 1, y: 0, duration: 0.2 * SCREEN, stagger: 0.25 * SCREEN }, `type+=${S('type') * 0.85}`);
+      { autoAlpha: 1, y: 0, duration: S('type') * 0.1, stagger: S('type') * 0.08 }, `type+=${S('type') * 0.8}`);
 
-  /* ---- 4 · camera moves up into the climb --------------------------- */
-  master.addLabel('up', `+=${0.2 * SCREEN}`);
+  /* ---- 4 · Win+Tab: into the 3D stack, then one full rotation -------- */
+  master
+    .addLabel('stack', `type+=${S('type')}`)
+    .to('#codeCaption', { autoAlpha: 0, duration: S('stackIn') * 0.5 }, 'stack')
+    .to(rig.P, { stack: 1, duration: S('stackIn'), ease: 'power2.inOut' }, 'stack')
+    .addLabel('cycle')
+    .to(rig.P, { cycle: wins.length, duration: S('cycle'), ease: 'sine.inOut' }, 'cycle');
+
+  /* ---- 5 · swing over 180° to top-down; windows lie flat on the desk -- */
+  master
+    .addLabel('desk')
+    .to(rig.P, { desk: 1, duration: S('desk'), ease: 'power2.inOut' }, 'desk')
+    .to({}, { duration: S('deskHold') });
+
+  /* ---- 6 · camera moves up into the climb --------------------------- */
+  master.addLabel('up');
   gsap.set(rise, { yPercent: -100, autoAlpha: 1 });
   const climb = () => Math.max(0, riseTrack.offsetHeight - window.innerHeight);
   master
     .to(code, { yPercent: 100, duration: S('toRise'), ease: 'power2.inOut' }, 'up')
     .to(rise, { yPercent: 0, duration: S('toRise'), ease: 'power2.inOut' }, 'up')
     .fromTo('#riseStars', { y: 0 }, { y: () => window.innerHeight * 0.9, duration: S('toRise') + S('climb') }, 'up')
-    .fromTo('.rise-head', { autoAlpha: 0, y: -30 }, { autoAlpha: 1, y: 0, duration: 0.4 * SCREEN, ease: 'power2.out' }, `up+=${S('toRise') * 0.5}`)
-    // Pinned to the end of the tilt, not appended: the stars' drift above spans
-    // both chapters, and appending would park the climb after it.
+    .fromTo('.rise-head', { autoAlpha: 0, y: -30 }, { autoAlpha: 1, y: 0, duration: S('toRise') * 0.5, ease: 'power2.out' }, `up+=${S('toRise') * 0.5}`)
+    // Pinned to the end of the tilt, not appended: the stars' drift spans both chapters.
     .addLabel('climb', `up+=${S('toRise')}`)
     .fromTo(riseTrack, { y: () => -climb() }, { y: 0, duration: S('climb') }, 'climb')
     .fromTo('#riseFill', { scaleY: 0 }, { scaleY: 1, duration: S('climb') }, 'climb');
@@ -215,18 +318,18 @@ export function initJourney({ reduced = false } = {}) {
     const f = 1 - (step.offsetTop + step.offsetHeight - vh * 0.1) / climb();
     const at = f <= 0
       ? master.labels.up + S('toRise') * 0.55
-      : master.labels.climb + Math.min(f, 0.9) * S('climb');
+      : master.labels.climb + Math.min(f, 0.85) * S('climb');
     master.fromTo(step, { rotationX: 80, autoAlpha: 0, transformOrigin: '50% 0%' },
-      { rotationX: 0, autoAlpha: 1, duration: 0.45 * SCREEN, ease: 'power3.out' }, at);
+      { rotationX: 0, autoAlpha: 1, duration: 0.2 * S('climb'), ease: 'power3.out' }, at);
   });
 
-  /* ---- 5 · zoom out onto the call to action -------------------------- */
+  /* ---- 7 · zoom out onto the call to action -------------------------- */
   master.addLabel('out', `climb+=${S('climb')}`);
   master
     .to(rise, { scale: 0.55, borderRadius: 32, autoAlpha: 0, duration: S('out'), ease: 'power2.inOut' }, 'out')
     .fromTo(end, { autoAlpha: 0, scale: 1.12 }, { autoAlpha: 1, scale: 1, duration: S('out') * 0.8, ease: 'power2.out' }, `out+=${S('out') * 0.2}`)
     .fromTo(['.end-mark', '.end-title', '.end-sub', '#sceneEnd .btn'], { autoAlpha: 0, y: 30 },
-      { autoAlpha: 1, y: 0, duration: 0.35 * SCREEN, stagger: 0.1 * SCREEN, ease: 'power3.out' }, `out+=${S('out') * 0.45}`)
+      { autoAlpha: 1, y: 0, duration: S('out') * 0.4, stagger: S('out') * 0.1, ease: 'power3.out' }, `out+=${S('out') * 0.45}`)
     .to({}, { duration: S('hold') });
 
   if (import.meta.env.DEV) window.__journey = master;   // for tuning in the console
@@ -237,14 +340,16 @@ export function initJourney({ reduced = false } = {}) {
     start: 'top top',
     end: () => '+=' + (master.duration() / SCREEN) * window.innerHeight,
     pin: true,
-    scrub: 0.7,
+    scrub: SCRUB,
     anticipatePin: 1,
     invalidateOnRefresh: true,
+    onRefresh: rig.render,
   });
+  rig.render();
 
   // Clicking "Scroll to get started" plays the fall for you.
   $('#scrollCue')?.addEventListener('click', () => {
     const y = st.start + (master.labels.fallEnd / master.duration()) * (st.end - st.start);
-    gsap.to(window, { scrollTo: y, duration: 2.2, ease: 'power1.inOut' });
+    gsap.to(window, { scrollTo: y, duration: 1.6, ease: 'power1.inOut' });
   });
 }

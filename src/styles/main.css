@@ -495,13 +495,8 @@ h1, h2, h3, h4, p { margin: 0; }
 .build-panel .chips { margin-top: auto; }
 
 /* Editor chrome (shared by the zoom card and the full editor) — VS Code Dark+ */
-.editor-card {
-  flex: none; width: min(46vw, 460px); aspect-ratio: 16 / 10;
-  border-radius: 12px; overflow: hidden;
-  background: #1E1E1E; border: 1px solid #333;
-  box-shadow: 0 30px 80px rgba(0,0,0,0.6);
-  will-change: transform;
-}
+/* Spacer in the strip; the real editor (#editor) is drawn over it. */
+.editor-card { flex: none; width: min(46vw, 460px); aspect-ratio: 16 / 10; visibility: hidden; }
 .editor-bar {
   height: 36px; flex: none;
   display: flex; align-items: center; gap: 14px; padding: 0 12px;
@@ -516,19 +511,88 @@ h1, h2, h3, h4, p { margin: 0; }
   padding: 8px 14px; background: #1E1E1E; border-top: 1px solid var(--accent);
   align-self: flex-end;
 }
-.editor-card-body { padding: 18px; display: flex; flex-direction: column; gap: 11px; }
-.editor-card-body i { display: block; height: 8px; border-radius: 4px; background: #3C3C3C; }
-.editor-card-body i.k { background: rgba(86,156,214,0.55); }
-.editor-card-body i.s { background: rgba(206,145,120,0.55); }
-
-/* ---------- 6d. Journey · code (zoom in, typing) ---------- */
-.scene-code { display: grid; place-items: center; padding: 64px var(--gutter) 72px; }
-.editor {
-  width: min(1100px, 100%); height: min(74vh, 660px);
+/* ---------- 6d. Journey · code → Win+Tab stack → top-down desk ---------- */
+/* Transparent: the editor must sit over the strip while it's still small. */
+.scene-code { background: transparent; perspective: 1500px; perspective-origin: 50% 40%; pointer-events: none; }
+.scene-code a, .scene-code button { pointer-events: auto; }
+.flip-world {
+  position: absolute; inset: 0;
+  transform-style: preserve-3d; transform-origin: 50% 50%;
+  will-change: transform;
+}
+/* The desk the windows lie on in the top-down view. */
+.flip-floor {
+  position: absolute; left: -220%; right: -220%; top: -220%; bottom: -220%;   /* still covers the screen at desk scale */
+  background-color: #0D1117;
+  background-image:
+    linear-gradient(rgba(55,148,255,0.10) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(55,148,255,0.10) 1px, transparent 1px);
+  background-size: 64px 64px;
+  transform: translateZ(-2px);
+  opacity: 0;
+}
+/* Every window: VS Code Dark+ chrome. Position/size/transform are set by journey.js. */
+.win {
+  position: absolute; left: 0; top: 0;
   display: flex; flex-direction: column;
   background: #1E1E1E; border: 1px solid #333; border-radius: 12px; overflow: hidden;
   box-shadow: 0 40px 120px rgba(0,0,0,0.6);
+  backface-visibility: hidden;
+  transform-origin: 50% 50%;
+  will-change: transform, opacity;
 }
+.win:not(.editor) { opacity: 0; }
+.editor.is-small .editor-side { display: none; }
+.editor.is-small .editor-term { display: none; }
+.win-url, .win-title { text-transform: none; letter-spacing: 0.01em; font-size: 0.74rem; color: #CCCCCC; }
+.win-url { flex: 1; max-width: 420px; background: #1E1E1E; border-radius: 6px; padding: 5px 12px; color: #9D9D9D; }
+.win-body { flex: 1; min-height: 0; position: relative; }
+
+/* Website mock */
+.site-body { background: #F5F6F8; padding: 20px 28px; display: flex; flex-direction: column; gap: 26px; }
+.site-nav { display: flex; align-items: center; gap: 14px; }
+.site-nav i { display: block; width: 52px; height: 8px; border-radius: 4px; background: #C9CDD4; }
+.site-nav i.logo { width: 26px; height: 26px; border-radius: 7px; background: var(--accent); }
+.site-nav span { flex: 1; }
+.site-nav b { width: 96px; height: 28px; border-radius: 14px; background: #0B0C10; }
+.site-hero { display: flex; flex-direction: column; gap: 12px; padding-top: 12px; }
+.site-hero i { display: block; height: 30px; width: 62%; border-radius: 6px; background: #0B0C10; }
+.site-hero i.short { width: 40%; }
+.site-hero i.p { height: 10px; width: 48%; background: #B6BBC4; margin-top: 6px; }
+.site-hero i.p.short { width: 34%; margin-top: 0; }
+.site-hero b { width: 140px; height: 38px; border-radius: 19px; background: var(--accent); margin-top: 12px; }
+.site-cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-top: auto; }
+.site-cards i { height: 90px; border-radius: 10px; background: #E3E6EB; }
+
+/* SaaS dashboard mock */
+.saas-body { display: flex; background: #141820; }
+.saas-body aside { width: 64px; background: #10131A; border-right: 1px solid #262B36; padding: 18px 16px; display: flex; flex-direction: column; gap: 16px; }
+.saas-body aside i { display: block; height: 30px; border-radius: 8px; background: #232937; }
+.saas-body aside i.on { background: var(--accent); }
+.saas-main { flex: 1; padding: 22px; display: flex; flex-direction: column; gap: 20px; }
+.kpis { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+.kpis div { background: #1B2030; border: 1px solid #262B36; border-radius: 10px; padding: 14px 16px; display: flex; flex-direction: column; gap: 4px; }
+.kpis span { font-size: 0.72rem; color: #8B93A7; }
+.kpis b { font-family: var(--font-display); font-size: 1.5rem; color: #fff; }
+.chart { flex: 1; display: flex; align-items: flex-end; gap: 10px; padding: 16px; background: #1B2030; border: 1px solid #262B36; border-radius: 10px; }
+.chart i { flex: 1; height: var(--h); border-radius: 5px 5px 2px 2px; background: linear-gradient(to top, #005A96, #3794FF); }
+
+/* Mobile mock */
+.mobile-body { display: flex; align-items: center; justify-content: center; gap: 8%; background: radial-gradient(circle at 50% 40%, #1C2433, #12151C); }
+.phone { width: 22%; aspect-ratio: 9 / 19; border-radius: 26px; border: 6px solid #2A2F3A; background: #F5F6F8; padding: 18px 12px; display: flex; flex-direction: column; gap: 10px; position: relative; }
+.phone .notch { position: absolute; left: 32%; right: 32%; top: 6px; height: 8px; border-radius: 4px; background: #2A2F3A; }
+.phone .img { height: 42%; border-radius: 10px; background: linear-gradient(135deg, #007ACC, #3794FF); margin-top: 8px; }
+.phone .l { height: 9px; width: 80%; border-radius: 4px; background: #0B0C10; }
+.phone .l.short { width: 55%; background: #B6BBC4; }
+.phone .row { height: 34px; border-radius: 8px; background: #E3E6EB; }
+.phone .row:first-of-type { margin-top: 10px; }
+.phone b { margin-top: auto; height: 30px; border-radius: 15px; background: var(--accent); }
+
+/* Cloud console mock */
+.cloud-body { background: #0F1115; padding: 22px 26px; display: flex; flex-direction: column; gap: 12px; font-size: 0.9rem; color: #C9D1D9; text-transform: none; letter-spacing: 0; }
+.cloud-body em { font-style: normal; margin-right: 6px; }
+.cloud-body .ok { color: var(--ok); }
+.cloud-body .up { color: var(--accent-fg); }
 .editor-body { flex: 1; display: flex; min-height: 0; }
 .editor-side {
   width: 210px; flex: none; background: #252526;
@@ -615,15 +679,18 @@ h1, h2, h3, h4, p { margin: 0; }
 @media (max-width: 767.98px) {
   .build-panel { width: 78vw; min-height: 56vh; }
   .editor-card { width: 80vw; }
-  .editor { height: 70vh; }
+  .site-body { padding: 14px 16px; gap: 16px; }
+  .saas-main { padding: 12px; gap: 12px; }
+  .kpis b { font-size: 1rem; }
+  .cloud-body { font-size: 0.72rem; padding: 14px; }
   .editor-side { display: none; }
   .editor-code { padding: 14px 12px; font-size: 0.7rem; }
   .code-line .ln { width: 1.6em; margin-right: 0.8em; }
   .rise-rail { left: calc(var(--gutter) + 6px); }
   .rise-track { left: calc(var(--gutter) + 6px); padding-left: 28px; gap: 22vh; }
-  .rise-head { right: var(--gutter); }
+  .rise-head { right: var(--gutter); z-index: 4; }
   .scene-rise::before {
-    content: ""; position: absolute; left: 0; right: 0; top: 0; height: 42%; z-index: 2;
+    content: ""; position: absolute; left: 0; right: 0; top: 0; height: 34%; z-index: 3;
     background: linear-gradient(var(--ink) 60%, transparent); pointer-events: none;
   }
 }
@@ -636,6 +703,10 @@ h1, h2, h3, h4, p { margin: 0; }
 .journey-static .rise-track { position: relative; left: auto; right: auto; padding: 260px var(--gutter) 80px; gap: 48px; }
 .journey-static .rise-rail { display: none; }
 .journey-static .editor-card { display: none; }
+.journey-static .scene-code { pointer-events: auto; padding: 100px var(--gutter); }
+.journey-static .flip-world { position: relative; display: flex; flex-direction: column; gap: 32px; align-items: center; }
+.journey-static .flip-floor { display: none; }
+.journey-static .win { position: relative; opacity: 1; width: min(1100px, 100%); height: min(70vh, 620px); }
 .journey-static .code-ch { visibility: visible; }
 
 @keyframes pulse {
