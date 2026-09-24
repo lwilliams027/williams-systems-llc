@@ -80,7 +80,8 @@ function initHero() {
       .from(sub, { autoAlpha: 0, duration: 0.5 }, 0.9)
       .from(rules[0], { scaleX: 0, transformOrigin: '100% 50%', duration: 0.6, ease: 'power3.out' }, 0.9)
       .from(rules[1], { scaleX: 0, transformOrigin: '0% 50%', duration: 0.6, ease: 'power3.out' }, 0.9)
-      .to('.intro-logo', { color: '#FF5A1F', duration: 0.3, yoyo: true, repeat: 1 }, 1.35)
+      // Flash only the L (left stroke of the W) and the WILLIAMS / SYSTEMS LLC text, light blue.
+      .to([w1, word, sub], { fill: '#7DD3FC', duration: 0.3, yoyo: true, repeat: 1, repeatDelay: 0.2, ease: 'power1.inOut' }, 1.35)
       .to('.intro-mark', { autoAlpha: 0, y: -24, duration: 0.35, ease: 'power2.in' }, '+=0.35')
       .to(intro, { yPercent: -100, duration: 0.9, ease: 'power4.inOut' }, '-=0.15')
       .add(() => {
