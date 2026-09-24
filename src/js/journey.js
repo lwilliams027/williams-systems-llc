@@ -79,7 +79,11 @@ const LEN = {             // chapter lengths, in screens of scroll
 };
 const S = (k) => LEN[k] * SCREEN;
 const SCRUB = 0.7;        // seconds the animation lags the scroll (lower = snappier)
-const PACE = 0.5625;      // overall scroll pace: 1 = original; 0.75 × 0.75 = two rounds of "25% slower" (lower = more scrolling per animation)
+// Overall scroll pace. DEFAULT_PACE is the site's standard speed (set 2026-09-24:
+// two rounds of "25% slower" than the first build, 0.75 × 0.75). To speed up or
+// slow down from here, change PACE: 1 = the default, 0.75 = 25% slower, 1.25 = 25% faster.
+const DEFAULT_PACE = 0.5625;
+const PACE = 1 * DEFAULT_PACE;
 
 /* ---------------------------------------------------------------- */
 /*  Code for the editor — VS Code Dark+ token classes               */
