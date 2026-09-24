@@ -1662,3 +1662,33 @@ fieldset.field .field-label { margin-bottom: 8px; }
   border: 1px solid transparent;
   background: linear-gradient(var(--ink), var(--ink)) padding-box, var(--grad) border-box;
 }
+
+/* ---------- Big statements throughout (same language as "One team. All custom.") ---------- */
+#stackCaption.one-team {
+  position: absolute; inset: 0; left: 0; right: 0; bottom: 0; max-width: none; z-index: 6;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center;
+  padding: calc(var(--header-h) + 20px) var(--gutter) 40px;
+  background: radial-gradient(ellipse 70% 65% at 50% 50%, rgba(11,12,16,0.94) 0%, rgba(11,12,16,0.86) 60%, rgba(11,12,16,0.7) 100%);
+}
+.build-intro { width: min(88vw, 880px); }
+.build-title { font-size: clamp(3rem, 7.4vw, 7rem); line-height: 0.96; letter-spacing: -0.05em; }
+.build-title span, .bulb-title span, .secure-title span, .quotes-title span, .rise-title span {
+  background: var(--grad); -webkit-background-clip: text; background-clip: text; color: transparent;
+}
+.build-lede { font-size: clamp(1.05rem, 1.5vw, 1.3rem); max-width: 50ch; }
+.build-points { justify-content: flex-start; margin: 0 0 26px; }
+.bulb-copy { max-width: min(90vw, 780px); bottom: 8vh; }
+.bulb-title { font-weight: 700; letter-spacing: -0.05em; line-height: 0.95; font-size: clamp(3.2rem, 9vw, 8rem); margin: 14px 0 18px; }
+.bulb-sub { font-size: clamp(1.05rem, 1.5vw, 1.3rem); max-width: 44ch; }
+.bulb-copy .one-team-points { justify-content: flex-start; margin-top: 22px; }
+.secure-copy { max-width: none; gap: 18px; }
+.secure-title { font-weight: 700; letter-spacing: -0.05em; line-height: 0.95; font-size: clamp(3rem, 7vw, 6.6rem); }
+.secure-sub { font-size: clamp(1.05rem, 1.5vw, 1.3rem); max-width: 50ch; }
+.secure-copy .one-team-points { margin-top: 6px; }
+
+#riseStatement {
+  position: absolute; inset: 0; z-index: 4;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center;
+  padding: calc(var(--header-h) + 20px) var(--gutter) 40px;
+  opacity: 0; visibility: hidden;
+}

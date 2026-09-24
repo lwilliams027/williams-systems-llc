@@ -52,7 +52,7 @@ const LEN = {             // chapter lengths, in screens of scroll
   type:    1.1,           // code types itself, terminal ships it
   typeHold: 1.4,          // "One team. All custom." takes the screen and holds
   stackIn: 0.5,           // editor tilts back into the Win+Tab stack
-  cycle:   1.8,           // windows cycle to the front (a full turn, landing on the website)
+  cycle:   2.5,           // windows cycle to the front (a full turn, landing on the website); "Every piece. One build." over the first half
   focus:   0.7,           // zoom into the website window
   site:    1.5,           // scroll down the website inside it
   desk:    1.1,           // camera swings over 180° to look down on the site
@@ -67,6 +67,7 @@ const LEN = {             // chapter lengths, in screens of scroll
   lockHold: 1.0,          // someone tries it, it holds; the lock sits there with the security copy
   keyhole: 0.9,           // fly through the keyhole
   toRise:  0.7,           // the testimonials give way to how we work
+  riseHold: 1.2,          // "From first call to launch." takes the screen before the steps
   climb:   2.0,           // the elevator ride: five floors, one step each
   toQuotes: 0.7,          // out the other side of the keyhole: the testimonials carousel
   quotes:  2.4,           // the carousel turns, one client quote to the front at a time
@@ -365,7 +366,7 @@ export function initJourney({ reduced = false } = {}) {
     // Once the code has shipped, the editor dims and the big statement takes the screen.
     .fromTo('#codeCaption', { autoAlpha: 0 }, { autoAlpha: 1, duration: S('typeHold') * 0.18 }, `type+=${S('type') * 0.95}`)
     .fromTo('#codeCaption > *', { autoAlpha: 0, y: 48 }, { autoAlpha: 1, y: 0, duration: S('typeHold') * 0.3, stagger: S('typeHold') * 0.07, ease: 'power3.out' }, `type+=${S('type') * 0.95}`)
-    .fromTo('.one-team-points li', { autoAlpha: 0, scale: 0.85 }, { autoAlpha: 1, scale: 1, duration: S('typeHold') * 0.15, stagger: S('typeHold') * 0.06, ease: 'back.out(2)' }, `type+=${S('type') * 0.95 + S('typeHold') * 0.3}`);
+    .fromTo('#codeCaption .one-team-points li', { autoAlpha: 0, scale: 0.85 }, { autoAlpha: 1, scale: 1, duration: S('typeHold') * 0.15, stagger: S('typeHold') * 0.06, ease: 'back.out(2)' }, `type+=${S('type') * 0.95 + S('typeHold') * 0.3}`);
 
   const chars = $$('.code-ch', code);
   const caret = document.createElement('span');
@@ -394,8 +395,9 @@ export function initJourney({ reduced = false } = {}) {
     .to('#codeCaption', { autoAlpha: 0, duration: S('stackIn') * 0.5 }, 'stack')
     .to(rig.P, { stack: 1, duration: S('stackIn'), ease: 'power2.inOut' }, 'stack')
     .addLabel('cycle')
-    .to('#stackCaption', { autoAlpha: 1, duration: S('cycle') * 0.12 }, 'cycle')
-    .to('#stackCaption', { autoAlpha: 0, duration: S('cycle') * 0.1 }, `cycle+=${S('cycle') * 0.9}`)
+    .to('#stackCaption', { autoAlpha: 1, duration: S('cycle') * 0.08 }, 'cycle')
+    .fromTo('#stackCaption > *', { autoAlpha: 0, y: 48 }, { autoAlpha: 1, y: 0, duration: S('cycle') * 0.14, stagger: S('cycle') * 0.03, ease: 'power3.out' }, 'cycle')
+    .to('#stackCaption', { autoAlpha: 0, duration: S('cycle') * 0.08 }, `cycle+=${S('cycle') * 0.5}`)
     // One full turn plus one: the website window ends up at the front.
     .to(rig.P, { cycle: wins.length + 1, duration: S('cycle'), ease: 'sine.inOut' }, 'cycle')
     // Zoom into the website, then scroll down it like a real page.
@@ -626,18 +628,20 @@ export function initJourney({ reduced = false } = {}) {
   const onStep = () => setActive(Math.round(stepAt.n));
   setActive(0);
   gsap.set(steps, { yPercent: -100 });
-  gsap.set(steps[0], { yPercent: 0 });
+  gsap.set(steps[0], { yPercent: 0, autoAlpha: 0 });
 
   master
     .addLabel('rise', `quotes+=${TQ + QN}`)
     .to(quotesScene, { autoAlpha: 0, scale: 0.94, duration: S('toRise') * 0.5, ease: 'power2.in' }, 'rise')
     .to(rise, { autoAlpha: 1, duration: S('toRise') * 0.4 }, `rise+=${S('toRise') * 0.3}`)
     .fromTo('#riseStars', { y: 0 }, { y: () => window.innerHeight * 0.9, duration: S('toRise') + S('climb') }, 'rise')
-    .fromTo('.rise-head', { autoAlpha: 0, y: -30 }, { autoAlpha: 1, y: 0, duration: S('toRise') * 0.5, ease: 'power2.out' }, `rise+=${S('toRise') * 0.4}`)
-    .fromTo('.rise-progress', { autoAlpha: 0 }, { autoAlpha: 1, duration: S('toRise') * 0.4 }, `rise+=${S('toRise') * 0.5}`)
-    .addLabel('climb', `rise+=${S('toRise')}`)
-    // The chapter title introduces the section, then steps aside for the steps.
-    .to('.rise-title', { autoAlpha: 0, y: -20, duration: S('climb') * 0.06 }, `climb+=${S('climb') * 0.1}`);
+    .fromTo('#riseStatement', { autoAlpha: 0 }, { autoAlpha: 1, duration: S('toRise') * 0.3 }, `rise+=${S('toRise') * 0.35}`)
+    .fromTo('#riseStatement > *', { autoAlpha: 0, y: 48 }, { autoAlpha: 1, y: 0, duration: S('riseHold') * 0.3, stagger: S('riseHold') * 0.06, ease: 'power3.out' }, `rise+=${S('toRise') * 0.35}`)
+    .addLabel('climb', `rise+=${S('toRise') + S('riseHold')}`)
+    // The statement steps aside; the chapter label and progress bar come in with the first step.
+    .to('#riseStatement', { autoAlpha: 0, y: -40, duration: S('riseHold') * 0.2, ease: 'power2.in' }, `climb-=${S('riseHold') * 0.22}`)
+    .fromTo('.rise-head', { autoAlpha: 0, y: -30 }, { autoAlpha: 1, y: 0, duration: S('riseHold') * 0.2, ease: 'power2.out' }, `climb-=${S('riseHold') * 0.05}`)
+    .fromTo('.rise-progress', { autoAlpha: 0 }, { autoAlpha: 1, duration: S('riseHold') * 0.2 }, `climb-=${S('riseHold') * 0.05}`);
 
   const C = S('climb'), slot = C / steps.length;
   steps.forEach((st, k) => {
@@ -649,7 +653,8 @@ export function initJourney({ reduced = false } = {}) {
         .to('#riseFill', { scaleX: (k + 1) / steps.length, duration: slot * 0.3, ease: 'power2.inOut' }, at)
         .to(stepAt, { n: k, duration: slot * 0.02, onUpdate: onStep }, at + slot * 0.16);
     }
-    const show = k === 0 ? master.labels.rise + S('toRise') * 0.35 : at + slot * 0.18;
+    const show = k === 0 ? master.labels.climb : at + slot * 0.18;
+    if (k === 0) master.fromTo(st, { autoAlpha: 0 }, { autoAlpha: 1, duration: slot * 0.12 }, show - slot * 0.05);
     master
       .fromTo($$('.rstep-art > *:not(g), .rstep-art g > *', st), { drawSVG: '0%' },
         { drawSVG: '100%', duration: slot * 0.45, stagger: slot * 0.035, ease: 'power1.inOut' }, show)
