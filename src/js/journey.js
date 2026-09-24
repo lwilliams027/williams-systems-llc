@@ -79,6 +79,7 @@ const LEN = {             // chapter lengths, in screens of scroll
 };
 const S = (k) => LEN[k] * SCREEN;
 const SCRUB = 0.7;        // seconds the animation lags the scroll (lower = snappier)
+const PACE = 0.75;        // overall scroll pace: 1 = original, 0.75 = 25% slower (more scrolling per animation)
 
 /* ---------------------------------------------------------------- */
 /*  Code for the editor — VS Code Dark+ token classes               */
@@ -709,7 +710,7 @@ export function initJourney({ reduced = false } = {}) {
     animation: master,
     trigger: section,
     start: 'top top',
-    end: () => '+=' + (master.duration() / SCREEN) * window.innerHeight,
+    end: () => '+=' + (master.duration() / SCREEN / PACE) * window.innerHeight,
     pin: true,
     scrub: SCRUB,
     anticipatePin: 1,
