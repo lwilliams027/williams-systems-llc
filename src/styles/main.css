@@ -1641,3 +1641,24 @@ fieldset.field .field-label { margin-bottom: 8px; }
 @media (max-width: 1099.98px) {
   .hero-head { bottom: calc(clamp(18px, 4vh, 40px) + 96px + env(safe-area-inset-bottom, 0px)); }
 }
+
+/* ---------- "One team. All custom." — full-screen statement over the editor ---------- */
+#codeCaption.one-team {
+  position: absolute; inset: 0; left: 0; right: 0; bottom: 0; max-width: none; z-index: 6;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center;
+  padding: calc(var(--header-h) + 20px) var(--gutter) 40px;
+  background: radial-gradient(ellipse 70% 65% at 50% 50%, rgba(11,12,16,0.94) 0%, rgba(11,12,16,0.86) 60%, rgba(11,12,16,0.7) 100%);
+  opacity: 0; visibility: hidden;
+}
+.one-team-title {
+  margin-top: 18px; font-family: var(--font-display); font-weight: 700; letter-spacing: -0.05em; line-height: 0.95;
+  font-size: clamp(3.2rem, 10vw, 9rem); color: #fff;
+}
+.one-team-title span { background: var(--grad); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.one-team-lede { margin-top: 26px; max-width: 52ch; color: var(--text-2); font-size: clamp(1.05rem, 1.6vw, 1.35rem); }
+.one-team-points { display: flex; flex-wrap: wrap; justify-content: center; gap: 12px; margin-top: 30px; padding: 0; list-style: none; }
+.one-team-points li {
+  padding: 10px 18px; border-radius: 999px; font-weight: 600; font-size: 0.95rem; color: var(--text);
+  border: 1px solid transparent;
+  background: linear-gradient(var(--ink), var(--ink)) padding-box, var(--grad) border-box;
+}

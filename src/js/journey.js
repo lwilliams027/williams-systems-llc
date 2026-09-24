@@ -50,7 +50,7 @@ const LEN = {             // chapter lengths, in screens of scroll
   strip:   2.2,           // sideways along the strip
   zoom:    0.8,           // editor grows from the strip to full screen
   type:    1.1,           // code types itself, terminal ships it
-  typeHold: 0.5,          // pause: read the caption next to the finished code
+  typeHold: 1.4,          // "One team. All custom." takes the screen and holds
   stackIn: 0.5,           // editor tilts back into the Win+Tab stack
   cycle:   1.8,           // windows cycle to the front (a full turn, landing on the website)
   focus:   0.7,           // zoom into the website window
@@ -362,7 +362,10 @@ export function initJourney({ reduced = false } = {}) {
     .addLabel('type')
     // Everything behind is covered/gone now; hide it so it can't show through later.
     .set([build, fallScene], { autoAlpha: 0 }, 'type')
-    .fromTo('#codeCaption', { autoAlpha: 0 }, { autoAlpha: 1, duration: S('type') * 0.2 }, 'type');
+    // Once the code has shipped, the editor dims and the big statement takes the screen.
+    .fromTo('#codeCaption', { autoAlpha: 0 }, { autoAlpha: 1, duration: S('typeHold') * 0.18 }, `type+=${S('type') * 0.95}`)
+    .fromTo('#codeCaption > *', { autoAlpha: 0, y: 48 }, { autoAlpha: 1, y: 0, duration: S('typeHold') * 0.3, stagger: S('typeHold') * 0.07, ease: 'power3.out' }, `type+=${S('type') * 0.95}`)
+    .fromTo('.one-team-points li', { autoAlpha: 0, scale: 0.85 }, { autoAlpha: 1, scale: 1, duration: S('typeHold') * 0.15, stagger: S('typeHold') * 0.06, ease: 'back.out(2)' }, `type+=${S('type') * 0.95 + S('typeHold') * 0.3}`);
 
   const chars = $$('.code-ch', code);
   const caret = document.createElement('span');
