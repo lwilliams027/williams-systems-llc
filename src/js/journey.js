@@ -52,7 +52,7 @@ const LEN = {             // chapter lengths, in screens of scroll
   type:    1.1,           // code types itself, terminal ships it
   typeHold: 1.4,          // "One team. All custom." takes the screen and holds
   stackIn: 0.5,           // editor tilts back into the Win+Tab stack
-  cycle:   2.9,           // windows cycle to the front (a full turn, landing on the website); "Every piece. One build." comes up mid-turn
+  cycle:   3.2,          // windows cycle to the front (a full turn, landing on the website); "Every piece. One build." comes up mid-turn
   focus:   0.7,           // zoom into the website window
   site:    1.5,           // scroll down the website inside it
   desk:    1.1,           // camera swings over 180° to look down on the site
@@ -396,9 +396,10 @@ export function initJourney({ reduced = false } = {}) {
     .to(rig.P, { stack: 1, duration: S('stackIn'), ease: 'power2.inOut' }, 'stack')
     .addLabel('cycle')
     // The turn starts on its own; the statement comes up mid-turn and clears before the website lands.
-    .to('#stackCaption', { autoAlpha: 1, duration: S('cycle') * 0.08 }, `cycle+=${S('cycle') * 0.3}`)
-    .fromTo('#stackCaption > *', { autoAlpha: 0, y: 48 }, { autoAlpha: 1, y: 0, duration: S('cycle') * 0.14, stagger: S('cycle') * 0.03, ease: 'power3.out' }, `cycle+=${S('cycle') * 0.3}`)
-    .to('#stackCaption', { autoAlpha: 0, duration: S('cycle') * 0.08 }, `cycle+=${S('cycle') * 0.72}`)
+    // First third: the turn on its own. Middle: the statement. Last third: the turn lands on the website.
+    .to('#stackCaption', { autoAlpha: 1, duration: S('cycle') * 0.06 }, `cycle+=${S('cycle') * 0.36}`)
+    .fromTo('#stackCaption > *', { autoAlpha: 0, y: 48 }, { autoAlpha: 1, y: 0, duration: S('cycle') * 0.1, stagger: S('cycle') * 0.02, ease: 'power3.out' }, `cycle+=${S('cycle') * 0.36}`)
+    .to('#stackCaption', { autoAlpha: 0, duration: S('cycle') * 0.06 }, `cycle+=${S('cycle') * 0.61}`)
     // One full turn plus one: the website window ends up at the front.
     .to(rig.P, { cycle: wins.length + 1, duration: S('cycle'), ease: 'sine.inOut' }, 'cycle')
     // Zoom into the website, then scroll down it like a real page.
