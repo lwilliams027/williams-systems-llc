@@ -118,120 +118,59 @@
       </div>
     </section>
 
-    <!-- ============ Website tour ============
-         The whole section is one website seen up close. The camera glides from
-         the header to the sidebar, the hero, the menu, the booking form and the
-         footer, then pulls back to show the full site. Driven by site-tour.js.
-         The sample business ("Harbor & Bean", yourbusiness.com) is fictional. -->
+    <!-- ============ Website tour: Face & Mane ============
+         A real client site we built, seen up close. The camera glides from the
+         header to the hero, the content, the treatment chooser, the before-and-
+         after sliders and the footer, then pulls back. Driven by site-tour.js.
+         The page image is a full-page capture of the live site, cut into tiles
+         (public/tour/fnm: d* = sharp tiles for desktop, m* = lighter tiles for phones). -->
     <section class="tour" id="tour" aria-labelledby="tourTitle">
       <div class="tour-stage">
         <div class="tour-viewport" aria-hidden="true">
           <div class="tw-world" id="tourWorld">
             <div class="tw-chrome">
               <span class="tw-dots"><i></i><i></i><i></i></span>
-              <span class="tw-url"><svg viewBox="0 0 16 16"><rect x="3.5" y="7" width="9" height="7" rx="1.5"/><path d="M5.5 7V5a2.5 2.5 0 0 1 5 0v2"/></svg>yourbusiness.com<b class="tw-live">Live</b></span>
-              <span class="tw-sample">Sample site</span>
+              <span class="tw-url"><svg viewBox="0 0 16 16"><rect x="3.5" y="7" width="9" height="7" rx="1.5"/><path d="M5.5 7V5a2.5 2.5 0 0 1 5 0v2"/></svg>Face &amp; Mane · Aesthetics at home<b class="tw-live">Live</b></span>
+              <span class="tw-sample">Client site</span>
             </div>
-
-            <header class="tw-header">
-              <div class="tw-brand-zone" data-stop="brand">
-                <span class="tw-logo"><svg viewBox="0 0 32 32"><ellipse cx="16" cy="16" rx="9" ry="13" transform="rotate(35 16 16)"/><path d="M10 24c6-4 6-12 12-16" /></svg>Harbor &amp; Bean</span>
-                <nav class="tw-nav"><span>Menu</span><span>Order</span><span>Locations</span><span>About</span></nav>
-              </div>
-              <span class="tw-order">Order ahead</span>
-            </header>
-
-            <aside class="tw-sidebar">
-              <div class="tw-visit" data-stop="visit">
-                <img src="/tour/cafe.jpg" alt="" width="640" height="480" />
-                <h4>Visit us</h4>
-                <p class="tw-addr">12 Harbor Street</p>
-                <ul class="tw-hours">
-                  <li><span>Mon to Fri</span><span>6 AM to 6 PM</span></li>
-                  <li><span>Saturday</span><span>7 AM to 5 PM</span></li>
-                  <li><span>Sunday</span><span>8 AM to 3 PM</span></li>
-                </ul>
-                <span class="tw-open">Open now</span>
-              </div>
-              <form class="tw-book" data-stop="book" onsubmit="return false">
-                <h4>Book a table</h4>
-                <label>Name<span class="tw-field" data-fill="Sam Rivera"></span></label>
-                <label>Date<span class="tw-field" data-fill="Saturday"></span></label>
-                <label>Time<span class="tw-field" data-fill="10:00 AM"></span></label>
-                <label>Guests<span class="tw-field" data-fill="2"></span></label>
-                <span class="tw-btn tw-book-btn">Request booking</span>
-              </form>
-            </aside>
-
-            <section class="tw-hero" data-stop="hero">
-              <span class="tw-load"><i></i></span>
-              <img class="tw-hero-img" src="/tour/hero.jpg" alt="" width="1600" height="800" />
-              <div class="tw-hero-copy">
-                <p class="tw-kicker">Small-batch coffee roasters</p>
-                <h3>Fresh roasted,<br />every morning.</h3>
-                <span class="tw-btn">Order ahead</span>
-              </div>
-            </section>
-
-            <section class="tw-favs" data-stop="favs">
-              <h3 class="tw-favs-title">Our favorites</h3>
-              <div class="tw-cards">
-                <div class="tw-card"><img src="/tour/latte.jpg" alt="" width="640" height="480" /><b>Oat latte</b><span class="tw-price"><em class="tw-old">$4.50</em><em class="tw-new">$4.75</em></span><span class="tw-badge">Updated</span></div>
-                <div class="tw-card"><img src="/tour/tea.jpg" alt="" width="640" height="480" /><b>Jasmine tea</b><span class="tw-price"><em>$3.25</em></span></div>
-                <div class="tw-card"><img src="/tour/pastry.jpg" alt="" width="640" height="480" /><b>Almond biscotti</b><span class="tw-price"><em>$2.75</em></span></div>
-                <div class="tw-card"><img src="/tour/bowl.jpg" alt="" width="640" height="480" /><b>Berry yogurt bowl</b><span class="tw-price"><em>$6.50</em></span></div>
-              </div>
-            </section>
-
-            <footer class="tw-footer" data-stop="footer">
-              <img class="tw-footer-img" src="/tour/beans.jpg" alt="" width="1400" height="500" />
-              <div class="tw-footer-inner">
-                <div>
-                  <h3>Get fresh beans every month.</h3>
-                  <p>Join the list for new roasts and weekend specials.</p>
-                  <div class="tw-signup"><span>you@email.com</span><span class="tw-btn">Subscribe</span></div>
-                </div>
-                <nav class="tw-footer-links"><span>Menu</span><span>Order ahead</span><span>Gift cards</span><span>Careers</span><span>Contact</span></nav>
-              </div>
-              <span class="tw-focus"></span>
-            </footer>
+            <div class="tw-page">
+              <img data-tile="0" alt="" width="1440" height="1000" style="top:0" />
+              <img data-tile="1" alt="" width="1440" height="1000" style="top:1000px" />
+              <img data-tile="2" alt="" width="1440" height="1000" style="top:2000px" />
+              <img data-tile="3" alt="" width="1440" height="1000" style="top:3000px" />
+              <img data-tile="4" alt="" width="1440" height="1000" style="top:4000px" />
+              <img data-tile="5" alt="" width="1440" height="1000" style="top:5000px" />
+              <img data-tile="6" alt="" width="1440" height="1000" style="top:6000px" />
+              <img data-tile="7" alt="" width="1440" height="916" style="top:7000px" />
+            </div>
+            <!-- Camera stops, in page pixels (the page starts 44px down, under the browser bar). -->
+            <i class="tw-stop" data-stop="brand"   style="left:24px;top:44px;width:740px;height:89px"></i>
+            <i class="tw-stop" data-stop="book"    style="left:1196px;top:52px;width:170px;height:72px"></i>
+            <i class="tw-stop" data-stop="hero"    style="left:0;top:44px;width:1440px;height:899px"></i>
+            <i class="tw-stop" data-stop="trust"   style="left:0;top:943px;width:1440px;height:1141px"></i>
+            <i class="tw-stop" data-stop="chooser" style="left:0;top:4460px;width:1440px;height:1303px"></i>
+            <i class="tw-stop" data-stop="results" style="left:0;top:5763px;width:1440px;height:1560px"></i>
+            <i class="tw-stop" data-stop="footer"  style="left:0;top:7324px;width:1440px;height:636px"></i>
+            <i class="tw-stop" data-stop="site"    style="left:0;top:0;width:1440px;height:2084px"></i>
+            <span class="tw-frame"></span>
           </div>
-        </div>
-
-        <!-- Screen overlays that appear at their stop -->
-        <div class="tour-serp" aria-hidden="true">
-          <div class="tour-serp-q"><svg viewBox="0 0 20 20"><circle cx="8.5" cy="8.5" r="5.5"/><path d="m13 13 4 4"/></svg>coffee near me</div>
-          <div class="tour-serp-r">
-            <span class="tour-serp-site"><i></i>yourbusiness.com</span>
-            <b>Harbor &amp; Bean Coffee: Small-batch roasters</b>
-            <span>Open now · Closes 6 PM · 12 Harbor Street</span>
-          </div>
-          <div class="tour-serp-r dim"><span class="tour-serp-site"><i></i>another-cafe.com</span><b>Another café</b></div>
-        </div>
-        <div class="tour-cms" aria-hidden="true">
-          <p class="tour-cms-head"><span>Editing</span> Our favorites</p>
-          <label>Oat latte price<span class="tour-cms-field"><em class="tw-old">$4.50</em><em class="tw-new">$4.75</em></span></label>
-          <span class="tour-cms-btn">Publish</span>
-        </div>
-        <div class="tour-toast" aria-hidden="true">
-          <span class="tour-toast-dot"></span>
-          <div><b>New booking request</b><span>Sam Rivera · Saturday, 10:00 AM · 2 guests</span></div>
         </div>
 
         <!-- Captions: the real content of this section -->
         <div class="tour-captions">
-          <p class="scene-eyebrow mono">Take the tour</p>
-          <h2 class="tour-title" id="tourTitle">Everything a great website needs.</h2>
+          <p class="scene-eyebrow mono">A real site we built</p>
+          <h2 class="tour-title" id="tourTitle">Face &amp; Mane, up close.</h2>
           <ol class="tour-caps">
-            <li class="tour-cap"><p class="tour-cap-k">Custom design</p><h3>Your brand, front and center.</h3><p>Every website is designed from scratch around your business: your logo, your colors, your fonts. No themes, no templates.</p></li>
-            <li class="tour-cap"><p class="tour-cap-k">Found in search</p><h3>Found when it counts.</h3><p>Your hours, address, and services are marked up so Google and AI assistants can answer “coffee near me” with you.</p></li>
-            <li class="tour-cap"><p class="tour-cap-k">Built for speed</p><h3>Loads in a blink.</h3><p>Optimized images, lean code, and modern hosting, so pages appear right away, even on a phone.</p></li>
-            <li class="tour-cap"><p class="tour-cap-k">Easy to update</p><h3>Change it yourself.</h3><p>Update prices, swap photos, and add new items in a simple editor. No developer needed.</p></li>
-            <li class="tour-cap"><p class="tour-cap-k">Connected</p><h3>Visitors become customers.</h3><p>Booking, contact forms, email lists, and your CRM, wired in so every request lands where you need it.</p></li>
-            <li class="tour-cap"><p class="tour-cap-k">Accessible</p><h3>Built for everyone.</h3><p>Readable text, strong contrast, and full keyboard support, so every visitor can use your site.</p></li>
-            <li class="tour-cap"><p class="tour-cap-k">Launch</p><h3>Your website, <span>live.</span></h3><p>Designed, built, and launched by one team, on a domain you own.</p><a class="btn btn-primary" href="schedule.html">Get started</a></li>
+            <li class="tour-cap"><p class="tour-cap-k">Custom design</p><h3>Designed around their brand.</h3><p>Face &amp; Mane brings aesthetic treatments to patients’ homes. Their site pairs an editorial serif look with their own teal and gold, built from scratch.</p></li>
+            <li class="tour-cap"><p class="tour-cap-k">Connected</p><h3>Booking, one tap away.</h3><p>“Book Now” sits in the header on every page, so a visitor goes from interested to booked in seconds.</p></li>
+            <li class="tour-cap"><p class="tour-cap-k">First impression</p><h3>A welcome that moves.</h3><p>A full-screen video hero and smooth scroll animations make the site feel as premium as the service.</p></li>
+            <li class="tour-cap"><p class="tour-cap-k">Clear content</p><h3>Content that builds trust.</h3><p>Clear sections explain the service, the doctor behind it, and why patients can trust it.</p></li>
+            <li class="tour-cap"><p class="tour-cap-k">Interactive</p><h3>Guides every visitor.</h3><p>A treatment chooser helps each visitor find the right service instead of leaving them to hunt for it.</p></li>
+            <li class="tour-cap"><p class="tour-cap-k">Proof</p><h3>Results, side by side.</h3><p>Before-and-after sliders let visitors drag to compare real results for themselves.</p></li>
+            <li class="tour-cap"><p class="tour-cap-k">Found in search</p><h3>Built to be found.</h3><p>Every page is pre-rendered with a sitemap and clean structure, so search engines can read all of it.</p></li>
+            <li class="tour-cap"><p class="tour-cap-k">Launch</p><h3>Live, and <span>yours next.</span></h3><p>Designed, built, and launched by Williams Systems LLC. Let’s build yours.</p><a class="btn btn-primary" href="schedule.html">Get started</a></li>
           </ol>
-          <ul class="tour-dots" aria-hidden="true"><li></li><li></li><li></li><li></li><li></li><li></li><li></li></ul>
+          <ul class="tour-dots" aria-hidden="true"><li></li><li></li><li></li><li></li><li></li><li></li><li></li><li></li></ul>
         </div>
       </div>
     </section>
