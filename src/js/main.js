@@ -100,11 +100,8 @@ function initHero() {
   }
 
   // Copy fades up in one stagger (same entrance as the Face & Mane hero),
-  // while the photo settles from a slow push-in so the still frame feels alive.
   // clearProps: the header's hide/show uses a CSS transform, so GSAP must not leave one behind.
   tl.from('#header', { y: -20, autoAlpha: 0, duration: 0.8, clearProps: 'transform' }, 'hero')
-    .fromTo('.hero-media', { scale: 1.12 }, { scale: 1, duration: 2.6, ease: 'power2.out' }, 'hero')
-    .from('.hero-tint', { opacity: 0.4, duration: 1.4, ease: 'power2.out' }, 'hero')
     .from('[data-hero]', { y: 32, autoAlpha: 0, duration: 0.9, ease: 'expo.out', stagger: 0.1 }, 'hero+=0.15')
     .add(dropScrollCue(), 'hero+=1');
 

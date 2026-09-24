@@ -227,7 +227,7 @@ function renderList(flashId) {
 
   if (flashId && !REDUCED) {
     const node = $(`.inq-item[data-id="${flashId}"]`);
-    if (node) gsap.fromTo(node, { backgroundColor: 'rgba(255,90,31,0.25)' }, { backgroundColor: 'rgba(255,90,31,0)', duration: 1.6, clearProps: 'backgroundColor' });
+    if (node) gsap.fromTo(node, { backgroundColor: 'rgba(0,122,204,0.25)' }, { backgroundColor: 'rgba(0,122,204,0)', duration: 1.6, clearProps: 'backgroundColor' });
   }
 }
 

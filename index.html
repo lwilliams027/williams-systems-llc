@@ -30,44 +30,23 @@
     </div>
   </div>
 
-  <!-- ============ Header ============ -->
+  <!-- ============ Header ============
+       Logo top-left, one call to action top-right. No nav links (the footer
+       carries the section links). -->
   <header class="header" id="header">
     <div class="container header-inner">
       <a href="#top" class="brand" aria-label="Williams Systems LLC — home">
-        <span class="brand-mark" aria-hidden="true">
-          <svg class="logo" viewBox="130 -45 1500 850" fill="currentColor"><path d="M500 805L500 691.86L243.14 435L500 178.14L500 65L130 435Z"/><path d="M610 611.86L610 -45L530 35L530 805L858.79 476.21L802.22 419.64Z"/><path d="M806.72 381.72L863.28 325.15L1150 611.86L1150 -45L1230 35L1230 805Z"/><path d="M1260 805L1260 691.86L1516.86 435L1260 178.14L1260 65L1630 435Z"/></svg>
-        </span>
-        <span class="brand-name">Williams<span class="brand-thin"> Systems</span></span>
+        <img class="brand-lockup" src="/brand/logo-horizontal-white.svg" alt="Williams Systems LLC" width="252" height="40" />
       </a>
 
-      <nav class="nav" aria-label="Primary">
-        <a href="#services">Services</a>
-        <a href="#work">Work</a>
-        <a href="#process">Process</a>
-        <a href="#about">About</a>
-      </nav>
-
-      <div class="header-actions">
-        <a href="#contact" class="btn btn-primary btn-sm" data-magnetic>Start a project</a>
-        <button class="menu-toggle" id="menuToggle" aria-expanded="false" aria-controls="mobileNav" aria-label="Open menu">
-          <span></span><span></span>
-        </button>
-      </div>
-    </div>
-
-    <div class="mobile-nav" id="mobileNav">
-      <a href="#services">Services</a>
-      <a href="#work">Work</a>
-      <a href="#process">Process</a>
-      <a href="#about">About</a>
-      <a href="#contact" class="btn btn-primary">Start a project</a>
+      <a href="#contact" class="btn btn-primary btn-sm" data-magnetic>Get a free quote</a>
     </div>
   </header>
 
   <main id="main">
     <!-- ============ Hero ============
          Modeled on the Face & Mane hero: an ink band under the header, then a
-         full-width 16:9 frame (photo placeholder until a real film/shoot lands)
+         full-width 16:9 frame (left blank for now; the photo lives in public/hero/)
          with the copy left-aligned and low over a bottom-left tint. On desktop
          the frame shrinks and rounds off as it scrolls away; the copy fades out
          over the first half of that fold. -->
@@ -76,9 +55,6 @@
 
       <div class="hero-stage">
         <div class="hero-frame" id="heroFrame">
-          <img class="hero-media" src="/hero/placeholder.jpg" alt="" width="1920" height="1080" fetchpriority="high" />
-          <div class="hero-tint" aria-hidden="true"></div>
-          <div class="hero-lift" aria-hidden="true"></div>
         </div>
 
         <div class="hero-copy-layer" id="heroCopy">
@@ -95,7 +71,7 @@
 
             <div class="hero-actions" data-hero>
               <a href="#contact" class="btn btn-light" data-magnetic>
-                Start a project
+                Get a free quote
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
               </a>
               <a href="#work" class="hero-link">See our work</a>
@@ -520,7 +496,7 @@
       <div class="footer-col">
         <h4 class="mono">Contact</h4>
         <a href="mailto:adapter127@gmail.com">adapter127@gmail.com</a>
-        <a href="#contact">Start a project</a>
+        <a href="#contact">Get a free quote</a>
       </div>
     </div>
 
