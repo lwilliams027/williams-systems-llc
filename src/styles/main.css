@@ -1626,3 +1626,20 @@ fieldset.field .field-label { margin-bottom: 8px; }
 .rstep-art { stroke: url(#bpArt); filter: drop-shadow(0 0 22px rgba(160,107,255,0.22)); }
 .rstep-flame { stroke: #FFB347; }
 .lock-body { stroke: url(#bpBox); }
+/* Hero headline sits lower on the screen (above the scroll cue). */
+.hero-head { top: auto; bottom: clamp(130px, 19vh, 190px); transform: none; }
+/* Headline block pinned to the bottom-left corner at every screen size. */
+.hero-head {
+  top: auto; right: auto; transform: none;
+  left: var(--gutter); bottom: calc(clamp(28px, 5vh, 56px) + env(safe-area-inset-bottom, 0px));
+  padding-inline: 0; max-width: min(760px, calc(100vw - 2 * var(--gutter)));
+}
+/* Narrow screens: the scroll cue moves to the bottom-right as just the arrow, so it never sits on the block. */
+@media (max-width: 899.98px) {
+  .scroll-cue { left: auto; right: var(--gutter); margin-inline: 0; }
+  .scroll-cue-label { display: none; }
+}
+/* The bottom-left belongs to the headline block: the scroll cue sits bottom-right at every size. */
+.scroll-cue { left: auto; right: var(--gutter); margin-inline: 0; }
+@media (max-width: 599.98px) { .scroll-cue { display: none; } }
+.hero-title { max-width: none; }   /* the <br> sets the break: "Custom software," / "built for you." */
