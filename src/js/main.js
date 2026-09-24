@@ -6,11 +6,9 @@ import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { ScrollToPlugin } from 'gsap/ScrollToPlugin';
 import { SplitText } from 'gsap/SplitText';
-import { DrawSVGPlugin } from 'gsap/DrawSVGPlugin';
-import { MotionPathPlugin } from 'gsap/MotionPathPlugin';
 import { initInquiryForm } from './inquiry.js';
 
-gsap.registerPlugin(ScrollTrigger, ScrollToPlugin, SplitText, DrawSVGPlugin, MotionPathPlugin);
+gsap.registerPlugin(ScrollTrigger, ScrollToPlugin, SplitText);
 
 const $  = (sel, root = document) => root.querySelector(sel);
 const $$ = (sel, root = document) => Array.from(root.querySelectorAll(sel));
@@ -53,7 +51,7 @@ function initMotion() {
 
 /** Wait for the display/body/mono fonts so SplitText measures real lines. */
 function waitForFonts() {
-  const loads = ['700 1em Syne', '400 1em Inter', '400 1em "JetBrains Mono"']
+  const loads = ['700 1em Syne', '400 1em Inter', '400 1em "JetBrains Mono"', 'italic 400 1em "Instrument Serif"']
     .map((f) => document.fonts.load(f).catch(() => {}));
   const timeout = new Promise((r) => setTimeout(r, 2500));
   return Promise.race([Promise.all(loads).then(() => document.fonts.ready), timeout]);
@@ -71,13 +69,18 @@ function initHero() {
 
   if (showIntro) {
     document.body.classList.add('no-scroll');
-    // Logo assembles: brackets slide in from the sides, the W rises from below.
-    const [lb, w1, w2, rb] = $$('.intro-logo path');
-    tl.from(lb, { x: -160, autoAlpha: 0, duration: 0.9, ease: 'power4.out' }, 0.1)
-      .from(rb, { x: 160, autoAlpha: 0, duration: 0.9, ease: 'power4.out' }, 0.1)
-      .from([w1, w2], { y: 220, autoAlpha: 0, duration: 0.8, ease: 'power4.out', stagger: 0.08 }, 0.3)
-      .to('.intro-logo', { color: '#FF5A1F', duration: 0.3, yoyo: true, repeat: 1 }, '-=0.15')
-      .from('.intro-text', { yPercent: 110, duration: 0.9, ease: 'power4.out' }, '-=0.7')
+    // Lockup assembles: brackets slide in from the sides, the W rises from
+    // below, then WILLIAMS, SYSTEMS LLC, and the two rules draw outward.
+    const [lb, w1, w2, rb, word, sub] = $$('.intro-logo path');
+    const rules = $$('.intro-logo rect');
+    tl.from(lb, { x: -180, autoAlpha: 0, duration: 0.9, ease: 'power4.out' }, 0.1)
+      .from(rb, { x: 180, autoAlpha: 0, duration: 0.9, ease: 'power4.out' }, 0.1)
+      .from([w1, w2], { y: 240, autoAlpha: 0, duration: 0.8, ease: 'power4.out', stagger: 0.08 }, 0.3)
+      .from(word, { y: 60, autoAlpha: 0, duration: 0.7, ease: 'power3.out' }, 0.65)
+      .from(sub, { autoAlpha: 0, duration: 0.5 }, 0.9)
+      .from(rules[0], { scaleX: 0, transformOrigin: '100% 50%', duration: 0.6, ease: 'power3.out' }, 0.9)
+      .from(rules[1], { scaleX: 0, transformOrigin: '0% 50%', duration: 0.6, ease: 'power3.out' }, 0.9)
+      .to('.intro-logo', { color: '#FF5A1F', duration: 0.3, yoyo: true, repeat: 1 }, 1.35)
       .to('.intro-mark', { autoAlpha: 0, y: -24, duration: 0.35, ease: 'power2.in' }, '+=0.35')
       .to(intro, { yPercent: -100, duration: 0.9, ease: 'power4.inOut' }, '-=0.15')
       .add(() => {
@@ -91,70 +94,79 @@ function initHero() {
     tl.addLabel('hero', 0);
   }
 
-  // Split the headline into masked lines for the slide-up reveal.
-  const title = $('[data-hero="title"]');
-  const titleSplit = SplitText.create(title, { type: 'lines', mask: 'lines', linesClass: 'line' });
-  splits.push({ el: title, split: titleSplit });
-
+  // Copy fades up in one stagger (same entrance as the Face & Mane hero),
+  // while the photo settles from a slow push-in so the still frame feels alive.
   // clearProps: the header's hide/show uses a CSS transform, so GSAP must not leave one behind.
   tl.from('#header', { y: -20, autoAlpha: 0, duration: 0.8, clearProps: 'transform' }, 'hero')
-    .from('[data-hero="eyebrow"]', { y: 14, autoAlpha: 0, duration: 0.6 }, 'hero+=0.1')
-    .set(title, { visibility: 'visible' }, 'hero+=0.2')
-    .from(titleSplit.lines, { yPercent: 110, duration: 1.1, ease: 'power4.out', stagger: 0.1 }, 'hero+=0.2')
-    .from('[data-hero="sub"]', { y: 24, autoAlpha: 0, duration: 0.8 }, 'hero+=0.7')
-    .set('[data-hero="actions"], [data-hero="meta"]', { visibility: 'visible' }, 'hero+=0.85')
-    .from('[data-hero="actions"] > *', { y: 18, autoAlpha: 0, duration: 0.6, stagger: 0.08 }, 'hero+=0.85')
-    .from('[data-hero="meta"] > li', { y: 14, autoAlpha: 0, duration: 0.5, stagger: 0.06 }, 'hero+=1.0')
-    .set('[data-hero="visual"]', { visibility: 'visible' }, 'hero+=0.4')
-    .add(buildDiagram(), 'hero+=0.4')
-    .from('[data-hero="scroll"]', { autoAlpha: 0, duration: 0.8 }, 'hero+=1.7');
+    .fromTo('.hero-media', { scale: 1.12 }, { scale: 1, duration: 2.6, ease: 'power2.out' }, 'hero')
+    .from('.hero-tint', { opacity: 0.4, duration: 1.4, ease: 'power2.out' }, 'hero')
+    .from('[data-hero]', { y: 32, autoAlpha: 0, duration: 0.9, ease: 'expo.out', stagger: 0.1 }, 'hero+=0.15')
+    .add(dropScrollCue(), 'hero+=1');
+
+  initHeroShrink();
 }
 
-/** Draws the system diagram: nodes pop in, links draw, packets start flowing. */
-function buildDiagram() {
-  const svg = $('.sys-diagram');
+/**
+ * Scroll cue: the arrow falls in from above the top of the screen, bounces,
+ * settles, then the line keeps drawing down in a loop. Fades out on scroll.
+ */
+function dropScrollCue() {
+  const cue = $('#scrollCue');
   const tl = gsap.timeline();
-  if (!svg) return tl;
+  if (!cue || getComputedStyle(cue).display === 'none') return tl;
 
-  const nodes   = $$('.node', svg);
-  const links   = $$('.link', svg);
-  const packets = $$('.packet', svg);
-  const rings   = $$('.ring', svg);
+  const arrow = $('.scroll-cue-arrow', cue);
+  const rect = arrow.getBoundingClientRect();
+  gsap.set(arrow, { opacity: 0, y: -(rect.top + rect.height + 20) });
 
-  tl.from(nodes, {
-      autoAlpha: 0, scale: 0.8, transformOrigin: '50% 50%',
-      duration: 0.6, ease: 'back.out(1.7)', stagger: 0.07,
-    })
-    .from(links, { drawSVG: '0%', duration: 0.8, ease: 'power2.inOut', stagger: 0.06 }, '-=0.5')
-    .add(() => startPackets(links, packets, rings), '-=0.3');
+  tl.to(arrow, { opacity: 1, duration: 0.25, ease: 'power1.out' }, 0)
+    .to(arrow, { y: 0, duration: 0.85, ease: 'power2.in' }, 0)   // accelerating fall
+    .to(arrow, { y: -14, duration: 0.16, ease: 'sine.out' })      // bounce up
+    .to(arrow, { y: 0, duration: 0.5, ease: 'bounce.out' })       // settle
+    .add(() => {
+      cue.classList.add('looping');
+      gsap.to(cue, {
+        opacity: 0, ease: 'none',
+        scrollTrigger: { trigger: '.hero', start: 'top top', end: '+=80', scrub: 0.3 },
+      });
+    });
 
+  cue.addEventListener('click', () => {
+    gsap.to(window, { scrollTo: { y: '#services', autoKill: true }, duration: 1.1, ease: 'power3.inOut' });
+  });
   return tl;
 }
 
-function startPackets(links, packets, rings) {
-  packets.forEach((packet, i) => {
-    const path = links[i % links.length];
-    const reverse = i % 3 === 2; // a few packets travel "back" as responses
-    gsap.to(packet, {
-      motionPath: {
-        path, align: path, alignOrigin: [0.5, 0.5],
-        start: reverse ? 1 : 0, end: reverse ? 0 : 1,
-      },
-      duration: gsap.utils.random(1.6, 2.8),
-      ease: 'none',
-      repeat: -1,
-      repeatDelay: gsap.utils.random(0.3, 1.4),
-      delay: i * 0.25,
-      // Only show the packet once it is positioned on its path (avoids a dot at the SVG origin).
-      onStart: () => gsap.set(packet, { autoAlpha: 1 }),
-    });
-  });
+/**
+ * The frame pulls in from both sides and folds up from the bottom as it
+ * leaves (uniform scale from the top edge, so the 16:9 picture never
+ * distorts), its corners round off, and the copy fades over the first half.
+ * Desktop only: on phones the frame is a viewport-height crop.
+ * Unlike Face & Mane there is no margin pull: this page has a pinned
+ * horizontal section further down, and changing layout height mid-scroll
+ * would knock its trigger positions out of place. The fold opens onto ink,
+ * which is the page ground anyway.
+ */
+function initHeroShrink() {
+  const frame = $('#heroFrame');
+  const copy = $('#heroCopy');
+  if (!frame) return;
+  const SHRINK_TO = 0.9;
+  const RAMP_PX = 350;
 
-  rings.forEach((ring, i) => {
-    gsap.fromTo(ring,
-      { scale: 1, opacity: 0.7, transformOrigin: '50% 50%' },
-      { scale: 1.6, opacity: 0, duration: 2.2, ease: 'power1.out', repeat: -1, delay: i * 1.1 },
-    );
+  gsap.matchMedia().add('(min-width: 768px)', () => {
+    gsap.fromTo(frame,
+      { scale: 1, borderRadius: 0, transformOrigin: 'top center' },
+      {
+        scale: SHRINK_TO, borderRadius: 40, ease: 'none',
+        scrollTrigger: { trigger: frame, start: 'top top+=' + frame.offsetTop, end: '+=' + RAMP_PX, scrub: 0.25 },
+      });
+    if (copy) {
+      gsap.fromTo(copy, { opacity: 1 }, {
+        opacity: 0, ease: 'none',
+        scrollTrigger: { trigger: frame, start: 'top top+=' + frame.offsetTop, end: '+=' + RAMP_PX / 2, scrub: 0.25 },
+      });
+    }
   });
 }
 
