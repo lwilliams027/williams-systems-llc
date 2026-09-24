@@ -1716,3 +1716,7 @@ fieldset.field .field-label { margin-bottom: 8px; }
   background: var(--grad); transform: scaleX(0); transform-origin: 0 50%;
   box-shadow: 0 0 10px rgba(160,107,255,0.45);
 }
+
+/* Footer phone number, under the email in "Contact us" */
+.sf-phone { display: inline-block; margin-top: 6px; font-family: var(--font-display); font-weight: 600; font-size: clamp(1.1rem, 1.8vw, 1.4rem); color: var(--text); }
+.sf-phone:hover { color: var(--accent-fg); }

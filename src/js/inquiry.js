@@ -11,7 +11,7 @@ gsap.registerPlugin(DrawSVGPlugin);
 const MAX_FILES = 10;
 const MAX_BYTES = 25 * 1024 * 1024;
 const EMAIL_RE = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
-const FALLBACK_EMAIL = 'adapter127@gmail.com';
+const FALLBACK_EMAIL = 'lwilliams24270@gmail.com';
 
 export function initInquiryForm({ reduced = false } = {}) {
   const form = document.getElementById('inquiryForm');
