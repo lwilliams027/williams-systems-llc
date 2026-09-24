@@ -8,8 +8,10 @@
      3. zoom    ⊕  the small editor in the strip grows to full screen (one
                    element — no crossfade) and types a project config
      4. stack   ⟲  Win+Tab / Flip 3D: the editor tilts into a 3D stack with the
-                   other deliverables and they cycle to the front one by one
-     5. desk    ⤵  the stack swings over 180° from face-on to top-down and the
+                   other deliverables and they cycle to the front one by one,
+                   ending on the website — the camera zooms into it and scrolls
+                   down the site inside the window
+     5. desk    ⤵  everything swings over 180° from face-on to top-down and the
                    windows lie flat on a blueprint desk
      6. rise    ↑  camera climbs past the process steps, which flip down in 3D
      7. end     ⊖  zoom out onto the call to action
@@ -30,24 +32,30 @@ const lerp = (a, b, t) => a + (b - a) * t;
 const clamp01 = gsap.utils.clamp(0, 1);
 
 // The fall timeline is ~10 units; SCREEN units = one screen of scroll, so the
-// fall takes ~1.2 screens.
-const SCREEN = 8.5;
+// fall takes ~1.6 screens.
+const SCREEN = 6.25;
 const LEN = {             // chapter lengths, in screens of scroll
-  toBuild: 0.5,           // fall scene slides away left, strip slides in
-  strip:   1.6,           // sideways along the strip
-  zoom:    0.6,           // editor grows from the strip to full screen
-  type:    0.8,           // code types itself, terminal ships it
-  stackIn: 0.35,          // editor tilts back into the Win+Tab stack
-  cycle:   1.3,           // windows cycle to the front, one full rotation
-  desk:    0.8,           // swing over to top-down; windows lie flat
-  deskHold: 0.2,
-  toRise:  0.5,           // camera tilts up into the next scene
-  climb:   1.2,           // climb past the steps
-  out:     0.5,           // zoom out onto the call to action
-  hold:    0.2,
+  toBuild: 0.7,           // fall scene slides away left, strip slides in
+  strip:   2.2,           // sideways along the strip
+  zoom:    0.8,           // editor grows from the strip to full screen
+  type:    1.1,           // code types itself, terminal ships it
+  stackIn: 0.5,           // editor tilts back into the Win+Tab stack
+  cycle:   1.8,           // windows cycle to the front (a full turn, landing on the website)
+  focus:   0.7,           // zoom into the website window
+  site:    1.5,           // scroll down the website inside it
+  desk:    1.1,           // swing over 180° to top-down; windows lie flat
+  deskHold: 0.3,
+  toSecure: 0.6,          // desk fades back, a sign-in screen comes up
+  denied:  1.1,           // two refused sign-ins; the screen shakes
+  lockUp:  0.9,           // a padlock rises and snaps shut
+  keyhole: 0.9,           // fly through the keyhole
+  toRise:  0.7,           // out the other side into the climb
+  climb:   1.8,           // climb past the steps
+  out:     0.7,           // zoom out onto the call to action
+  hold:    0.25,
 };
 const S = (k) => LEN[k] * SCREEN;
-const SCRUB = 0.3;        // seconds the animation lags the scroll (lower = snappier)
+const SCRUB = 0.7;        // seconds the animation lags the scroll (lower = snappier)
 
 /* ---------------------------------------------------------------- */
 /*  Code for the editor — VS Code Dark+ token classes               */
@@ -115,7 +123,10 @@ function buildStars() {
 function createWindowRig({ stage, card, world, floor, wins }) {
   const editor = wins[0];
   const N = wins.length;
-  const P = { zoom: 0, stack: 0, cycle: 0, desk: 0 };
+  const FOCUS = 1;                                   // the website window gets zoomed into
+  const siteBody = $('.site-body', wins[FOCUS]);
+  const siteScroll = $('.site-scroll', wins[FOCUS]);
+  const P = { zoom: 0, stack: 0, cycle: 0, focus: 0, site: 0, desk: 0 };
 
   // Full-size window box, centred in the stage.
   const target = () => {
@@ -171,18 +182,33 @@ function createWindowRig({ stage, card, world, floor, wins }) {
     world.style.transform = `rotateX(${rx}deg) rotateZ(${rz}deg) scale(${ws})`;
     floor.style.opacity = String(Math.sin(Math.PI * Math.min(1, d * 1.4)) * 0.6 + d * 0.4);
 
+    // Focus: the website window leaves the stack and fills the screen. It
+    // cancels the world's stack scale so it lands at exactly full size.
+    const fo = P.focus;
+    const stackScale = lerp(1, 0.56, e);
+
     for (let i = 0; i < N; i++) {
       let s = i - P.cycle;
       while (s < -0.5) s += N;                        // wrap: leaving the front → re-enter at the back
       const a = stackPose(s, T);
-      const st = { x: a.x * e, y: a.y * e, z: a.z * e, ry: a.ry * e, o: i === 0 && e === 0 ? 1 : a.o * (i === 0 ? 1 : e) };
+      let base = { x: a.x * e, y: a.y * e, z: a.z * e, ry: a.ry * e, o: i === 0 && e === 0 ? 1 : a.o * (i === 0 ? 1 : e), k: 1 };
+      if (i === FOCUS) {
+        base = { x: lerp(base.x, 0, fo), y: lerp(base.y, 0, fo), z: lerp(base.z, 0, fo), ry: lerp(base.ry, 0, fo),
+          o: lerp(base.o, 1, fo), k: lerp(1, 1 / stackScale, fo) };
+      } else {
+        base.o *= 1 - fo * 0.9;                       // the rest fall back into the dark
+      }
       const b = deskPose(i, T);
-      const x = lerp(st.x, b.x, d), y = lerp(st.y, b.y, d), zz = lerp(st.z, b.z, d);
-      const ry = lerp(st.ry, b.ry, d), o = lerp(st.o, b.o, d);
-      wins[i].style.transform = `translate3d(${x}px, ${y}px, ${zz}px) rotateY(${ry}deg) rotateZ(${-rz}deg)`;
+      const x = lerp(base.x, b.x, d), y = lerp(base.y, b.y, d), zz = lerp(base.z, b.z, d);
+      const ry = lerp(base.ry, b.ry, d), o = lerp(base.o, b.o, d), k = lerp(base.k, 1, d);
+      wins[i].style.transform = `translate3d(${x}px, ${y}px, ${zz}px) rotateY(${ry}deg) rotateZ(${-rz}deg) scale(${k})`;
       wins[i].style.opacity = String(o);
-      wins[i].style.zIndex = String(100 - Math.round(s * 10));
+      wins[i].style.zIndex = String(i === FOCUS && fo > 0 ? 200 : 100 - Math.round(s * 10));
     }
+
+    // Scroll the mini website inside its window.
+    const room = Math.max(0, siteScroll.offsetHeight - siteBody.clientHeight);
+    siteScroll.style.transform = `translateY(${-room * P.site}px)`;
   }
 
   return { P, render };
@@ -290,7 +316,13 @@ export function initJourney({ reduced = false } = {}) {
     .to('#codeCaption', { autoAlpha: 0, duration: S('stackIn') * 0.5 }, 'stack')
     .to(rig.P, { stack: 1, duration: S('stackIn'), ease: 'power2.inOut' }, 'stack')
     .addLabel('cycle')
-    .to(rig.P, { cycle: wins.length, duration: S('cycle'), ease: 'sine.inOut' }, 'cycle');
+    // One full turn plus one: the website window ends up at the front.
+    .to(rig.P, { cycle: wins.length + 1, duration: S('cycle'), ease: 'sine.inOut' }, 'cycle')
+    // Zoom into the website, then scroll down it like a real page.
+    .addLabel('focus')
+    .to(rig.P, { focus: 1, duration: S('focus'), ease: 'power2.inOut' }, 'focus')
+    .addLabel('site')
+    .to(rig.P, { site: 1, duration: S('site'), ease: 'power1.inOut' }, 'site');
 
   /* ---- 5 · swing over 180° to top-down; windows lie flat on the desk -- */
   master
@@ -298,13 +330,75 @@ export function initJourney({ reduced = false } = {}) {
     .to(rig.P, { desk: 1, duration: S('desk'), ease: 'power2.inOut' }, 'desk')
     .to({}, { duration: S('deskHold') });
 
-  /* ---- 6 · camera moves up into the climb --------------------------- */
-  master.addLabel('up');
-  gsap.set(rise, { yPercent: -100, autoAlpha: 1 });
+  /* ---- 5b · security: refused, shake, lock, through the keyhole ------ */
+  const secure = $('#sceneSecure');
+  const login = $('#secureLogin');
+  const shake = $('#secureShake');
+  const flash = $('#secureFlash');
+  const err = $('#loginErr');
+  const btnMock = $('#loginBtnMock');
+  const fields = $$('.login-field', login);
+  const lockWrap = $('#lockWrap');
+  const lock = $('#lock');
+  const copy = $('#secureCopy');
+
+  gsap.set(secure, { autoAlpha: 0 });
+  gsap.set(lockWrap, { autoAlpha: 0, y: 260 });
+  gsap.set('#lockShackle', { y: -26 });
+  gsap.set(copy, { autoAlpha: 0, y: 30 });
+
+  // One refused attempt: password fills, button pressed, red error, flash, and a hard shake.
+  const attempt = (at, strength) => {
+    const len = S('denied') * 0.45;
+    const k = strength;
+    master
+      .fromTo('#passDots', { clipPath: 'inset(0 100% 0 0)' }, { clipPath: 'inset(0 0% 0 0)', duration: len * 0.35 }, at)
+      .to(btnMock, { scale: 0.95, duration: len * 0.06, yoyo: true, repeat: 1 }, at + len * 0.4)
+      .fromTo(err, { autoAlpha: 0 }, { autoAlpha: 1, duration: len * 0.05 }, at + len * 0.5)
+      .to(fields, { borderColor: '#FF6B6B', duration: len * 0.05 }, at + len * 0.5)
+      .fromTo(flash, { opacity: 0 }, { opacity: 0.9, duration: len * 0.08, yoyo: true, repeat: 1 }, at + len * 0.5)
+      .to(shake, { keyframes: { x: [0, -26 * k, 24 * k, -20 * k, 16 * k, -11 * k, 7 * k, -3 * k, 0], rotation: [0, -0.6 * k, 0.6 * k, -0.4 * k, 0.3 * k, 0] },
+        duration: len * 0.4, ease: 'none' }, at + len * 0.5);
+  };
+
+  master
+    .addLabel('secure')
+    .to(code, { autoAlpha: 0, scale: 0.92, duration: S('toSecure') * 0.7, ease: 'power2.in' }, 'secure')
+    .to(secure, { autoAlpha: 1, duration: S('toSecure') * 0.5 }, `secure+=${S('toSecure') * 0.4}`)
+    .fromTo(login, { autoAlpha: 0, y: 40 }, { autoAlpha: 1, y: 0, duration: S('toSecure') * 0.5, ease: 'power3.out' }, `secure+=${S('toSecure') * 0.5}`)
+    .addLabel('denied');
+  attempt(master.labels.denied, 1);
+  master
+    // clear and try again…
+    .to(err, { autoAlpha: 0, duration: S('denied') * 0.03 }, `denied+=${S('denied') * 0.5}`)
+    .to(fields, { borderColor: '#323847', duration: S('denied') * 0.03 }, `denied+=${S('denied') * 0.5}`);
+  attempt(master.labels.denied + S('denied') * 0.52, 1.5);
+
+  // The lock: the login falls away, the padlock rises, the shackle snaps shut.
+  master
+    .addLabel('lockUp', `denied+=${S('denied')}`)
+    .to(login, { autoAlpha: 0, y: 80, rotation: -4, duration: S('lockUp') * 0.4, ease: 'power2.in' }, 'lockUp')
+    .to(lockWrap, { autoAlpha: 1, y: 0, duration: S('lockUp') * 0.5, ease: 'power3.out' }, `lockUp+=${S('lockUp') * 0.25}`)
+    .to('#lockShackle', { y: 0, duration: S('lockUp') * 0.18, ease: 'power4.in' }, `lockUp+=${S('lockUp') * 0.72}`)
+    .to(shake, { keyframes: { y: [0, 6, 0] }, duration: S('lockUp') * 0.1 }, `lockUp+=${S('lockUp') * 0.9}`)   // the clunk
+    .to(copy, { autoAlpha: 1, y: 0, duration: S('lockUp') * 0.35, ease: 'power3.out' }, `lockUp+=${S('lockUp') * 0.55}`);
+
+  // Fly through the keyhole: bring it to the centre and scale around it until
+  // its dark opening fills the screen; the climb is on the other side.
+  const keyholeShift = () => window.innerHeight / 2 - (lockWrap.offsetTop + lockWrap.offsetHeight * 0.625);
+  master
+    .addLabel('keyhole', `lockUp+=${S('lockUp')}`)
+    .to(copy, { autoAlpha: 0, y: 30, duration: S('keyhole') * 0.3 }, 'keyhole')
+    .to(lockWrap, { y: keyholeShift, duration: S('keyhole') * 0.4, ease: 'power2.inOut' }, 'keyhole')
+    .fromTo(lock, { scale: 1 }, { scale: 90, transformOrigin: '50% 62.5%', duration: S('keyhole'), ease: 'power3.in' }, `keyhole+=${S('keyhole') * 0.15}`);
+
+  /* ---- 6 · out through the keyhole into the climb ------------------- */
+  master.addLabel('up', `keyhole+=${S('keyhole') * 1.15}`);
+  gsap.set(rise, { autoAlpha: 0 });
   const climb = () => Math.max(0, riseTrack.offsetHeight - window.innerHeight);
   master
-    .to(code, { yPercent: 100, duration: S('toRise'), ease: 'power2.inOut' }, 'up')
-    .to(rise, { yPercent: 0, duration: S('toRise'), ease: 'power2.inOut' }, 'up')
+    .set(secure, { autoAlpha: 0 }, 'up')              // the keyhole's dark fills the screen: swap scenes under it
+    .to(rise, { autoAlpha: 1, duration: S('toRise') * 0.35 }, 'up')
     .fromTo('#riseStars', { y: 0 }, { y: () => window.innerHeight * 0.9, duration: S('toRise') + S('climb') }, 'up')
     .fromTo('.rise-head', { autoAlpha: 0, y: -30 }, { autoAlpha: 1, y: 0, duration: S('toRise') * 0.5, ease: 'power2.out' }, `up+=${S('toRise') * 0.5}`)
     // Pinned to the end of the tilt, not appended: the stars' drift spans both chapters.

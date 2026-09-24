@@ -52,6 +52,7 @@
            1. fall     down      logo falls through the page onto the headline (fall.js)
            2. build    sideways  blueprint strip: icons draw, names decode
            3. code     zoom in   into an editor that types itself, terminal ships it
+           3b. secure  shake     a sign-in is refused, a lock rises, fly through the keyhole
            4. rise     up        process steps flip up in 3D as the camera climbs
            5. end      zoom out  the call to action
          Reduced motion: no pin, the scenes simply stack. -->
@@ -179,9 +180,36 @@
             <div class="win win-site" aria-hidden="true">
               <div class="editor-bar"><span class="editor-dots"><i></i><i></i><i></i></span><span class="win-url mono">https://yourbrand.com</span></div>
               <div class="win-body site-body">
-                <div class="site-nav"><i class="logo"></i><span></span><i></i><i></i><i></i><b></b></div>
-                <div class="site-hero"><i class="h1"></i><i class="h1 short"></i><i class="p"></i><i class="p short"></i><b class="cta"></b></div>
-                <div class="site-cards"><i></i><i></i><i></i></div>
+                <!-- A mini website. journey.js scrolls .site-scroll once the camera has zoomed into this window. -->
+                <div class="site-scroll">
+                  <header class="ms-nav"><span class="ms-logo"><i></i>yourbrand</span><nav><span>Product</span><span>Pricing</span><span>About</span></nav><span class="ms-btn">Sign up</span></header>
+                  <section class="ms-hero">
+                    <p class="ms-kicker">New · Version 2.0</p>
+                    <h4>Launch faster with Yourbrand.</h4>
+                    <p>Everything your team needs to plan, build, and ship, in one place.</p>
+                    <div class="ms-ctas"><span class="ms-btn">Start free</span><span class="ms-btn ghost">Book a demo</span></div>
+                    <div class="ms-shot"><i class="side"></i><div><i class="bar"></i><i class="bar short"></i><div class="ms-tiles"><i></i><i></i><i></i></div></div></div>
+                  </section>
+                  <section class="ms-logos"><span>Northwind</span><span>Acme</span><span>Globex</span><span>Initech</span><span>Umbrella</span></section>
+                  <section class="ms-block">
+                    <h5>Why teams switch</h5>
+                    <div class="ms-grid">
+                      <div class="ms-card"><i></i><b>Fast</b><span>Pages that load instantly on every device.</span></div>
+                      <div class="ms-card"><i></i><b>Secure</b><span>Sign-in, roles, and audit logs built in.</span></div>
+                      <div class="ms-card"><i></i><b>Scales</b><span>From ten users to ten thousand.</span></div>
+                    </div>
+                  </section>
+                  <section class="ms-block">
+                    <h5>Simple pricing</h5>
+                    <div class="ms-grid">
+                      <div class="ms-price"><b>Starter</b><strong>$19<small>/mo</small></strong><span>For small teams</span><em class="ms-btn ghost">Choose</em></div>
+                      <div class="ms-price hot"><b>Team</b><strong>$49<small>/mo</small></strong><span>Most popular</span><em class="ms-btn">Choose</em></div>
+                      <div class="ms-price"><b>Scale</b><strong>$99<small>/mo</small></strong><span>For growing orgs</span><em class="ms-btn ghost">Choose</em></div>
+                    </div>
+                  </section>
+                  <section class="ms-cta"><h5>Ready when you are.</h5><span class="ms-btn">Get started</span></section>
+                  <footer class="ms-foot"><span>© yourbrand</span><span>Privacy</span><span>Terms</span></footer>
+                </div>
               </div>
             </div>
 
@@ -224,11 +252,41 @@
           <p class="scene-eyebrow mono code-caption" id="codeCaption">02 · How it comes together</p>
         </div>
 
+        <!-- 3b · Security: a sign-in is refused (the screen shakes), a padlock
+             rises and locks, then the camera flies through the keyhole. -->
+        <div class="scene scene-secure scene-later" id="sceneSecure">
+          <div class="secure-flash" id="secureFlash" aria-hidden="true"></div>
+          <div class="secure-shake" id="secureShake">
+            <div class="login" id="secureLogin" aria-hidden="true">
+              <div class="login-head"><span class="login-dot"></span><b>Admin console</b></div>
+              <label>Email<span class="login-field">admin@yourbrand.com</span></label>
+              <label>Password<span class="login-field"><span class="pass-dots" id="passDots">••••••••••••</span></span></label>
+              <span class="login-btn" id="loginBtnMock">Sign in</span>
+              <p class="login-err mono" id="loginErr">✕ Access denied · 401 Unauthorized</p>
+            </div>
+
+            <div class="lock-wrap" id="lockWrap">
+              <svg class="lock" id="lock" viewBox="0 0 200 240" aria-hidden="true">
+                <path class="lock-shackle" id="lockShackle" d="M62 104V72a38 38 0 0 1 76 0v32" fill="none" stroke="currentColor" stroke-width="16" stroke-linecap="round"/>
+                <rect class="lock-body" x="28" y="100" width="144" height="124" rx="20"/>
+                <path class="lock-hole" d="M100 136a14 14 0 0 1 8 25.5L114 192H86l6-30.5A14 14 0 0 1 100 136Z"/>
+              </svg>
+            </div>
+
+            <div class="secure-copy" id="secureCopy">
+              <p class="scene-eyebrow mono">03 · Security</p>
+              <h2 class="secure-title">Locked down from day one.</h2>
+              <p class="secure-sub">Encryption, role-based access, audit logs, and backups are built in, not bolted on.</p>
+              <ul class="chips"><li>TLS everywhere</li><li>Role-based access</li><li>Audit logs</li><li>Nightly backups</li></ul>
+            </div>
+          </div>
+        </div>
+
         <!-- 4 · Rise (up) -->
         <div class="scene scene-rise scene-later" id="sceneRise">
           <div class="rise-stars" id="riseStars" aria-hidden="true"></div>
           <div class="rise-head">
-            <p class="scene-eyebrow mono">03 · How we work</p>
+            <p class="scene-eyebrow mono">04 · How we work</p>
             <h2 class="rise-title">From first call to launch.</h2>
           </div>
           <div class="rise-rail" aria-hidden="true"><i id="riseFill"></i></div>

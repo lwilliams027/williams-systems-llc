@@ -549,20 +549,59 @@ h1, h2, h3, h4, p { margin: 0; }
 .win-body { flex: 1; min-height: 0; position: relative; }
 
 /* Website mock */
-.site-body { background: #F5F6F8; padding: 20px 28px; display: flex; flex-direction: column; gap: 26px; }
-.site-nav { display: flex; align-items: center; gap: 14px; }
-.site-nav i { display: block; width: 52px; height: 8px; border-radius: 4px; background: #C9CDD4; }
-.site-nav i.logo { width: 26px; height: 26px; border-radius: 7px; background: var(--accent); }
-.site-nav span { flex: 1; }
-.site-nav b { width: 96px; height: 28px; border-radius: 14px; background: #0B0C10; }
-.site-hero { display: flex; flex-direction: column; gap: 12px; padding-top: 12px; }
-.site-hero i { display: block; height: 30px; width: 62%; border-radius: 6px; background: #0B0C10; }
-.site-hero i.short { width: 40%; }
-.site-hero i.p { height: 10px; width: 48%; background: #B6BBC4; margin-top: 6px; }
-.site-hero i.p.short { width: 34%; margin-top: 0; }
-.site-hero b { width: 140px; height: 38px; border-radius: 19px; background: var(--accent); margin-top: 12px; }
-.site-cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-top: auto; }
-.site-cards i { height: 90px; border-radius: 10px; background: #E3E6EB; }
+/* Mini website inside the browser window (scrolled by journey.js) */
+.site-body { background: #FFFFFF; overflow: hidden; color: #0B0C10; font-family: var(--font-body); }
+.site-scroll { will-change: transform; }
+.ms-btn {
+  display: inline-block; font-style: normal; font-weight: 600; font-size: 0.8rem;
+  padding: 9px 16px; border-radius: 999px; background: var(--accent); color: #fff; white-space: nowrap;
+}
+.ms-btn.ghost { background: transparent; color: #0B0C10; box-shadow: inset 0 0 0 1px #D0D4DB; }
+.ms-nav {
+  display: flex; align-items: center; gap: 24px; padding: 16px 32px;
+  border-bottom: 1px solid #EEF0F3; font-size: 0.82rem; color: #4A5160;
+}
+.ms-logo { display: inline-flex; align-items: center; gap: 8px; font-weight: 700; color: #0B0C10; font-size: 0.95rem; }
+.ms-logo i { width: 18px; height: 18px; border-radius: 5px; background: var(--accent); }
+.ms-nav nav { display: flex; gap: 20px; flex: 1; }
+.ms-hero { padding: 48px 32px 36px; text-align: center; display: flex; flex-direction: column; align-items: center; gap: 14px; }
+.ms-kicker { font-size: 0.72rem; font-weight: 600; color: var(--accent); background: rgba(0,122,204,0.08); padding: 5px 12px; border-radius: 999px; }
+.ms-hero h4 { font-family: var(--font-display); font-weight: 700; font-size: clamp(1.4rem, 3.2vw, 2.6rem); line-height: 1.05; letter-spacing: -0.03em; max-width: 16ch; }
+.ms-hero > p { color: #5A6170; font-size: 0.95rem; max-width: 42ch; }
+.ms-ctas { display: flex; gap: 10px; margin-top: 4px; }
+.ms-shot {
+  width: 86%; margin-top: 22px; aspect-ratio: 16 / 7;
+  border-radius: 12px; background: #F3F5F8; border: 1px solid #E3E6EB;
+  display: flex; gap: 14px; padding: 14px; text-align: left;
+  box-shadow: 0 24px 50px -24px rgba(11,12,16,0.35);
+}
+.ms-shot .side { width: 18%; border-radius: 8px; background: #E3E6EB; }
+.ms-shot > div { flex: 1; display: flex; flex-direction: column; gap: 10px; }
+.ms-shot .bar { height: 12px; width: 60%; border-radius: 6px; background: #CFD4DC; }
+.ms-shot .bar.short { width: 36%; }
+.ms-tiles { flex: 1; display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+.ms-tiles i { border-radius: 8px; background: linear-gradient(135deg, #007ACC, #3794FF); opacity: 0.85; }
+.ms-tiles i:nth-child(2) { opacity: 0.55; }
+.ms-tiles i:nth-child(3) { opacity: 0.3; }
+.ms-logos {
+  display: flex; justify-content: center; flex-wrap: wrap; gap: 12px 40px; padding: 26px 32px;
+  border-block: 1px solid #EEF0F3; font-weight: 700; font-size: 0.9rem; color: #A3A9B5; letter-spacing: 0.02em;
+}
+.ms-block { padding: 44px 32px; }
+.ms-block h5, .ms-cta h5 { font-family: var(--font-display); font-weight: 700; font-size: 1.4rem; letter-spacing: -0.02em; text-align: center; margin-bottom: 22px; }
+.ms-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+.ms-card { border: 1px solid #E6E9EE; border-radius: 12px; padding: 18px; display: flex; flex-direction: column; gap: 6px; font-size: 0.82rem; color: #5A6170; }
+.ms-card i { width: 28px; height: 28px; border-radius: 8px; background: rgba(0,122,204,0.12); margin-bottom: 6px; }
+.ms-card b { color: #0B0C10; font-size: 0.95rem; }
+.ms-price { border: 1px solid #E6E9EE; border-radius: 12px; padding: 20px; display: flex; flex-direction: column; gap: 6px; align-items: flex-start; font-size: 0.8rem; color: #5A6170; }
+.ms-price.hot { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(0,122,204,0.12); }
+.ms-price b { color: #0B0C10; }
+.ms-price strong { font-family: var(--font-display); font-size: 1.8rem; color: #0B0C10; }
+.ms-price small { font-size: 0.8rem; color: #8B93A7; font-family: var(--font-body); }
+.ms-price .ms-btn { margin-top: 8px; }
+.ms-cta { margin: 0 32px 36px; padding: 40px 24px; border-radius: 16px; background: #0B0C10; color: #fff; text-align: center; }
+.ms-cta h5 { color: #fff; margin-bottom: 16px; }
+.ms-foot { display: flex; gap: 20px; padding: 18px 32px 26px; border-top: 1px solid #EEF0F3; font-size: 0.75rem; color: #8B93A7; }
 
 /* SaaS dashboard mock */
 .saas-body { display: flex; background: #141820; }
@@ -630,6 +669,48 @@ h1, h2, h3, h4, p { margin: 0; }
 .term-line.ok { color: var(--ok); }
 .code-caption { position: absolute; left: var(--gutter); bottom: 26px; }
 
+/* ---------- 6d½. Journey · security (denied → lock → keyhole) ---------- */
+.secure-flash {
+  position: absolute; inset: 0; z-index: 6; pointer-events: none; opacity: 0;
+  background: radial-gradient(ellipse at center, rgba(255,70,70,0) 35%, rgba(255,70,70,0.38) 100%);
+}
+.secure-shake {
+  position: relative; width: 100%; height: 100%;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 28px;
+  will-change: transform;
+}
+.login {
+  position: absolute; inset: 0; margin: auto; z-index: 3;
+  width: min(380px, 86vw); height: max-content;
+  display: flex; flex-direction: column; gap: 14px;
+  padding: 28px;
+  background: var(--surface); border: 1px solid var(--line-2); border-radius: 16px;
+  box-shadow: 0 40px 100px rgba(0,0,0,0.55);
+}
+.login-head { display: flex; align-items: center; gap: 10px; font-size: 1.05rem; margin-bottom: 4px; }
+.login-dot { width: 10px; height: 10px; border-radius: 50%; background: var(--accent); }
+.login label { display: flex; flex-direction: column; gap: 6px; font-size: 0.8rem; color: var(--text-3); }
+.login-field {
+  display: block; min-height: 44px; padding: 11px 12px;
+  background: var(--ink); border: 1px solid var(--line-2); border-radius: 10px;
+  color: var(--text); font-size: 0.92rem;
+}
+.pass-dots { display: inline-block; letter-spacing: 0.18em; clip-path: inset(0 100% 0 0); }
+.login-btn { text-align: center; padding: 12px; border-radius: 999px; background: var(--accent); color: #fff; font-weight: 600; margin-top: 4px; }
+.login-err { color: #FF6B6B; text-transform: none; letter-spacing: 0.02em; font-size: 0.8rem; opacity: 0; min-height: 1.2em; }
+
+.lock-wrap { width: min(44vw, 210px); z-index: 2; will-change: transform; }
+.lock { display: block; width: 100%; height: auto; overflow: visible; color: #C9CFDA; will-change: transform; }
+.lock-body { fill: #1C2029; stroke: var(--accent); stroke-width: 3; }
+.lock-hole { fill: var(--ink); }
+.secure-copy { display: flex; flex-direction: column; align-items: center; gap: 14px; text-align: center; max-width: 46ch; padding: 0 var(--gutter); }
+.secure-title {
+  font-family: var(--font-serif); font-style: italic; font-weight: 400;
+  font-size: clamp(2.2rem, 5vw, 4rem); line-height: 1; color: #fff;
+}
+.secure-sub { color: var(--text-2); }
+.secure-copy .chips { justify-content: center; }
+
 /* ---------- 6e. Journey · rise (up, 3D flips) ---------- */
 .scene-rise { perspective: 1100px; }
 .rise-stars { position: absolute; left: 0; right: 0; top: -100%; height: 200%; pointer-events: none; }
@@ -679,7 +760,10 @@ h1, h2, h3, h4, p { margin: 0; }
 @media (max-width: 767.98px) {
   .build-panel { width: 78vw; min-height: 56vh; }
   .editor-card { width: 80vw; }
-  .site-body { padding: 14px 16px; gap: 16px; }
+  .ms-nav nav { display: none; }
+  .ms-nav, .ms-hero, .ms-block, .ms-logos { padding-inline: 16px; }
+  .ms-grid { grid-template-columns: 1fr; }
+  .ms-cta { margin-inline: 16px; }
   .saas-main { padding: 12px; gap: 12px; }
   .kpis b { font-size: 1rem; }
   .cloud-body { font-size: 0.72rem; padding: 14px; }
@@ -707,6 +791,8 @@ h1, h2, h3, h4, p { margin: 0; }
 .journey-static .flip-world { position: relative; display: flex; flex-direction: column; gap: 32px; align-items: center; }
 .journey-static .flip-floor { display: none; }
 .journey-static .win { position: relative; opacity: 1; width: min(1100px, 100%); height: min(70vh, 620px); }
+.journey-static .login { display: none; }
+.journey-static .pass-dots { clip-path: none; }
 .journey-static .code-ch { visibility: visible; }
 
 @keyframes pulse {
