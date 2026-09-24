@@ -35,6 +35,7 @@ initInquiryForm({ reduced: REDUCED });
 if (REDUCED) {
   gsap.set(HIDDEN, { visibility: 'visible' });
   $('#intro')?.remove();
+  document.querySelectorAll('video[autoplay]').forEach((v) => { v.removeAttribute('autoplay'); v.pause(); });
   initJourney({ reduced: true });
 } else {
   waitForFonts().then(initMotion);
@@ -409,20 +410,12 @@ function initResplitOnResize() {
 function initHeader() {
   const header = $('#header');
   if (!header) return;
-  let last = 0;
+  // Always visible: it only picks up the frosted background once you scroll.
   ScrollTrigger.create({
     start: 0,
     end: 'max',
     onUpdate(self) {
-      const y = self.scroll();
-      header.classList.toggle('scrolled', y > 40);
-      const goingDown = y > last + 2 && y > 240;
-      const goingUp   = y < last - 2;
-      if (!document.body.classList.contains('menu-open')) {
-        if (goingDown) header.classList.add('hidden');
-        else if (goingUp) header.classList.remove('hidden');
-      }
-      last = y;
+      header.classList.toggle('scrolled', self.scroll() > 40);
     },
   });
 }
@@ -487,3 +480,43 @@ function setYear() {
   const el = $('#year');
   if (el) el.textContent = String(new Date().getFullYear());
 }
+
+/* Header dropdowns: open on hover (CSS), and on click/tap or keyboard here.
+   Escape or a click elsewhere closes them; picking a link closes it too. */
+(function initNavMenus() {
+  const items = [...document.querySelectorAll('.nav-item')];
+  if (!items.length) return;
+  const close = (except) => items.forEach((it) => {
+    if (it === except) return;
+    it.classList.remove('open');
+    it.querySelector('.nav-trigger').setAttribute('aria-expanded', 'false');
+  });
+  items.forEach((it) => {
+    const btn = it.querySelector('.nav-trigger');
+    btn.addEventListener('click', () => {
+      const open = !it.classList.contains('open');
+      close(it);
+      it.classList.toggle('open', open);
+      it.classList.remove('closed');
+      btn.setAttribute('aria-expanded', String(open));
+    });
+    it.addEventListener('mouseenter', () => it.classList.remove('closed'));
+
+  });
+  document.addEventListener('click', (e) => { if (!e.target.closest('.nav-item')) close(); });
+  // Window capture runs before the journey's chapter-link handler (which stops the event).
+  window.addEventListener('click', (e) => {
+    const a = e.target.closest('.nav-menu a');
+    if (!a) return;
+    const it = a.closest('.nav-item');
+    close();
+    it.classList.add('closed');            // hide it even though the pointer is still over it
+    a.blur();
+  }, true);
+  document.addEventListener('keydown', (e) => {
+    if (e.key !== 'Escape') return;
+    const openItem = items.find((it) => it.classList.contains('open') || it.contains(document.activeElement));
+    close();
+    openItem?.querySelector('.nav-trigger').focus();
+  });
+})();

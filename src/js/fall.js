@@ -190,6 +190,7 @@ export function buildFall({ reduced = false } = {}) {
   // 0 → 2: the cue clears and the mark drops into frame, accelerating.
   if (cue) tl.to(cue, { autoAlpha: 0, y: 30, duration: 0.4 }, 0);
   // The hero photo (a placeholder for testing) drifts away as the fall begins.
+  tl.to('#heroHead', { autoAlpha: 0, y: -60, duration: 0.9, ease: 'power2.in' }, 0);
   tl.to('#fallHeroMedia', { autoAlpha: 0, scale: 1.08, duration: 1.6, ease: 'power1.in' }, 0.1);
   tl.to(faller, { y: 0, duration: 2, ease: 'power2.in' }, 0)
     .to(trail, { opacity: 1, duration: 0.8 }, 0.5);

@@ -19,8 +19,8 @@
                    and it falls — the camera follows it down to the login page
      5b. secure    a sign-in is refused (screen shakes), a padlock rises, and
                    the camera flies through the keyhole
-     6. rise    ↑  an elevator ride up five floors: the step counter rolls 01 → 05
-     6b. quotes    client testimonials on a 3D carousel that turns with the scroll
+     6. quotes     client video/photo testimonials on a 3D carousel that turns with the scroll
+     6b. rise   ↑  how we work: one full screen per step as the camera keeps rising
      7. finale  ✦  the last step dissolves into a starfield; it warps, the stars
                    swirl into the logo, the headline flies together letter by
                    letter and the services orbit the mark
@@ -50,6 +50,7 @@ const LEN = {             // chapter lengths, in screens of scroll
   strip:   2.2,           // sideways along the strip
   zoom:    0.8,           // editor grows from the strip to full screen
   type:    1.1,           // code types itself, terminal ships it
+  typeHold: 0.5,          // pause: read the caption next to the finished code
   stackIn: 0.5,           // editor tilts back into the Win+Tab stack
   cycle:   1.8,           // windows cycle to the front (a full turn, landing on the website)
   focus:   0.7,           // zoom into the website window
@@ -57,17 +58,19 @@ const LEN = {             // chapter lengths, in screens of scroll
   desk:    1.1,           // camera swings over 180° to look down on the site
   deskHold: 0.3,
   bulbIn:  1.15,          // a lit bulb drops in, swings to rest, the page lights up
+  bulbHold: 0.45,         // pause: read the customization copy
   unscrew: 1.6,           // four turns, the lights flicker, it comes loose (dark mode)
   bulbFall: 1.55,         // it falls; the camera follows it down
   toSecure: 0.7,          // …and the login page rises from below
   denied:  1.1,           // two refused sign-ins; the screen shakes
   lockUp:  0.9,           // a padlock rises and snaps shut
+  lockHold: 1.0,          // someone tries it, it holds; the lock sits there with the security copy
   keyhole: 0.9,           // fly through the keyhole
-  toRise:  0.7,           // out the other side into the climb
+  toRise:  0.7,           // the testimonials give way to how we work
   climb:   2.0,           // the elevator ride: five floors, one step each
-  toQuotes: 0.7,          // the last step gives way to the testimonials carousel
+  toQuotes: 0.7,          // out the other side of the keyhole: the testimonials carousel
   quotes:  2.4,           // the carousel turns, one client quote to the front at a time
-  toEnd:   0.7,           // the testimonials dissolve into the starfield
+  toEnd:   0.7,           // the last step dissolves into the starfield
   warp:    0.9,           // the starfield warps
   form:    1.4,           // the stars swirl in and assemble the logo
   reveal:  1.0,           // headline flies together, services orbit, call to action
@@ -384,10 +387,12 @@ export function initJourney({ reduced = false } = {}) {
 
   /* ---- 4 · Win+Tab: into the 3D stack, then one full rotation -------- */
   master
-    .addLabel('stack', `type+=${S('type')}`)
+    .addLabel('stack', `type+=${S('type') + S('typeHold')}`)
     .to('#codeCaption', { autoAlpha: 0, duration: S('stackIn') * 0.5 }, 'stack')
     .to(rig.P, { stack: 1, duration: S('stackIn'), ease: 'power2.inOut' }, 'stack')
     .addLabel('cycle')
+    .to('#stackCaption', { autoAlpha: 1, duration: S('cycle') * 0.12 }, 'cycle')
+    .to('#stackCaption', { autoAlpha: 0, duration: S('cycle') * 0.1 }, `cycle+=${S('cycle') * 0.9}`)
     // One full turn plus one: the website window ends up at the front.
     .to(rig.P, { cycle: wins.length + 1, duration: S('cycle'), ease: 'sine.inOut' }, 'cycle')
     // Zoom into the website, then scroll down it like a real page.
@@ -435,7 +440,7 @@ export function initJourney({ reduced = false } = {}) {
     .to(lightParts, { opacity: 1, duration: I * 0.12 }, `bulb+=${I * 0.3}`)
     .to(lamp, { v: 1, duration: I * 0.04, onUpdate: setLamp }, `bulb+=${I * 0.32}`)
     .to('#bulbCopy > *', { autoAlpha: 1, y: 0, duration: I * 0.3, stagger: I * 0.08, ease: 'power3.out' }, `bulb+=${I * 0.55}`)
-    .addLabel('unscrew', `bulb+=${I}`);
+    .addLabel('unscrew', `bulb+=${I + S('bulbHold')}`);
 
   // Four turns: the threads roll, a highlight slides across the glass, the bulb
   // steps down out of the socket. From the second turn the contact fails and
@@ -531,7 +536,10 @@ export function initJourney({ reduced = false } = {}) {
     .to(lockWrap, { autoAlpha: 1, y: 0, duration: S('lockUp') * 0.5, ease: 'power3.out' }, `lockUp+=${S('lockUp') * 0.25}`)
     .to('#lockShackle', { y: 0, duration: S('lockUp') * 0.18, ease: 'power4.in' }, `lockUp+=${S('lockUp') * 0.72}`)
     .to(shake, { keyframes: { y: [0, 6, 0] }, duration: S('lockUp') * 0.1 }, `lockUp+=${S('lockUp') * 0.9}`)   // the clunk
-    .to(copy, { autoAlpha: 1, y: 0, duration: S('lockUp') * 0.35, ease: 'power3.out' }, `lockUp+=${S('lockUp') * 0.55}`);
+    .to(copy, { autoAlpha: 1, y: 0, duration: S('lockUp') * 0.35, ease: 'power3.out' }, `lockUp+=${S('lockUp') * 0.55}`)
+    // The hold: someone rattles the lock, it doesn't give, and it just sits there.
+    .to(lockWrap, { keyframes: { rotation: [0, -6, 5, -3.5, 2, -0.8, 0] }, transformOrigin: '50% 15%', duration: S('lockHold') * 0.3 }, `lockUp+=${S('lockUp') + S('lockHold') * 0.1}`)
+    .to(shake, { keyframes: { x: [0, -5, 4, -2, 0] }, duration: S('lockHold') * 0.2 }, `lockUp+=${S('lockUp') + S('lockHold') * 0.15}`);
 
   // Fly through the keyhole. The lock is first brought to the centre; then a
   // full-screen copy of it (#lockZoom) takes over and the camera pushes in by
@@ -556,17 +564,58 @@ export function initJourney({ reduced = false } = {}) {
   };
   const keyholeShift = () => window.innerHeight / 2 - (lockWrap.offsetTop + lockWrap.offsetHeight * 0.625);
   master
-    .addLabel('keyhole', `lockUp+=${S('lockUp')}`)
+    .addLabel('keyhole', `lockUp+=${S('lockUp') + S('lockHold')}`)
     .to(copy, { autoAlpha: 0, y: 30, duration: S('keyhole') * 0.3 }, 'keyhole')
     .to(lockWrap, { y: keyholeShift, duration: S('keyhole') * 0.4, ease: 'power2.inOut' }, 'keyhole')
     .fromTo(zoomCam, { p: 0 }, { p: 1, duration: S('keyhole'), ease: 'power2.in', onUpdate: renderLockZoom }, `keyhole+=${S('keyhole') * 0.15}`);
 
-  /* ---- 6 · out through the keyhole: how we work, one step per screen -- */
+  /* ---- 6 · out through the keyhole: testimonials ---------------------- */
+  // Client videos/photos on a 3D carousel that turns with the scroll.
+  master.addLabel('up', `keyhole+=${S('keyhole') * 1.15}`);
+  gsap.set(rise, { autoAlpha: 0 });
+  const quotesScene = $('#sceneQuotes');
+  const ring = $('#quotesRing');
+  const quotes = $$('.quote', ring);
+  const qDots = $$('#quotesDots li');
+  const NQ = quotes.length, STEP = 360 / NQ;
+  const ringState = { rot: 0 };
+  const placeQuotes = () => {
+    const w = ring.offsetWidth;
+    const R = ((w / 2) / Math.tan(Math.PI / NQ)) * 1.02;   // ring radius that just fits the cards side by side
+    const forward = 0;   // the front card sits on the screen plane (pulling it closer blurred it)
+    let front = 0, best = 1e9;
+    quotes.forEach((q, i) => {
+      const a = i * STEP + ringState.rot;                   // this card's angle away from the viewer
+      const norm = ((a % 360) + 540) % 360 - 180;           // -180…180, 0 = facing you
+      const facing = Math.cos((norm * Math.PI) / 180);      // 1 = front, -1 = back
+      q.style.transform = `rotateY(${a}deg) translateZ(${R}px)`;
+      q.style.opacity = String(Math.max(0.1, ((facing + 1) / 2) ** 1.8));
+      if (Math.abs(norm) < best) { best = Math.abs(norm); front = i; }
+    });
+    quotes.forEach((q, i) => { const v = q.querySelector('video'); if (v && i !== front && !v.paused) v.pause(); });
+    ring.style.transform = `translateZ(${forward - R}px)`;  // the front card sits slightly in front of the screen plane
+    qDots.forEach((d, i) => d.classList.toggle('on', i === front));
+  };
+  gsap.set(quotesScene, { autoAlpha: 0 });
+  placeQuotes();
+  const TQ = S('toQuotes'), QN = S('quotes'), slotQ = QN / NQ;
+  master
+    .set(secure, { autoAlpha: 0 }, 'up')              // the keyhole's dark fills the screen: swap scenes under it
+    .to(lamp, { v: 0, duration: 0.05, onUpdate: setLamp }, 'up')   // and it's dark on the other side
+    .addLabel('quotes', 'up')
+    .fromTo(quotesScene, { autoAlpha: 0 }, { autoAlpha: 1, duration: TQ * 0.5 }, `quotes+=${TQ * 0.2}`)
+    .fromTo(ringState, { rot: 80 }, { rot: 0, duration: TQ, ease: 'power3.out', onUpdate: placeQuotes }, `quotes+=${TQ * 0.2}`)
+    .fromTo('.quotes-head', { autoAlpha: 0, y: -30 }, { autoAlpha: 1, y: 0, duration: TQ * 0.5, ease: 'power2.out' }, `quotes+=${TQ * 0.4}`)
+    .addLabel('quotesIn', `quotes+=${TQ}`);
+  for (let k = 1; k < NQ; k++) {
+    master.to(ringState, { rot: -STEP * k, duration: slotQ * 0.55, ease: 'power2.inOut', onUpdate: placeQuotes },
+      master.labels.quotes + TQ + (k - 1) * slotQ + slotQ * 0.4);
+  }
+
+  /* ---- 6b · how we work, one step per screen ------------------------- */
   // The camera keeps rising: each step arrives from above and the last one
   // drops away below. Its line art draws itself, a giant outlined word drifts
   // behind it, and the progress bar along the bottom fills left → right.
-  master.addLabel('up', `keyhole+=${S('keyhole') * 1.15}`);
-  gsap.set(rise, { autoAlpha: 0 });
   const steps = $$('.rstep', rise);
   const prog = $$('#riseProgress li');
   const setActive = (n) => prog.forEach((li, i) => { li.classList.toggle('done', i < n); li.classList.toggle('on', i === n); });
@@ -577,13 +626,13 @@ export function initJourney({ reduced = false } = {}) {
   gsap.set(steps[0], { yPercent: 0 });
 
   master
-    .set(secure, { autoAlpha: 0 }, 'up')              // the keyhole's dark fills the screen: swap scenes under it
-    .to(lamp, { v: 0, duration: 0.05, onUpdate: setLamp }, 'up')   // and it's dark on the other side
-    .to(rise, { autoAlpha: 1, duration: S('toRise') * 0.35 }, 'up')
-    .fromTo('#riseStars', { y: 0 }, { y: () => window.innerHeight * 0.9, duration: S('toRise') + S('climb') }, 'up')
-    .fromTo('.rise-head', { autoAlpha: 0, y: -30 }, { autoAlpha: 1, y: 0, duration: S('toRise') * 0.5, ease: 'power2.out' }, `up+=${S('toRise') * 0.4}`)
-    .fromTo('.rise-progress', { autoAlpha: 0 }, { autoAlpha: 1, duration: S('toRise') * 0.4 }, `up+=${S('toRise') * 0.5}`)
-    .addLabel('climb', `up+=${S('toRise')}`)
+    .addLabel('rise', `quotes+=${TQ + QN}`)
+    .to(quotesScene, { autoAlpha: 0, scale: 0.94, duration: S('toRise') * 0.5, ease: 'power2.in' }, 'rise')
+    .to(rise, { autoAlpha: 1, duration: S('toRise') * 0.4 }, `rise+=${S('toRise') * 0.3}`)
+    .fromTo('#riseStars', { y: 0 }, { y: () => window.innerHeight * 0.9, duration: S('toRise') + S('climb') }, 'rise')
+    .fromTo('.rise-head', { autoAlpha: 0, y: -30 }, { autoAlpha: 1, y: 0, duration: S('toRise') * 0.5, ease: 'power2.out' }, `rise+=${S('toRise') * 0.4}`)
+    .fromTo('.rise-progress', { autoAlpha: 0 }, { autoAlpha: 1, duration: S('toRise') * 0.4 }, `rise+=${S('toRise') * 0.5}`)
+    .addLabel('climb', `rise+=${S('toRise')}`)
     // The chapter title introduces the section, then steps aside for the steps.
     .to('.rise-title', { autoAlpha: 0, y: -20, duration: S('climb') * 0.06 }, `climb+=${S('climb') * 0.1}`);
 
@@ -597,7 +646,7 @@ export function initJourney({ reduced = false } = {}) {
         .to('#riseFill', { scaleX: (k + 1) / steps.length, duration: slot * 0.3, ease: 'power2.inOut' }, at)
         .to(stepAt, { n: k, duration: slot * 0.02, onUpdate: onStep }, at + slot * 0.16);
     }
-    const show = k === 0 ? master.labels.up + S('toRise') * 0.35 : at + slot * 0.18;
+    const show = k === 0 ? master.labels.rise + S('toRise') * 0.35 : at + slot * 0.18;
     master
       .fromTo($$('.rstep-art > *:not(g), .rstep-art g > *', st), { drawSVG: '0%' },
         { drawSVG: '100%', duration: slot * 0.45, stagger: slot * 0.035, ease: 'power1.inOut' }, show)
@@ -612,55 +661,19 @@ export function initJourney({ reduced = false } = {}) {
     .to('.rstep-rocket', { y: -46, duration: slot * 0.35, ease: 'power2.in' }, rocketAt)
     .to('.rstep-flame', { keyframes: { scaleY: [1, 1.5, 1.1, 1.7, 1.3] }, transformOrigin: '50% 0%', duration: slot * 0.35 }, rocketAt);
 
-  /* ---- 6b · testimonials: a 3D carousel that turns with the scroll ---- */
-  const quotesScene = $('#sceneQuotes');
-  const ring = $('#quotesRing');
-  const quotes = $$('.quote', ring);
-  const qDots = $$('#quotesDots li');
-  const NQ = quotes.length, STEP = 360 / NQ;
-  const ringState = { rot: 0 };
-  const placeQuotes = () => {
-    const w = ring.offsetWidth;
-    const R = ((w / 2) / Math.tan(Math.PI / NQ)) * 1.15;   // ring radius that fits the cards side by side
-    let front = 0, best = 1e9;
-    quotes.forEach((q, i) => {
-      const a = i * STEP + ringState.rot;                   // this card's angle away from the viewer
-      const norm = ((a % 360) + 540) % 360 - 180;           // -180…180, 0 = facing you
-      const facing = Math.cos((norm * Math.PI) / 180);      // 1 = front, -1 = back
-      q.style.transform = `rotateY(${a}deg) translateZ(${R}px)`;
-      q.style.opacity = String(Math.max(0.1, ((facing + 1) / 2) ** 1.8));
-      if (Math.abs(norm) < best) { best = Math.abs(norm); front = i; }
-    });
-    ring.style.transform = `translateZ(${-R}px)`;          // the front card sits at normal size
-    qDots.forEach((d, i) => d.classList.toggle('on', i === front));
-  };
-  gsap.set(quotesScene, { autoAlpha: 0 });
-  placeQuotes();
-  const TQ = S('toQuotes'), QN = S('quotes'), slotQ = QN / NQ;
-  master
-    .addLabel('quotes', `climb+=${S('climb')}`)
-    .to(rise, { autoAlpha: 0, scale: 0.94, duration: TQ * 0.6, ease: 'power2.in' }, 'quotes')
-    .fromTo(quotesScene, { autoAlpha: 0 }, { autoAlpha: 1, duration: TQ * 0.5 }, `quotes+=${TQ * 0.35}`)
-    .fromTo(ringState, { rot: 80 }, { rot: 0, duration: TQ, ease: 'power3.out', onUpdate: placeQuotes }, `quotes+=${TQ * 0.3}`)
-    .fromTo('.quotes-head', { autoAlpha: 0, y: -30 }, { autoAlpha: 1, y: 0, duration: TQ * 0.5, ease: 'power2.out' }, `quotes+=${TQ * 0.5}`);
-  for (let k = 1; k < NQ; k++) {
-    master.to(ringState, { rot: -STEP * k, duration: slotQ * 0.55, ease: 'power2.inOut', onUpdate: placeQuotes },
-      master.labels.quotes + TQ + (k - 1) * slotQ + slotQ * 0.4);
-  }
-
   /* ---- 7 · finale ------------------------------------------------------ */
   const fin = createFinale({ canvas: $('#endCanvas'), mark: $('#endMark'), orbit: $('#endOrbit'), stage, scene: end });
   const titleSplit = SplitText.create('#endTitle', { type: 'chars', charsClass: 'char' });
   gsap.set(end, { autoAlpha: 0 });
-  gsap.set(['.end-sub', '.end-cta', '.end-foot'], { autoAlpha: 0, y: 24 });
+  gsap.set(['.end-sub', '.end-cta'], { autoAlpha: 0, y: 24 });
   gsap.set(titleSplit.chars, { autoAlpha: 0 });
   const E = S('toEnd'), RV = S('reveal');
   const rnd = gsap.utils.random;
 
   master
-    // The testimonials fall away and the stars take over.
-    .addLabel('out', `quotes+=${TQ + QN}`)
-    .to(quotesScene, { autoAlpha: 0, scale: 0.94, duration: E * 0.6, ease: 'power2.in' }, 'out')
+    // The last step falls away and the stars take over.
+    .addLabel('out', `climb+=${S('climb')}`)
+    .to(rise, { autoAlpha: 0, scale: 0.94, duration: E * 0.6, ease: 'power2.in' }, 'out')
     .fromTo(end, { autoAlpha: 0 }, { autoAlpha: 1, duration: E * 0.6, ease: 'power1.out' }, `out+=${E * 0.35}`)
     // Warp: the stars stretch into streaks and back.
     .addLabel('warp', `out+=${E}`)
@@ -676,7 +689,6 @@ export function initJourney({ reduced = false } = {}) {
       { autoAlpha: 0, x: () => rnd(-320, 320), y: () => rnd(-220, 220), z: () => rnd(-700, 150), rotationX: () => rnd(-120, 120), rotationY: () => rnd(-90, 90) },
       { autoAlpha: 1, x: 0, y: 0, z: 0, rotationX: 0, rotationY: 0, duration: RV * 0.6, stagger: RV * 0.025, ease: 'power3.out' }, 'reveal')
     .to(['.end-sub', '.end-cta'], { autoAlpha: 1, y: 0, duration: RV * 0.3, stagger: RV * 0.1, ease: 'power3.out' }, `reveal+=${RV * 0.55}`)
-    .to('.end-foot', { autoAlpha: 1, y: 0, duration: RV * 0.25 }, `reveal+=${RV * 0.75}`)
     .to({}, { duration: S('hold') });
 
   master.eventCallback('onUpdate', () => { rig.render(); fin.render(); });
@@ -696,6 +708,40 @@ export function initJourney({ reduced = false } = {}) {
   });
   rig.render();
   fin.resize();
+
+  // Header links (data-chapter) jump the scroll story to that chapter. Captured at the
+  // document so the generic #anchor scrolling in main.js doesn't also fire.
+  const jumpTo = (label) => {
+    const t = master.labels[label];
+    if (t === undefined) return;
+    const y = st.start + (t / master.duration()) * (st.end - st.start);
+    gsap.to(window, { scrollTo: y + 1, duration: 1.4, ease: 'power2.inOut' });
+  };
+  const HASH = { '#services': 'strip', '#work': 'focus', '#security': 'denied', '#testimonials': 'quotesIn', '#process': 'climb' };
+  document.addEventListener('click', (e) => {
+    const a = e.target.closest('a[href]');
+    if (!a) return;
+    const chapter = a.dataset.chapter || HASH[a.hash];
+    const samePage = a.pathname === location.pathname || a.getAttribute('href').startsWith('#');
+    if (!chapter || !samePage) return;
+    e.preventDefault();
+    e.stopPropagation();
+    if (document.body.classList.contains('menu-open')) $('#menuToggle')?.click();
+    jumpTo(chapter);
+  }, true);
+  // Arriving from another page on a deep link (e.g. about.html → ./#process).
+  // Wait for full load (fonts, video poster, layout) so the browser's own
+  // anchor jump and ScrollTrigger's refresh can't reset the position after us.
+  if (HASH[location.hash]) {
+    if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
+    const land = () => {
+      ScrollTrigger.refresh();
+      const y = st.start + (master.labels[HASH[location.hash]] / master.duration()) * (st.end - st.start);
+      window.scrollTo(0, y + 1);
+    };
+    if (document.readyState === 'complete') setTimeout(land, 60);
+    else window.addEventListener('load', () => setTimeout(land, 60), { once: true });
+  }
 
   // Clicking "Scroll to get started" plays the fall for you.
   $('#scrollCue')?.addEventListener('click', () => {

@@ -3,8 +3,22 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Williams Systems LLC — Full-Service Software Company</title>
-  <meta name="description" content="Williams Systems LLC is a full-service software company. We design, build, and run web front ends, backend systems, SaaS platforms, mobile apps, and the cloud infrastructure behind them." />
+  <title>Williams Systems LLC | Full-Service Software Company: Web, SaaS & Mobile</title>
+  <meta name="description" content="Williams Systems LLC builds and runs websites, web apps, SaaS platforms, mobile apps, and cloud infrastructure. One team, from first call to launch." />
+  <link rel="canonical" href="https://lwilliams027.github.io/williams-systems-llc/" />
+  <meta name="robots" content="index, follow, max-image-preview:large" />
+  <meta name="author" content="Williams Systems LLC" />
+  <meta property="og:type" content="website" />
+  <meta property="og:site_name" content="Williams Systems LLC" />
+  <meta property="og:title" content="Williams Systems LLC | Full-Service Software Company: Web, SaaS & Mobile" />
+  <meta property="og:description" content="Williams Systems LLC builds and runs websites, web apps, SaaS platforms, mobile apps, and cloud infrastructure. One team, from first call to launch." />
+  <meta property="og:url" content="https://lwilliams027.github.io/williams-systems-llc/" />
+  <meta property="og:image" content="https://lwilliams027.github.io/williams-systems-llc/hero/code-poster.jpg" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Williams Systems LLC | Full-Service Software Company: Web, SaaS & Mobile" />
+  <meta name="twitter:description" content="Williams Systems LLC builds and runs websites, web apps, SaaS platforms, mobile apps, and cloud infrastructure. One team, from first call to launch." />
+  <meta name="twitter:image" content="https://lwilliams027.github.io/williams-systems-llc/hero/code-poster.jpg" />
+  <script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":["Organization","ProfessionalService"],"@id":"https://lwilliams027.github.io/williams-systems-llc/#org","name":"Williams Systems LLC","url":"https://lwilliams027.github.io/williams-systems-llc/","logo":"https://lwilliams027.github.io/williams-systems-llc/brand/logo-lockup-black.svg","image":"https://lwilliams027.github.io/williams-systems-llc/hero/code-poster.jpg","email":"adapter127@gmail.com","description":"Williams Systems LLC is a full-service software company that designs, builds, and runs websites, web apps, SaaS platforms, mobile apps, and cloud infrastructure.","knowsAbout":["Web development","Front-end development","Back-end development","API development","SaaS development","Mobile app development","Cloud infrastructure","DevOps","AI and data engineering","Software security"],"hasOfferCatalog":{"@type":"OfferCatalog","name":"Software services","itemListElement":[{"@type":"Offer","itemOffered":{"@type":"Service","name":"Front-end development"}},{"@type":"Offer","itemOffered":{"@type":"Service","name":"Back-end and API development"}},{"@type":"Offer","itemOffered":{"@type":"Service","name":"SaaS platform development"}},{"@type":"Offer","itemOffered":{"@type":"Service","name":"Mobile app development"}},{"@type":"Offer","itemOffered":{"@type":"Service","name":"Cloud and DevOps"}},{"@type":"Offer","itemOffered":{"@type":"Service","name":"AI and data"}}]},"contactPoint":{"@type":"ContactPoint","contactType":"sales","email":"adapter127@gmail.com"}},{"@type":"WebSite","@id":"https://lwilliams027.github.io/williams-systems-llc/#website","url":"https://lwilliams027.github.io/williams-systems-llc/","name":"Williams Systems LLC","publisher":{"@id":"https://lwilliams027.github.io/williams-systems-llc/#org"}},{"@type":"FAQPage","@id":"https://lwilliams027.github.io/williams-systems-llc/#faq","mainEntity":[{"@type":"Question","name":"What does Williams Systems LLC do?","acceptedAnswer":{"@type":"Answer","text":"Williams Systems LLC is a full-service software company. We design and build websites, web applications, SaaS platforms, and mobile apps, and we set up and run the cloud infrastructure behind them. One team handles design, front end, back end, and hosting, so nothing gets lost between vendors."}},{"@type":"Question","name":"How much does a website or app cost?","acceptedAnswer":{"@type":"Answer","text":"It depends on the scope. Every project starts with a free discovery call, and afterwards you get a written scope, timeline, and fixed price before any work begins, so there are no surprises."}},{"@type":"Question","name":"How long does a project take?","acceptedAnswer":{"@type":"Answer","text":"Timelines depend on the size of the project. A marketing website is usually measured in weeks, while a SaaS platform or mobile app is usually measured in months. Your written scope includes a timeline, and you see working software every week along the way."}},{"@type":"Question","name":"Do I own the code and the accounts?","acceptedAnswer":{"@type":"Answer","text":"Yes. We build in your repositories and your cloud accounts, and we document as we go. The code, the data, and the accounts are yours."}},{"@type":"Question","name":"What technologies do you use?","acceptedAnswer":{"@type":"Answer","text":"Common choices include React, Next.js, and TypeScript on the front end; Node.js, Python, and PostgreSQL on the back end; React Native for mobile apps; and AWS, Docker, and CI/CD pipelines for cloud and DevOps. We pick the stack that fits your project."}},{"@type":"Question","name":"Can you work on an existing website or app?","acceptedAnswer":{"@type":"Answer","text":"Yes. We can review an existing codebase, fix problems, add features, and improve performance and security, as well as build new products from scratch."}},{"@type":"Question","name":"Do you offer support after launch?","acceptedAnswer":{"@type":"Answer","text":"Yes. After launch we can keep your software updated, fix issues, and build new features, with the same team that built it."}},{"@type":"Question","name":"How do I get started?","acceptedAnswer":{"@type":"Answer","text":"Schedule a free discovery call or email us about your project. We will ask about your goals and users, then send back a scope, timeline, and price."}}]}]}</script>
   <meta name="theme-color" content="#0B0C10" />
   <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -18,7 +32,7 @@
     try {
       // TEMP (editing the intro): play it on every load. Restore the next line to go back to once per tab.
       // if (!sessionStorage.getItem('ws-intro')) document.documentElement.classList.add('intro-on');
-      document.documentElement.classList.add('intro-on');
+      if (!location.hash) document.documentElement.classList.add('intro-on');
     } catch (e) {}
   </script>
 </head>
@@ -38,11 +52,76 @@
   <header class="header" id="header">
     <div class="header-inner">
       <a href="#top" class="brand" aria-label="Williams Systems LLC — home">
-        <img class="brand-lockup on-light" src="/brand/logo-horizontal-black.svg" alt="Williams Systems LLC" width="252" height="40" />
-        <img class="brand-lockup on-dark" src="/brand/logo-horizontal-white.svg" alt="" aria-hidden="true" width="252" height="40" />
+        <img class="brand-lockup on-dark" src="/brand/logo-horizontal-white.svg" alt="Williams Systems LLC" width="252" height="40" />
+        <img class="brand-lockup on-light" src="/brand/logo-horizontal-black.svg" alt="" aria-hidden="true" width="252" height="40" />
       </a>
 
-      <a href="mailto:adapter127@gmail.com?subject=Free%20quote%20request" class="btn btn-primary btn-sm" data-magnetic>Get a free quote</a>
+      <nav class="nav" aria-label="Primary">
+        <div class="nav-item">
+          <button class="nav-trigger" type="button" aria-expanded="false" aria-controls="menu-products">Products<svg class="nav-chev" viewBox="0 0 12 12" aria-hidden="true"><path d="M3 4.5 6 7.5 9 4.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+          <div class="nav-menu" id="menu-products">
+            <p class="nav-menu-lead mono">What we build</p>
+            <ul class="nav-menu-grid">
+              <li><a href="./#services"><b>Websites</b><span>Fast, accessible marketing sites that rank</span></a></li>
+              <li><a href="./#services"><b>Web apps</b><span>Dashboards, portals, and internal tools</span></a></li>
+              <li><a href="./#services"><b>SaaS platforms</b><span>Subscriptions, billing, and admin built in</span></a></li>
+              <li><a href="./#services"><b>Mobile apps</b><span>iOS and Android from one codebase</span></a></li>
+              <li><a href="./#services"><b>Cloud & DevOps</b><span>Hosting, CI/CD, monitoring, and backups</span></a></li>
+              <li><a href="./#services"><b>AI & data</b><span>Pipelines and AI features that do real work</span></a></li>
+            </ul>
+          </div>
+        </div>
+        <div class="nav-item">
+          <button class="nav-trigger" type="button" aria-expanded="false" aria-controls="menu-solutions">Solutions<svg class="nav-chev" viewBox="0 0 12 12" aria-hidden="true"><path d="M3 4.5 6 7.5 9 4.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+          <div class="nav-menu" id="menu-solutions">
+            <p class="nav-menu-lead mono">What you need</p>
+            <ul class="nav-menu-grid">
+              <li><a href="schedule.html"><b>Launch a new product</b><span>From idea to a shipped MVP</span></a></li>
+              <li><a href="schedule.html"><b>Modernize an existing app</b><span>Review, fix, and speed up what you have</span></a></li>
+              <li><a href="./#work"><b>Replace spreadsheets</b><span>Custom tools built around how you work</span></a></li>
+              <li><a href="./#security"><b>Secure your software</b><span>Sign-in, permissions, and hardening</span></a></li>
+              <li><a href="./#services"><b>Move to the cloud</b><span>Reliable hosting in your own accounts</span></a></li>
+              <li><a href="./#faq"><b>Ongoing support</b><span>Updates and new features after launch</span></a></li>
+            </ul>
+          </div>
+        </div>
+        <div class="nav-item">
+          <button class="nav-trigger" type="button" aria-expanded="false" aria-controls="menu-about">About<svg class="nav-chev" viewBox="0 0 12 12" aria-hidden="true"><path d="M3 4.5 6 7.5 9 4.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+          <div class="nav-menu" id="menu-about">
+            <p class="nav-menu-lead mono">Williams Systems LLC</p>
+            <ul class="nav-menu-grid">
+              <li><a href="about.html"><b>About us</b><span>One team, end to end</span></a></li>
+              <li><a href="./#process"><b>How we work</b><span>Discover, design, build, launch, support</span></a></li>
+              <li><a href="./#testimonials"><b>Client stories</b><span>Hear it from the people we build for</span></a></li>
+              <li><a href="./#faq"><b>FAQ</b><span>Cost, timelines, ownership, and more</span></a></li>
+              <li><a href="schedule.html"><b>Schedule a call</b><span>Book a free discovery call</span></a></li>
+              <li><a href="#contact"><b>Contact us</b><span>Email us about your project</span></a></li>
+            </ul>
+          </div>
+        </div>
+      </nav>
+
+      <div class="header-actions">
+        <a href="admin.html" class="header-login">Login</a>
+        <a href="schedule.html" class="btn btn-primary btn-sm" data-magnetic>Get started</a>
+        <button class="menu-toggle" id="menuToggle" aria-expanded="false" aria-controls="mobileNav" aria-label="Open menu"><span></span><span></span></button>
+      </div>
+    </div>
+
+    <div class="mobile-nav" id="mobileNav">
+      <div class="mnav-group">
+        <p class="mnav-head mono">Products</p><a href="./#services">Websites</a><a href="./#services">Web apps</a><a href="./#services">SaaS platforms</a><a href="./#services">Mobile apps</a><a href="./#services">Cloud & DevOps</a><a href="./#services">AI & data</a>
+      </div>
+      <div class="mnav-group">
+        <p class="mnav-head mono">Solutions</p><a href="schedule.html">Launch a new product</a><a href="schedule.html">Modernize an existing app</a><a href="./#work">Replace spreadsheets</a><a href="./#security">Secure your software</a><a href="./#services">Move to the cloud</a><a href="./#faq">Ongoing support</a>
+      </div>
+      <div class="mnav-group">
+        <p class="mnav-head mono">About</p><a href="about.html">About us</a><a href="./#process">How we work</a><a href="./#testimonials">Client stories</a><a href="./#faq">FAQ</a><a href="schedule.html">Schedule a call</a><a href="#contact">Contact us</a>
+      </div>
+      <div class="mnav-actions">
+        <a href="admin.html" class="btn btn-ghost">Login</a>
+        <a href="schedule.html" class="btn btn-primary">Get started</a>
+      </div>
     </div>
   </header>
 
@@ -57,13 +136,27 @@
            4. rise     up        process steps flip up in 3D as the camera climbs
            5. end      zoom out  the call to action
          Reduced motion: no pin, the scenes simply stack. -->
+    <span id="services" class="anchor" aria-hidden="true"></span><span id="process" class="anchor" aria-hidden="true"></span><span id="testimonials" class="anchor" aria-hidden="true"></span>
     <section class="journey" id="journey" aria-label="Williams Systems LLC">
       <div class="journey-stage">
 
         <!-- 1 · Fall -->
         <div class="scene scene-fall fall-stage" id="fall">
-          <!-- Hero photo: a PLACEHOLDER for testing (public/hero/placeholder.jpg). Fades out as the fall starts. -->
-          <div class="fall-hero-media" id="fallHeroMedia" aria-hidden="true"><img src="/hero/placeholder.jpg" alt="" width="1920" height="1080" fetchpriority="high" /></div>
+          <!-- Hero video: "Software developer working on code, screen close up" (Mixkit #1728, trimmed into a seamless loop, Mixkit License: free for commercial use). Fades out as the fall starts. -->
+          <div class="fall-hero-media" id="fallHeroMedia" aria-hidden="true">
+            <video autoplay muted loop playsinline preload="auto" poster="/hero/code-poster.jpg">
+              <source src="/hero/code.mp4" type="video/mp4" />
+            </video>
+          </div>
+          <div class="hero-head" id="heroHead">
+            <p class="hero-eyebrow mono">Williams Systems LLC · Full-service software</p>
+            <p class="hero-title">Custom software,<br /><span>built for you.</span></p>
+            <p class="hero-sub">Websites, web apps, SaaS platforms, and mobile apps, designed, built, and run by one team that answers when you call.</p>
+            <div class="hero-actions">
+              <a href="schedule.html" class="btn btn-primary">Get started</a>
+              <a href="./#services" class="btn btn-ghost">See what we build</a>
+            </div>
+          </div>
           <div class="faller" id="faller" aria-hidden="true">
             <div class="faller-trail"></div>
             <div class="faller-ring"></div>
@@ -97,6 +190,7 @@
             <div class="build-intro">
               <p class="scene-eyebrow mono">01 · What we build</p>
               <h2 class="build-title">Everything it takes to ship software.</h2>
+              <p class="build-lede">From the first sketch to the servers it runs on, we cover every layer: design, front end, back end, mobile, cloud, and the data and AI features that tie it all together.</p>
               <p class="build-hint mono">Keep scrolling →</p>
             </div>
 
@@ -252,7 +346,14 @@
               </div>
             </div>
           </div>
-          <p class="scene-eyebrow mono code-caption" id="codeCaption">02 · How it comes together</p>
+          <div class="code-caption" id="codeCaption">
+            <p class="scene-eyebrow mono">02 · How it comes together</p>
+            <p class="code-lede">One team writes it, reviews it, tests it, and ships it, so nothing gets lost between vendors.</p>
+          </div>
+          <div class="code-caption stack-caption" id="stackCaption">
+            <p class="scene-eyebrow mono">What we deliver</p>
+            <p class="code-lede">Websites, SaaS dashboards, mobile apps, and the cloud behind them, built to work together from day one.</p>
+          </div>
         </div>
 
         <!-- 3a · Customization: a lit bulb swings in on its cord and lights the page
@@ -348,7 +449,7 @@
         <div class="scene scene-rise scene-later" id="sceneRise">
           <div class="rise-stars" id="riseStars" aria-hidden="true"></div>
           <div class="rise-head">
-            <p class="scene-eyebrow mono">05 · How we work</p>
+            <p class="scene-eyebrow mono">06 · How we work</p>
             <h2 class="rise-title">From first call to launch.</h2>
           </div>
           <div class="rsteps" id="riseSteps">
@@ -409,45 +510,101 @@
           </div>
         </div>
 
-        <!-- 4b · Testimonials: quote cards on a 3D carousel that turns with the scroll.
-             PLACEHOLDERS — replace every quote, name, and company with real ones
+        <!-- 4b · Testimonials: video/photo cards on a 3D carousel that turns with the
+             scroll. PLACEHOLDERS — add real client videos or photos and real names
              before launch; do not publish invented testimonials. -->
         <div class="scene scene-quotes scene-later" id="sceneQuotes">
           <div class="quotes-head">
-            <p class="scene-eyebrow mono">06 · What clients say</p>
-            <h2 class="quotes-title">In their words.</h2>
+            <p class="scene-eyebrow mono">05 · What clients say</p>
+            <h2 class="quotes-title">Hear it from them.</h2>
+            <p class="quotes-lede">Real clients, real projects. Hear what it's like to build with Williams Systems.</p>
           </div>
           <div class="quotes-stage">
             <div class="quotes-ring" id="quotesRing">
               <figure class="quote">
-                <span class="quote-tag mono">Website launch</span>
-                <span class="quote-mark" aria-hidden="true">“</span>
-                <blockquote>Placeholder quote. Replace with a real client's words about the site you built, how it performs, and what changed after launch.</blockquote>
-                <figcaption><i class="quote-avatar" aria-hidden="true">A</i><span><b>Client name</b><small>Role · Company</small></span></figcaption>
+                <div class="quote-media">
+                  <!-- Add client 1's testimonial here (files go in public/testimonials/):
+                       video: <video src="/testimonials/client-1.mp4" poster="/testimonials/client-1.jpg" controls playsinline preload="metadata"></video>
+                       photo: <img src="/testimonials/client-1.jpg" alt="Client name, Company" />
+                       The placeholder below hides itself as soon as a video or photo is added. -->
+                  <div class="quote-placeholder">
+                    <span class="quote-play" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M8 5.5v13l11-6.5Z"/></svg></span>
+                    <span class="mono">Video testimonial</span>
+                  </div>
+                </div>
+                <figcaption>
+                  <span class="quote-avatar" aria-hidden="true">A</span>
+                  <span class="quote-who"><b>Client name</b><small>Role · Company</small></span>
+                  <span class="quote-tag mono">Website launch</span>
+                </figcaption>
               </figure>
               <figure class="quote">
-                <span class="quote-tag mono">SaaS platform</span>
-                <span class="quote-mark" aria-hidden="true">“</span>
-                <blockquote>Placeholder quote. Replace with a real client's words about the product we shipped together and what it made possible for the business.</blockquote>
-                <figcaption><i class="quote-avatar" aria-hidden="true">B</i><span><b>Client name</b><small>Role · Company</small></span></figcaption>
+                <div class="quote-media">
+                  <!-- Add client 2's testimonial here (files go in public/testimonials/):
+                       video: <video src="/testimonials/client-2.mp4" poster="/testimonials/client-2.jpg" controls playsinline preload="metadata"></video>
+                       photo: <img src="/testimonials/client-2.jpg" alt="Client name, Company" />
+                       The placeholder below hides itself as soon as a video or photo is added. -->
+                  <div class="quote-placeholder">
+                    <span class="quote-play" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M8 5.5v13l11-6.5Z"/></svg></span>
+                    <span class="mono">Video testimonial</span>
+                  </div>
+                </div>
+                <figcaption>
+                  <span class="quote-avatar" aria-hidden="true">B</span>
+                  <span class="quote-who"><b>Client name</b><small>Role · Company</small></span>
+                  <span class="quote-tag mono">SaaS platform</span>
+                </figcaption>
               </figure>
               <figure class="quote">
-                <span class="quote-tag mono">Mobile app</span>
-                <span class="quote-mark" aria-hidden="true">“</span>
-                <blockquote>Placeholder quote. Replace with a real client's words about the app, the build process, and how users have responded.</blockquote>
-                <figcaption><i class="quote-avatar" aria-hidden="true">C</i><span><b>Client name</b><small>Role · Company</small></span></figcaption>
+                <div class="quote-media">
+                  <!-- Add client 3's testimonial here (files go in public/testimonials/):
+                       video: <video src="/testimonials/client-3.mp4" poster="/testimonials/client-3.jpg" controls playsinline preload="metadata"></video>
+                       photo: <img src="/testimonials/client-3.jpg" alt="Client name, Company" />
+                       The placeholder below hides itself as soon as a video or photo is added. -->
+                  <div class="quote-placeholder">
+                    <span class="quote-play" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M8 5.5v13l11-6.5Z"/></svg></span>
+                    <span class="mono">Video testimonial</span>
+                  </div>
+                </div>
+                <figcaption>
+                  <span class="quote-avatar" aria-hidden="true">C</span>
+                  <span class="quote-who"><b>Client name</b><small>Role · Company</small></span>
+                  <span class="quote-tag mono">Mobile app</span>
+                </figcaption>
               </figure>
               <figure class="quote">
-                <span class="quote-tag mono">Cloud & DevOps</span>
-                <span class="quote-mark" aria-hidden="true">“</span>
-                <blockquote>Placeholder quote. Replace with a real client's words about the infrastructure work and what it did for reliability or cost.</blockquote>
-                <figcaption><i class="quote-avatar" aria-hidden="true">D</i><span><b>Client name</b><small>Role · Company</small></span></figcaption>
+                <div class="quote-media">
+                  <!-- Add client 4's testimonial here (files go in public/testimonials/):
+                       video: <video src="/testimonials/client-4.mp4" poster="/testimonials/client-4.jpg" controls playsinline preload="metadata"></video>
+                       photo: <img src="/testimonials/client-4.jpg" alt="Client name, Company" />
+                       The placeholder below hides itself as soon as a video or photo is added. -->
+                  <div class="quote-placeholder">
+                    <span class="quote-play" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M8 5.5v13l11-6.5Z"/></svg></span>
+                    <span class="mono">Video testimonial</span>
+                  </div>
+                </div>
+                <figcaption>
+                  <span class="quote-avatar" aria-hidden="true">D</span>
+                  <span class="quote-who"><b>Client name</b><small>Role · Company</small></span>
+                  <span class="quote-tag mono">Cloud &amp; DevOps</span>
+                </figcaption>
               </figure>
               <figure class="quote">
-                <span class="quote-tag mono">Ongoing support</span>
-                <span class="quote-mark" aria-hidden="true">“</span>
-                <blockquote>Placeholder quote. Replace with a real client's words about working with us after launch: responsiveness, updates, new features.</blockquote>
-                <figcaption><i class="quote-avatar" aria-hidden="true">E</i><span><b>Client name</b><small>Role · Company</small></span></figcaption>
+                <div class="quote-media">
+                  <!-- Add client 5's testimonial here (files go in public/testimonials/):
+                       video: <video src="/testimonials/client-5.mp4" poster="/testimonials/client-5.jpg" controls playsinline preload="metadata"></video>
+                       photo: <img src="/testimonials/client-5.jpg" alt="Client name, Company" />
+                       The placeholder below hides itself as soon as a video or photo is added. -->
+                  <div class="quote-placeholder">
+                    <span class="quote-play" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M8 5.5v13l11-6.5Z"/></svg></span>
+                    <span class="mono">Video testimonial</span>
+                  </div>
+                </div>
+                <figcaption>
+                  <span class="quote-avatar" aria-hidden="true">E</span>
+                  <span class="quote-who"><b>Client name</b><small>Role · Company</small></span>
+                  <span class="quote-tag mono">Ongoing support</span>
+                </figcaption>
               </figure>
             </div>
           </div>
@@ -473,14 +630,89 @@
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
             </a>
           </div>
-          <p class="end-foot mono">© <span id="year"></span> Williams Systems LLC · Built by Williams Systems LLC</p>
         </div>
 
 
       </div>
     </section>
 
+    <!-- ============ FAQ (answers are also published as FAQPage structured data) ============ -->
+  <section class="faq" id="faq" aria-labelledby="faqTitle">
+    <div class="container faq-inner">
+      <div class="faq-head">
+        <p class="scene-eyebrow mono">FAQ</p>
+        <h2 class="faq-title" id="faqTitle">Questions, answered.</h2>
+        <p class="faq-lede">The things people usually ask before starting a project with us. Don't see yours? <a href="mailto:adapter127@gmail.com">Ask us directly.</a></p>
+      </div>
+      <div class="faq-list">
+        <details class="faq-item" open><summary>What does Williams Systems LLC do?</summary><p>Williams Systems LLC is a full-service software company. We design and build websites, web applications, SaaS platforms, and mobile apps, and we set up and run the cloud infrastructure behind them. One team handles design, front end, back end, and hosting, so nothing gets lost between vendors.</p></details>
+        <details class="faq-item"><summary>How much does a website or app cost?</summary><p>It depends on the scope. Every project starts with a free discovery call, and afterwards you get a written scope, timeline, and fixed price before any work begins, so there are no surprises.</p></details>
+        <details class="faq-item"><summary>How long does a project take?</summary><p>Timelines depend on the size of the project. A marketing website is usually measured in weeks, while a SaaS platform or mobile app is usually measured in months. Your written scope includes a timeline, and you see working software every week along the way.</p></details>
+        <details class="faq-item"><summary>Do I own the code and the accounts?</summary><p>Yes. We build in your repositories and your cloud accounts, and we document as we go. The code, the data, and the accounts are yours.</p></details>
+        <details class="faq-item"><summary>What technologies do you use?</summary><p>Common choices include React, Next.js, and TypeScript on the front end; Node.js, Python, and PostgreSQL on the back end; React Native for mobile apps; and AWS, Docker, and CI/CD pipelines for cloud and DevOps. We pick the stack that fits your project.</p></details>
+        <details class="faq-item"><summary>Can you work on an existing website or app?</summary><p>Yes. We can review an existing codebase, fix problems, add features, and improve performance and security, as well as build new products from scratch.</p></details>
+        <details class="faq-item"><summary>Do you offer support after launch?</summary><p>Yes. After launch we can keep your software updated, fix issues, and build new features, with the same team that built it.</p></details>
+        <details class="faq-item"><summary>How do I get started?</summary><p>Schedule a free discovery call or email us about your project. We will ask about your goals and users, then send back a scope, timeline, and price.</p></details>
+      </div>
+    </div>
+  </section>
   </main>
+
+  <!-- ============ Footer · contact us ============ -->
+  <footer class="site-footer" id="contact">
+    <div class="container">
+      <div class="sf-contact">
+        <div>
+          <p class="scene-eyebrow mono">Contact us</p>
+          <h2 class="sf-title">Let's talk about your project.</h2>
+          <p class="sf-lede">Tell us what you're building: a new website, a SaaS product, a mobile app, or help with software you already have. Every project starts with a free discovery call, and you'll get a written scope, timeline, and price before any work begins.</p>
+        </div>
+        <div class="sf-actions">
+          <a class="sf-email" href="mailto:adapter127@gmail.com?subject=Project%20inquiry">adapter127@gmail.com</a>
+          <div class="sf-btns">
+            <a class="btn btn-primary" href="schedule.html">Schedule a call</a>
+            <a class="btn btn-ghost" href="mailto:adapter127@gmail.com?subject=Free%20quote%20request">Get a free quote</a>
+          </div>
+        </div>
+      </div>
+
+      <div class="sf-grid">
+        <div class="sf-brand">
+          <img src="/brand/logo-lockup-white.svg" alt="Williams Systems LLC" width="118" height="96" />
+          <p>Williams Systems LLC is a full-service software company. We design, build, and run websites, web apps, SaaS platforms, mobile apps, and the cloud infrastructure behind them.</p>
+        </div>
+        <nav class="sf-col" aria-label="Company">
+          <h3 class="mono">Company</h3>
+          <a href="about.html">About</a>
+          <a href="#process">Process</a>
+          <a href="#testimonials">Testimonials</a>
+          <a href="#faq">FAQ</a>
+          <a href="schedule.html">Schedule a call</a>
+          <a href="admin.html">Team login</a>
+        </nav>
+        <nav class="sf-col" aria-label="Services">
+          <h3 class="mono">Services</h3>
+          <a href="#services">Front-end development</a>
+          <a href="#services">Back-end &amp; APIs</a>
+          <a href="#services">SaaS platforms</a>
+          <a href="#services">Mobile apps</a>
+          <a href="#services">Cloud &amp; DevOps</a>
+          <a href="#services">AI &amp; data</a>
+        </nav>
+        <div class="sf-col">
+          <h3 class="mono">Contact</h3>
+          <a href="mailto:adapter127@gmail.com">adapter127@gmail.com</a>
+          <a href="schedule.html">Book a discovery call</a>
+          <a href="mailto:adapter127@gmail.com?subject=Free%20quote%20request">Request a quote</a>
+        </div>
+      </div>
+
+      <div class="sf-bottom mono">
+        <span>© <span id="year"></span> Williams Systems LLC. All rights reserved.</span>
+        <span>Built by Williams Systems LLC.</span>
+      </div>
+    </div>
+  </footer>
 
   <script type="module" src="/src/js/main.js"></script>
 </body>
