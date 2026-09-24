@@ -17,6 +17,8 @@ const VB = { x: 130, y: -45, w: 1500, h: 850 };
 const clamp01 = (v) => Math.max(0, Math.min(1, v));
 const easeOutCubic = (t) => 1 - Math.pow(1 - t, 3);
 
+// Blue at the top of the L to purple at the bottom, as an "r,g,b" string.
+const bp = (t) => { t = Math.min(1, Math.max(0, t)); return [46 + 114 * t, 155 - 48 * t, 255].map(Math.round).join(","); };
 export function createFinale({ canvas, mark, orbit, stage, scene }) {
   const ctx = canvas.getContext('2d');
   const P = { warp: 0, form: 0, orbit: 0, orbitIn: 0 };
@@ -39,7 +41,7 @@ export function createFinale({ canvas, mark, orbit, stage, scene }) {
       for (let px = step / 2; px < r.width; px += step) {
         const ux = VB.x + px / k, uy = VB.y + py / k;
         for (let i = 0; i < paths.length; i++) {
-          if (ctx.isPointInPath(paths[i], ux, uy)) { out.push({ tx: px, ty: py, blue: i === 1 }); break; }
+          if (ctx.isPointInPath(paths[i], ux, uy)) { out.push({ tx: px, ty: py, blue: i === 1, rgb: bp((uy + 45) / 850) }); break; }
         }
       }
     }
@@ -75,7 +77,7 @@ export function createFinale({ canvas, mark, orbit, stage, scene }) {
       if (f <= 0) {
         // Starfield; during the warp each star stretches into a streak along its ray.
         const len = 1.2 + warpI * p.d * p.maxR * 0.5;
-        ctx.strokeStyle = p.blue ? `rgba(55,148,255,${0.35 + 0.6 * p.d})` : `rgba(255,255,255,${0.25 + 0.6 * p.d})`;
+        ctx.strokeStyle = p.blue ? `rgba(${p.rgb},${0.35 + 0.6 * p.d})` : `rgba(255,255,255,${0.25 + 0.6 * p.d})`;
         ctx.lineWidth = p.size * (0.7 + warpI * 0.6);
         ctx.beginPath();
         ctx.moveTo(sx, sy);
@@ -90,7 +92,7 @@ export function createFinale({ canvas, mark, orbit, stage, scene }) {
         const x = tx + (dx * c - dy * s) * (1 - e);
         const y = ty + (dx * s + dy * c) * (1 - e);
         const alpha = (0.35 + 0.65 * e) * (1 - logoShow * 0.9);
-        ctx.fillStyle = p.blue ? `rgba(55,148,255,${alpha})` : `rgba(255,255,255,${alpha})`;
+        ctx.fillStyle = p.blue ? `rgba(${p.rgb},${alpha})` : `rgba(255,255,255,${alpha})`;
         const sz = p.size * (1 + (1 - e) * 0.8);
         ctx.fillRect(x - sz / 2, y - sz / 2, sz, sz);
       }

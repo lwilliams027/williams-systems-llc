@@ -113,13 +113,13 @@ function initHero() {
 /**
  * The logo part of the splash. Lockup assembles: brackets slide in from the
  * sides, the W rises from below, then WILLIAMS, SYSTEMS LLC, and the two rules
- * draw outward. Then VS Code blue pours into the L (left stroke of the W) and
+ * draw outward. Then a blue-to-purple gradient pours into the L (left stroke of the W) and
  * the WILLIAMS / SYSTEMS LLC text, top to bottom.
  */
 function buildIntroLogo() {
   const [lb, w1, w2, rb, word, sub] = $$('.intro-logo path');
   const rules = $$('.intro-logo rect');
-  const fill = buildIntroFill([w1, word, sub], '#007ACC');
+  const fill = buildIntroFill([w1, word, ...rules], ['#2E9BFF', '#A06BFF']);
 
   return gsap.timeline()
     .set('.intro-mark', { autoAlpha: 1, y: 0 })
@@ -152,7 +152,7 @@ function buildIntroFill(paths, color) {
     grad.id = 'introFillGrad';
     Object.entries({ gradientUnits: 'userSpaceOnUse', x1: 0, x2: 0, y1: y, y2: y + h })
       .forEach(([k, v]) => grad.setAttribute(k, v));
-    [color, color, 'currentColor', 'currentColor'].forEach((c) => {
+    [color[0], color[1], 'currentColor', 'currentColor'].forEach((c) => {
       const stop = document.createElementNS(NS, 'stop');
       stop.setAttribute('stop-color', c);
       grad.append(stop);

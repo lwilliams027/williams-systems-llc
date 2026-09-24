@@ -15,7 +15,7 @@ import { SplitText } from 'gsap/SplitText';
 const $  = (sel, root = document) => root.querySelector(sel);
 const $$ = (sel, root = document) => Array.from(root.querySelectorAll(sel));
 
-const BLUE = '#007ACC';
+const BLUE = '#2E9BFF', PURPLE = '#A06BFF';
 
 // Depth layers: how far each travels (in screen heights) over the fall.
 const LAYERS = [
@@ -90,7 +90,7 @@ function gradientFill(svg, paths, id) {
   grad.id = id;
   Object.entries({ gradientUnits: 'userSpaceOnUse', x1: 0, x2: 0, y1: y, y2: y + h })
     .forEach(([k, v]) => grad.setAttribute(k, v));
-  const stops = [BLUE, BLUE, 'currentColor', 'currentColor'].map((c) => {
+  const stops = [BLUE, PURPLE, 'currentColor', 'currentColor'].map((c) => {
     const s = document.createElementNS(NS, 'stop');
     s.setAttribute('stop-color', c);
     grad.append(s);
