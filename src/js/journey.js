@@ -57,7 +57,7 @@ const LEN = {             // chapter lengths, in screens of scroll
   site:    1.5,           // scroll down the website inside it
   desk:    1.1,           // camera swings over 180° to look down on the site
   deskHold: 0.3,
-  bulbIn:  1.15,          // a lit bulb drops in, swings to rest, the page lights up
+  bulbIn:  1.5,           // fade to black, the unlit bulb drops in and swings to rest, flickers on, the page lights up
   bulbHold: 0.45,         // pause: read the customization copy
   unscrew: 1.6,           // four turns, the lights flicker, it comes loose (dark mode)
   bulbFall: 1.55,         // it falls; the camera follows it down
@@ -433,6 +433,8 @@ export function initJourney({ reduced = false } = {}) {
   gsap.set(bulbWorld, { y: () => -window.innerHeight * 0.75 });
   gsap.set(pendulum, { rotation: 24 });
   gsap.set(lightParts, { opacity: 0 });
+  gsap.set('#bulbGlass', { fill: 'rgba(170, 180, 200, 0.14)', stroke: '#7A8292' });   // unlit until it powers on
+  gsap.set('#bulbFil', { stroke: '#6B7385' });
   gsap.set('#bulbCopy > *', { autoAlpha: 0, y: 24 });
   gsap.set('#bulbSpark', { transformOrigin: '50% 50%' });
   const thread = { t: 0 };
@@ -441,17 +443,23 @@ export function initJourney({ reduced = false } = {}) {
   const setLamp = () => document.documentElement.classList.toggle('light', lamp.v > 0.5);
   const I = S('bulbIn'), U = S('unscrew'), F = S('bulbFall');
 
+  // Lights off → bulb → lights on. The desk scene fades all the way to black
+  // first (no double exposure), the unlit bulb drops into the dark and swings to
+  // rest, then it flickers on and the whole page lights up.
   master
     .addLabel('bulb')
-    .to(code, { autoAlpha: 0, scale: 0.92, duration: I * 0.4, ease: 'power2.in' }, 'bulb')
-    .to(bulbScene, { autoAlpha: 1, duration: I * 0.2 }, `bulb+=${I * 0.2}`)
+    .to(code, { autoAlpha: 0, duration: I * 0.22, ease: 'power1.in' }, 'bulb')
+    .set(bulbScene, { autoAlpha: 1 }, `bulb+=${I * 0.24}`)
     // It drops in from the ceiling on its cord and swings to rest (a damped pendulum).
-    .to(bulbWorld, { y: 0, duration: I * 0.45, ease: 'power3.out' }, `bulb+=${I * 0.2}`)
-    .to(pendulum, { keyframes: { rotation: [24, -15, 9, -5, 2.5, -1, 0], easeEach: 'sine.inOut' }, duration: I * 0.8 }, `bulb+=${I * 0.2}`)
-    // Power on: glow and beam come up — and the whole page lights up.
-    .to(lightParts, { opacity: 1, duration: I * 0.12 }, `bulb+=${I * 0.3}`)
-    .to(lamp, { v: 1, duration: I * 0.04, onUpdate: setLamp }, `bulb+=${I * 0.32}`)
-    .to('#bulbCopy > *', { autoAlpha: 1, y: 0, duration: I * 0.3, stagger: I * 0.08, ease: 'power3.out' }, `bulb+=${I * 0.55}`)
+    .to(bulbWorld, { y: 0, duration: I * 0.34, ease: 'power3.out' }, `bulb+=${I * 0.26}`)
+    .to(pendulum, { keyframes: { rotation: [24, -15, 9, -5, 2.5, -1, 0], easeEach: 'sine.inOut' }, duration: I * 0.5 }, `bulb+=${I * 0.26}`)
+    // Power on: a quick flicker, then the glow and beam hold — and the page lights up.
+    .to(lightParts, { keyframes: { opacity: [0, 0.7, 0.1, 1] }, duration: I * 0.1 }, `bulb+=${I * 0.66}`)
+    // The glass and filament are dull grey until the power comes on.
+    .to('#bulbGlass', { keyframes: [{ fill: '#FFF6D6', stroke: '#F2C94C' }, { fill: 'rgba(170, 180, 200, 0.3)', stroke: '#9AA0AD' }, { fill: '#FFF6D6', stroke: '#F2C94C' }], duration: I * 0.1 }, `bulb+=${I * 0.66}`)
+    .to('#bulbFil', { stroke: '#FF9F1C', duration: I * 0.05 }, `bulb+=${I * 0.66}`)
+    .to(lamp, { v: 1, duration: I * 0.02, onUpdate: setLamp }, `bulb+=${I * 0.73}`)
+    .to('#bulbCopy > *', { autoAlpha: 1, y: 0, duration: I * 0.2, stagger: I * 0.05, ease: 'power3.out' }, `bulb+=${I * 0.78}`)
     .addLabel('unscrew', `bulb+=${I + S('bulbHold')}`);
 
   // Four turns: the threads roll, a highlight slides across the glass, the bulb
