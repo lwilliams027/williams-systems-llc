@@ -19,7 +19,7 @@
                    and it falls — the camera follows it down to the login page
      5b. secure    a sign-in is refused (screen shakes), a padlock rises, and
                    the camera flies through the keyhole
-     6. rise    ↑  camera climbs past the process steps, which flip down in 3D
+     6. rise    ↑  an elevator ride up five floors: the step counter rolls 01 → 05
      7. end     ⊖  zoom out onto the call to action
 
    Chapter lengths live in LEN (in screens of scroll). Lower = more sensitive.
@@ -51,15 +51,15 @@ const LEN = {             // chapter lengths, in screens of scroll
   site:    1.5,           // scroll down the website inside it
   desk:    1.1,           // camera swings over 180° to look down on the site
   deskHold: 0.3,
-  bulbIn:  1.0,           // a lit bulb drops in, swings to rest, the page lights up
-  unscrew: 1.4,           // four turns, the lights flicker, it comes loose (dark mode)
-  bulbFall: 1.4,          // it falls; the camera follows it down
+  bulbIn:  1.15,          // a lit bulb drops in, swings to rest, the page lights up
+  unscrew: 1.6,           // four turns, the lights flicker, it comes loose (dark mode)
+  bulbFall: 1.55,         // it falls; the camera follows it down
   toSecure: 0.7,          // …and the login page rises from below
   denied:  1.1,           // two refused sign-ins; the screen shakes
   lockUp:  0.9,           // a padlock rises and snaps shut
   keyhole: 0.9,           // fly through the keyhole
   toRise:  0.7,           // out the other side into the climb
-  climb:   1.8,           // climb past the steps
+  climb:   2.0,           // the elevator ride: five floors, one step each
   out:     0.7,           // zoom out onto the call to action
   hold:    0.25,
 };
@@ -141,6 +141,23 @@ function buildDust() {
     d.style.setProperty('--dy', `${Math.round(-20 - rand() * 50)}px`);
     if (rand() < 0.25) { d.style.width = d.style.height = '2px'; }
     box.append(d);
+  }
+}
+
+function buildFloors() {
+  const box = $('#riseFloors');
+  if (!box || box.childElementCount) return;
+  // The box is 600% tall and starts 500% above the scene; line i starts
+  // i screens above mid-screen and passes the middle at 1/4 of the ride per floor.
+  for (let i = 0; i <= 5; i++) {
+    const line = document.createElement('div');
+    line.className = 'rise-floor';
+    line.style.top = `${((550 - i * 100) / 600) * 100}%`;
+    const label = document.createElement('span');
+    label.className = 'mono';
+    label.textContent = `Floor 0${Math.min(i + 1, 5)}`;
+    line.append(label);
+    box.append(line);
   }
 }
 
@@ -278,7 +295,6 @@ export function initJourney({ reduced = false } = {}) {
   const card  = $('#editorCard');
   const code  = $('#sceneCode');
   const rise  = $('#sceneRise');
-  const riseTrack = $('#riseTrack');
   const end   = $('#sceneEnd');
   const wins  = [$('#editor'), ...$$('.win:not(.editor)', code)];
   const rig = createWindowRig({ stage, card, world: $('#flipWorld'), floor: $('#flipFloor'), wins });
@@ -506,40 +522,70 @@ export function initJourney({ reduced = false } = {}) {
     .to(shake, { keyframes: { y: [0, 6, 0] }, duration: S('lockUp') * 0.1 }, `lockUp+=${S('lockUp') * 0.9}`)   // the clunk
     .to(copy, { autoAlpha: 1, y: 0, duration: S('lockUp') * 0.35, ease: 'power3.out' }, `lockUp+=${S('lockUp') * 0.55}`);
 
-  // Fly through the keyhole: bring it to the centre and scale around it until
-  // its dark opening fills the screen; the climb is on the other side.
+  // Fly through the keyhole. The lock is first brought to the centre; then a
+  // full-screen copy of it (#lockZoom) takes over and the camera pushes in by
+  // shrinking that SVG's viewBox around the keyhole. It's redrawn as vectors at
+  // every step, so it stays sharp right up until the hole fills the screen.
+  const lockZoom = $('#lockZoom');
+  const zoomCam = { p: 0 };
+  const renderLockZoom = () => {
+    const vw = window.innerWidth, vh = window.innerHeight;
+    const r = lock.getBoundingClientRect();
+    const k = r.width / 200;                                   // px per SVG unit, as drawn now
+    const hx = (r.left + 100 * k) / vw, hy = (r.top + 150 * k) / vh;   // keyhole centre on screen
+    const w0 = vw / k;                                         // viewBox width that matches the small lock
+    const w1 = 22 / Math.hypot(1, vh / vw);                    // the hole (r = 14) covers the whole screen
+    const w = w0 * Math.pow(w1 / w0, zoomCam.p);               // log-space: a steady push in
+    const h = (w * vh) / vw;
+    const fx = lerp(hx, 0.5, zoomCam.p), fy = lerp(hy, 0.5, zoomCam.p);
+    lockZoom.setAttribute('viewBox', `${100 - fx * w} ${150 - fy * h} ${w} ${h}`);
+    const on = zoomCam.p > 0;
+    lockZoom.style.visibility = on ? 'visible' : 'hidden';
+    lock.style.visibility = on ? 'hidden' : '';
+  };
   const keyholeShift = () => window.innerHeight / 2 - (lockWrap.offsetTop + lockWrap.offsetHeight * 0.625);
   master
     .addLabel('keyhole', `lockUp+=${S('lockUp')}`)
     .to(copy, { autoAlpha: 0, y: 30, duration: S('keyhole') * 0.3 }, 'keyhole')
     .to(lockWrap, { y: keyholeShift, duration: S('keyhole') * 0.4, ease: 'power2.inOut' }, 'keyhole')
-    .fromTo(lock, { scale: 1 }, { scale: 90, transformOrigin: '50% 62.5%', duration: S('keyhole'), ease: 'power3.in' }, `keyhole+=${S('keyhole') * 0.15}`);
+    .fromTo(zoomCam, { p: 0 }, { p: 1, duration: S('keyhole'), ease: 'power2.in', onUpdate: renderLockZoom }, `keyhole+=${S('keyhole') * 0.15}`);
 
-  /* ---- 6 · out through the keyhole into the climb ------------------- */
+  /* ---- 6 · out through the keyhole into the elevator ride ------------ */
+  // Rising floor by floor: the counter rolls 01 → 05, one step shows at a time
+  // (the next drops in from above as you pass its floor), floors slide past
+  // below you and the panel lights fill bottom-up. Counting up while going up.
   master.addLabel('up', `keyhole+=${S('keyhole') * 1.15}`);
   gsap.set(rise, { autoAlpha: 0 });
-  const climb = () => Math.max(0, riseTrack.offsetHeight - window.innerHeight);
+  buildFloors();
+  const steps = $$('.rise-step', rise);
+  const panel = $$('#risePanel li').reverse();                // [01 … 05], bottom-up
+  const lightPanel = (n) => panel.forEach((li, i) => li.classList.toggle('on', i <= n));
+  const floor = { n: 0 };
+  const setFloor = () => lightPanel(Math.round(floor.n));
+  lightPanel(0);
+  gsap.set(steps, { yPercent: -50, y: -50, autoAlpha: 0 });
+  gsap.set(steps[0], { y: 0, autoAlpha: 1 });
+  gsap.set('#riseDigits', { yPercent: -80 });                  // five numbers, 05 … 01: show 01
+
   master
     .set(secure, { autoAlpha: 0 }, 'up')              // the keyhole's dark fills the screen: swap scenes under it
     .to(lamp, { v: 0, duration: 0.05, onUpdate: setLamp }, 'up')   // and it's dark on the other side
     .to(rise, { autoAlpha: 1, duration: S('toRise') * 0.35 }, 'up')
     .fromTo('#riseStars', { y: 0 }, { y: () => window.innerHeight * 0.9, duration: S('toRise') + S('climb') }, 'up')
     .fromTo('.rise-head', { autoAlpha: 0, y: -30 }, { autoAlpha: 1, y: 0, duration: S('toRise') * 0.5, ease: 'power2.out' }, `up+=${S('toRise') * 0.5}`)
-    // Pinned to the end of the tilt, not appended: the stars' drift spans both chapters.
+    .fromTo('.rise-stage', { autoAlpha: 0, y: 30 }, { autoAlpha: 1, y: 0, duration: S('toRise') * 0.5, ease: 'power2.out' }, `up+=${S('toRise') * 0.6}`)
     .addLabel('climb', `up+=${S('toRise')}`)
-    .fromTo(riseTrack, { y: () => -climb() }, { y: 0, duration: S('climb') }, 'climb')
-    .fromTo('#riseFill', { scaleY: 0 }, { scaleY: 1, duration: S('climb') }, 'climb');
+    .fromTo('#riseFloors', { y: 0 }, { y: () => window.innerHeight * 4, duration: S('climb') }, 'climb');
 
-  // Steps flip down into place as they come in over the top edge.
-  const vh = window.innerHeight;
-  $$('.rise-step', riseTrack).forEach((step) => {
-    const f = 1 - (step.offsetTop + step.offsetHeight - vh * 0.1) / climb();
-    const at = f <= 0
-      ? master.labels.up + S('toRise') * 0.55
-      : master.labels.climb + Math.min(f, 0.85) * S('climb');
-    master.fromTo(step, { rotationX: 80, autoAlpha: 0, transformOrigin: '50% 0%' },
-      { rotationX: 0, autoAlpha: 1, duration: 0.2 * S('climb'), ease: 'power3.out' }, at);
-  });
+  const C = S('climb');
+  for (let k = 1; k < steps.length; k++) {
+    const at = master.labels.climb + (k - 0.5) * (C / 4.4);
+    master
+      .to(steps[k - 1], { y: 60, autoAlpha: 0, duration: C * 0.06, ease: 'power2.in' }, at)
+      .fromTo(steps[k], { y: -60, autoAlpha: 0 }, { y: 0, autoAlpha: 1, duration: C * 0.08, ease: 'power3.out' }, at + C * 0.04)
+      .to('#riseDigits', { yPercent: -80 + k * 20, duration: C * 0.08, ease: 'power3.inOut' }, at)
+      .to(floor, { n: k, duration: C * 0.02, onUpdate: setFloor }, at + C * 0.04);
+  }
 
   /* ---- 7 · zoom out onto the call to action -------------------------- */
   master.addLabel('out', `climb+=${S('climb')}`);

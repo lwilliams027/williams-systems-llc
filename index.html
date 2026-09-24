@@ -330,23 +330,48 @@
               <ul class="chips"><li>TLS everywhere</li><li>Role-based access</li><li>Audit logs</li><li>Nightly backups</li></ul>
             </div>
           </div>
+          <!-- The keyhole zoom: the same lock drawn full screen. journey.js zooms by moving
+               this SVG's viewBox (the camera), so the shapes are redrawn crisp at
+               every size instead of blowing up a bitmap. -->
+          <svg class="lock-zoom" id="lockZoom" aria-hidden="true">
+            <path d="M62 104V72a38 38 0 0 1 76 0v32" fill="none" stroke="#C9CFDA" stroke-width="16" stroke-linecap="round"/>
+            <rect class="lock-body" x="28" y="100" width="144" height="124" rx="20"/>
+            <path class="lock-hole" d="M100 136a14 14 0 0 1 8 25.5L114 192H86l6-30.5A14 14 0 0 1 100 136Z"/>
+          </svg>
         </div>
 
-        <!-- 4 · Rise (up) -->
+        <!-- 4 · Rise (up): an elevator ride. The camera rises floor by floor; the
+             counter rolls 01 → 05, one step shows at a time and the next one drops
+             in from above as you pass its floor. The panel lights fill bottom-up. -->
         <div class="scene scene-rise scene-later" id="sceneRise">
           <div class="rise-stars" id="riseStars" aria-hidden="true"></div>
+          <div class="rise-floors" id="riseFloors" aria-hidden="true"></div>
           <div class="rise-head">
             <p class="scene-eyebrow mono">05 · How we work</p>
             <h2 class="rise-title">From first call to launch.</h2>
           </div>
-          <div class="rise-rail" aria-hidden="true"><i id="riseFill"></i></div>
-          <!-- Top to bottom in the DOM; the camera starts at the bottom (Discover) and climbs. -->
-          <ol class="rise-track" id="riseTrack" reversed>
-            <li class="rise-step"><span class="rise-num">05</span><div><h3>Support</h3><p>Fixes, updates, and new features from the same team, for as long as you want us.</p></div></li>
-            <li class="rise-step"><span class="rise-num">04</span><div><h3>Launch</h3><p>Cloud setup, CI/CD, monitoring, and a rollout plan. You own everything.</p></div></li>
-            <li class="rise-step"><span class="rise-num">03</span><div><h3>Build</h3><p>Working software every week in short, visible increments.</p></div></li>
-            <li class="rise-step"><span class="rise-num">02</span><div><h3>Design</h3><p>Wireframes, real designs, then a clickable prototype we agree on.</p></div></li>
-            <li class="rise-step"><span class="rise-num">01</span><div><h3>Discover</h3><p>Your goals, your users, and a written scope, timeline, and price up front.</p></div></li>
+
+          <div class="rise-stage">
+            <div class="rise-counter" aria-hidden="true">
+              <span class="rise-counter-label mono">Step</span>
+              <div class="rise-window"><div class="rise-digits" id="riseDigits"><span>05</span><span>04</span><span>03</span><span>02</span><span>01</span></div></div>
+            </div>
+            <ol class="rise-steps" id="riseSteps">
+              <li class="rise-step"><h3>Discover</h3><p>Your goals, your users, and a written scope, timeline, and price up front.</p></li>
+              <li class="rise-step"><h3>Design</h3><p>Wireframes, real designs, then a clickable prototype we agree on.</p></li>
+              <li class="rise-step"><h3>Build</h3><p>Working software every week in short, visible increments.</p></li>
+              <li class="rise-step"><h3>Launch</h3><p>Cloud setup, CI/CD, monitoring, and a rollout plan. You own everything.</p></li>
+              <li class="rise-step"><h3>Support</h3><p>Fixes, updates, and new features from the same team, for as long as you want us.</p></li>
+            </ol>
+          </div>
+
+          <!-- Elevator panel: 1 at the bottom, 5 at the top -->
+          <ol class="rise-panel" id="risePanel" aria-hidden="true">
+            <li><span class="mono">05</span><i></i></li>
+            <li><span class="mono">04</span><i></i></li>
+            <li><span class="mono">03</span><i></i></li>
+            <li><span class="mono">02</span><i></i></li>
+            <li><span class="mono">01</span><i></i></li>
           </ol>
         </div>
 
