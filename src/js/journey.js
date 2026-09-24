@@ -79,7 +79,7 @@ const LEN = {             // chapter lengths, in screens of scroll
 };
 const S = (k) => LEN[k] * SCREEN;
 const SCRUB = 0.7;        // seconds the animation lags the scroll (lower = snappier)
-const PACE = 0.75;        // overall scroll pace: 1 = original, 0.75 = 25% slower (more scrolling per animation)
+const PACE = 0.5625;      // overall scroll pace: 1 = original; 0.75 × 0.75 = two rounds of "25% slower" (lower = more scrolling per animation)
 
 /* ---------------------------------------------------------------- */
 /*  Code for the editor — VS Code Dark+ token classes               */
