@@ -21,6 +21,8 @@ body.admin { min-height: 100vh; min-height: 100dvh; }
   border: 1px solid var(--line-solid); border-radius: var(--r-lg);
   padding: clamp(24px, 5vw, 40px);
 }
+.login-card .brand-mark { align-self: flex-start; }
+.login-card .brand-mark .logo { height: 30px; }
 .login-card h1 { font-family: var(--font-display); font-size: 1.9rem; letter-spacing: -0.02em; }
 .login-card > p { color: var(--text-2); margin-top: -8px; }
 .login-card .btn { justify-content: center; margin-top: 4px; }

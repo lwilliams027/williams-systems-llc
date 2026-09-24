@@ -71,7 +71,12 @@ function initHero() {
 
   if (showIntro) {
     document.body.classList.add('no-scroll');
-    tl.from('.intro-logo', { yPercent: 110, duration: 0.9, ease: 'power4.out' }, 0.1)
+    // Logo assembles: brackets slide in from the sides, the W rises from below.
+    const [lb, w1, w2, rb] = $$('.intro-logo path');
+    tl.from(lb, { x: -160, autoAlpha: 0, duration: 0.9, ease: 'power4.out' }, 0.1)
+      .from(rb, { x: 160, autoAlpha: 0, duration: 0.9, ease: 'power4.out' }, 0.1)
+      .from([w1, w2], { y: 220, autoAlpha: 0, duration: 0.8, ease: 'power4.out', stagger: 0.08 }, 0.3)
+      .to('.intro-logo', { color: '#FF5A1F', duration: 0.3, yoyo: true, repeat: 1 }, '-=0.15')
       .from('.intro-text', { yPercent: 110, duration: 0.9, ease: 'power4.out' }, '-=0.7')
       .to('.intro-mark', { autoAlpha: 0, y: -24, duration: 0.35, ease: 'power2.in' }, '+=0.35')
       .to(intro, { yPercent: -100, duration: 0.9, ease: 'power4.inOut' }, '-=0.15')

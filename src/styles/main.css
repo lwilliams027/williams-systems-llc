@@ -177,10 +177,10 @@ h1, h2, h3, h4, p { margin: 0; }
 .intro-mark { display: flex; flex-direction: column; align-items: center; gap: 12px; }
 .intro-line { display: block; overflow: hidden; }
 .intro-logo {
-  display: block;
-  font-family: var(--font-display); font-weight: 800;
-  font-size: clamp(3.4rem, 9vw, 6rem); line-height: 1; letter-spacing: -0.05em;
-  color: var(--accent);
+  display: block; overflow: visible;
+  width: clamp(120px, 18vw, 180px); height: auto;
+  color: var(--text);
+  margin-bottom: 18px;
 }
 .intro-text {
   display: block;
@@ -209,12 +209,9 @@ h1, h2, h3, h4, p { margin: 0; }
   display: inline-flex; align-items: center; gap: 12px;
   font-family: var(--font-display); font-weight: 700; font-size: 1.05rem; letter-spacing: -0.01em;
 }
-.brand-mark {
-  width: 36px; height: 36px; border-radius: 10px;
-  background: var(--accent); color: var(--accent-ink);
-  display: grid; place-items: center;
-}
-.brand-mark svg { width: 20px; height: 20px; }
+.brand-mark { display: inline-flex; align-items: center; color: var(--text); }
+.brand-mark .logo { height: 22px; width: auto; transition: color 0.25s; }
+.brand:hover .brand-mark .logo { color: var(--accent); }
 .brand-thin { font-weight: 500; color: var(--text-2); }
 .nav { display: flex; gap: 4px; }
 .nav a {
