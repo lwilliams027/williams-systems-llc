@@ -1692,3 +1692,19 @@ fieldset.field .field-label { margin-bottom: 8px; }
   padding: calc(var(--header-h) + 20px) var(--gutter) 40px;
   opacity: 0; visibility: hidden;
 }
+
+/* ---------- Hero: centred headline block (trial) ---------- */
+.hero-head, .hero-head[style] {
+  inset: 0; top: 0; bottom: 0; left: 0; right: 0; max-width: none; transform: none;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center;
+  padding: calc(var(--header-h) + 16px) var(--gutter) clamp(110px, 16vh, 150px);
+  pointer-events: none;
+}
+.hero-head .hero-actions { pointer-events: auto; justify-content: center; }
+.hero-sub { margin-inline: auto; }
+@media (max-width: 1099.98px) { .hero-head { bottom: 0; } }
+.fall-hero-media::after {
+  background:
+    radial-gradient(ellipse 75% 70% at 50% 52%, rgba(8,9,12,0.86) 0%, rgba(8,9,12,0.72) 55%, rgba(8,9,12,0.6) 100%),
+    linear-gradient(to bottom, rgba(8,9,12,0.5) 0%, rgba(8,9,12,0) 25%, rgba(8,9,12,0) 70%, rgba(8,9,12,0.85) 100%);
+}
