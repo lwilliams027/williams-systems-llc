@@ -520,3 +520,28 @@ function setYear() {
     openItem?.querySelector('.nav-trigger').focus();
   });
 })();
+
+/* Scroll progress: a thin blue → purple bar under the header that fills as you
+   scroll through the page (0% at the top, 100% at the footer). */
+(function initScrollProgress() {
+  const header = document.getElementById('header');
+  if (!header || header.querySelector('.scroll-progress')) return;
+  const bar = document.createElement('div');
+  bar.className = 'scroll-progress';
+  bar.setAttribute('aria-hidden', 'true');
+  bar.innerHTML = '<i></i>';
+  header.append(bar);
+  const fill = bar.firstChild;
+  let queued = false;
+  const update = () => {
+    queued = false;
+    const max = document.documentElement.scrollHeight - window.innerHeight;
+    const p = max > 0 ? Math.min(1, Math.max(0, window.scrollY / max)) : 0;
+    fill.style.transform = `scaleX(${p})`;
+  };
+  const request = () => { if (!queued) { queued = true; requestAnimationFrame(update); } };
+  window.addEventListener('scroll', request, { passive: true });
+  window.addEventListener('resize', request);
+  window.addEventListener('load', request);
+  update();
+})();
