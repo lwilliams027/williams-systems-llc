@@ -200,6 +200,7 @@ h1, h2, h3, h4, p { margin: 0; }
 .header-inner {
   display: flex; align-items: center; justify-content: space-between; gap: 24px;
   height: var(--header-h);
+  padding-inline: var(--gutter);   /* full width: logo hard left, button hard right */
 }
 .brand {
   display: inline-flex; align-items: center; gap: 12px;
@@ -253,6 +254,8 @@ h1, h2, h3, h4, p { margin: 0; }
 /* Ink band under the fixed header, in flow, so the picture starts below the
    bar instead of running under the nav links. */
 .hero-band { height: var(--header-h); background: var(--ink); }
+/* Blank hero for now: exactly the header's colour, filling the first screen. */
+.hero-blank { min-height: calc(100svh - var(--header-h)); background: var(--ink); }
 
 /* Frame + copy share one grid cell; the row is as tall as the taller layer.
    grid-template-columns uses minmax(0,1fr) so the image's intrinsic width

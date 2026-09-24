@@ -63,29 +63,22 @@ function waitForFonts() {
 function initHero() {
   const intro = $('#intro');
   const showIntro = !!intro && document.documentElement.classList.contains('intro-on');
+  const introOnly = !!intro && new URLSearchParams(location.search).has('intro');
   try { sessionStorage.setItem('ws-intro', '1'); } catch (e) { /* private mode etc. */ }
+
+  // ?intro — show ONLY the splash and loop it, for editing the animation.
+  if (introOnly) {
+    document.body.classList.add('no-scroll');
+    gsap.set('#header', { autoAlpha: 0 });
+    buildIntroLogo().repeat(-1).repeatDelay(1.2);
+    return;
+  }
 
   const tl = gsap.timeline({ defaults: { ease: 'power3.out' } });
 
   if (showIntro) {
     document.body.classList.add('no-scroll');
-    // Lockup assembles: brackets slide in from the sides, the W rises from
-    // below, then WILLIAMS, SYSTEMS LLC, and the two rules draw outward.
-    const [lb, w1, w2, rb, word, sub] = $$('.intro-logo path');
-    const rules = $$('.intro-logo rect');
-    // Blue copies of the L + wordmark, revealed top-to-bottom by a growing clip.
-    // Built before the from() tweens so the clones don't inherit their start styles.
-    const fillClip = buildIntroFill([w1, word, sub], '#007ACC');
-    tl.from(lb, { x: -180, autoAlpha: 0, duration: 0.9, ease: 'power4.out' }, 0.1)
-      .from(rb, { x: 180, autoAlpha: 0, duration: 0.9, ease: 'power4.out' }, 0.1)
-      .from([w1, w2], { y: 240, autoAlpha: 0, duration: 0.8, ease: 'power4.out', stagger: 0.08 }, 0.3)
-      .from(word, { y: 60, autoAlpha: 0, duration: 0.7, ease: 'power3.out' }, 0.65)
-      .from(sub, { autoAlpha: 0, duration: 0.5 }, 0.9)
-      .from(rules[0], { scaleX: 0, transformOrigin: '100% 50%', duration: 0.6, ease: 'power3.out' }, 0.9)
-      .from(rules[1], { scaleX: 0, transformOrigin: '0% 50%', duration: 0.6, ease: 'power3.out' }, 0.9)
-      // VS Code blue pours into the L (left stroke of the W) and the WILLIAMS /
-      // SYSTEMS LLC text, top to bottom, and stays until the splash leaves.
-      .to(fillClip, { attr: { height: 1220 }, duration: 1.1, ease: 'power2.inOut' }, 1.4)
+    tl.add(buildIntroLogo())
       .to('.intro-mark', { autoAlpha: 0, y: -24, duration: 0.35, ease: 'power2.in' }, '+=0.35')
       .to(intro, { yPercent: -100, duration: 0.9, ease: 'power4.inOut' }, '-=0.15')
       .add(() => {
@@ -99,37 +92,82 @@ function initHero() {
     tl.addLabel('hero', 0);
   }
 
-  // Copy fades up in one stagger (same entrance as the Face & Mane hero),
+  // Copy fades up in one stagger (same entrance as the Face & Mane hero).
   // clearProps: the header's hide/show uses a CSS transform, so GSAP must not leave one behind.
-  tl.from('#header', { y: -20, autoAlpha: 0, duration: 0.8, clearProps: 'transform' }, 'hero')
-    .from('[data-hero]', { y: 32, autoAlpha: 0, duration: 0.9, ease: 'expo.out', stagger: 0.1 }, 'hero+=0.15')
-    .add(dropScrollCue(), 'hero+=1');
+  tl.from('#header', { y: -20, autoAlpha: 0, duration: 0.8, clearProps: 'transform' }, 'hero');
+  const heroCopy = $$('[data-hero]');   // none while the hero is blank
+  if (heroCopy.length) {
+    tl.from(heroCopy, { y: 32, autoAlpha: 0, duration: 0.9, ease: 'expo.out', stagger: 0.1 }, 'hero+=0.15')
+      .add(dropScrollCue(), 'hero+=1');
+  }
 
   initHeroShrink();
 }
 
 /**
- * Layers colored copies of the given lockup paths over the originals, clipped
- * by a rect that starts at zero height at the top of the logo. Animating the
- * rect's height fills them top to bottom. Returns the rect.
+ * The logo part of the splash. Lockup assembles: brackets slide in from the
+ * sides, the W rises from below, then WILLIAMS, SYSTEMS LLC, and the two rules
+ * draw outward. Then VS Code blue pours into the L (left stroke of the W) and
+ * the WILLIAMS / SYSTEMS LLC text, top to bottom.
+ */
+function buildIntroLogo() {
+  const [lb, w1, w2, rb, word, sub] = $$('.intro-logo path');
+  const rules = $$('.intro-logo rect');
+  const fill = buildIntroFill([w1, word, sub], '#007ACC');
+
+  return gsap.timeline()
+    .set('.intro-mark', { autoAlpha: 1, y: 0 })
+    .add(fill.reset)
+    .from(lb, { x: -180, autoAlpha: 0, duration: 0.9, ease: 'power4.out', immediateRender: true }, 0.1)
+    .from(rb, { x: 180, autoAlpha: 0, duration: 0.9, ease: 'power4.out', immediateRender: true }, 0.1)
+    .from([w1, w2], { y: 240, autoAlpha: 0, duration: 0.8, ease: 'power4.out', stagger: 0.08 }, 0.3)
+    .from(word, { y: 60, autoAlpha: 0, duration: 0.7, ease: 'power3.out' }, 0.65)
+    .from(sub, { autoAlpha: 0, duration: 0.5 }, 0.9)
+    .from(rules[0], { scaleX: 0, transformOrigin: '100% 50%', duration: 0.6, ease: 'power3.out' }, 0.9)
+    .from(rules[1], { scaleX: 0, transformOrigin: '0% 50%', duration: 0.6, ease: 'power3.out' }, 0.9)
+    .fromTo(fill.state, { p: 0 }, { p: 1, duration: 1.1, ease: 'power2.inOut', onUpdate: fill.render }, 1.4);
+}
+
+/**
+ * Fills the given paths top to bottom by pointing them at a vertical gradient
+ * with a hard stop (blue above, white below) and moving the stop down. The
+ * letters themselves change colour, so there is no white copy underneath to
+ * leave a fringe around the blue.
  */
 function buildIntroFill(paths, color) {
   const NS = 'http://www.w3.org/2000/svg';
   const svg = paths[0].ownerSVGElement;
-  const [x, y, w] = svg.getAttribute('viewBox').split(/\s+/).map(Number);
-  const defs = document.createElementNS(NS, 'defs');
-  const clip = document.createElementNS(NS, 'clipPath');
-  clip.id = 'introFillClip';
-  const rect = document.createElementNS(NS, 'rect');
-  Object.entries({ x, y, width: w, height: 0 }).forEach(([k, v]) => rect.setAttribute(k, v));
-  clip.append(rect);
-  defs.append(clip);
-  const layer = document.createElementNS(NS, 'g');
-  layer.setAttribute('clip-path', 'url(#introFillClip)');
-  layer.setAttribute('fill', color);
-  paths.forEach((p) => layer.append(p.cloneNode(false)));
-  svg.append(defs, layer);
-  return rect;
+  const [, y, , h] = svg.getAttribute('viewBox').split(/\s+/).map(Number);
+
+  let grad = svg.querySelector('#introFillGrad');
+  if (!grad) {
+    const defs = document.createElementNS(NS, 'defs');
+    grad = document.createElementNS(NS, 'linearGradient');
+    grad.id = 'introFillGrad';
+    Object.entries({ gradientUnits: 'userSpaceOnUse', x1: 0, x2: 0, y1: y, y2: y + h })
+      .forEach(([k, v]) => grad.setAttribute(k, v));
+    [color, color, '#FFFFFF', '#FFFFFF'].forEach((c) => {
+      const stop = document.createElementNS(NS, 'stop');
+      stop.setAttribute('stop-color', c);
+      grad.append(stop);
+    });
+    defs.append(grad);
+    svg.prepend(defs);
+    paths.forEach((p) => p.setAttribute('fill', 'url(#introFillGrad)'));
+  }
+
+  const stops = [...grad.children];
+  const state = { p: 0 };
+  const render = () => {
+    const o = String(state.p);
+    stops[0].setAttribute('offset', '0');
+    stops[1].setAttribute('offset', o);
+    stops[2].setAttribute('offset', o);
+    stops[3].setAttribute('offset', '1');
+  };
+  const reset = () => { state.p = 0; render(); };
+  reset();
+  return { state, render, reset };
 }
 
 /**
