@@ -97,3 +97,31 @@
 @media (max-width: 1099.98px) { .pd-others { grid-template-columns: repeat(3, 1fr); } }
 @media (max-width: 899.98px) { .pd-features { grid-template-columns: 1fr 1fr; } }
 @media (max-width: 640px) { .pd-features, .pd-others { grid-template-columns: 1fr; } }
+
+/* ---- Websites page: how it works ---- */
+.ws-flow-title { font-size: clamp(2.4rem, 5.6vw, 4.6rem); letter-spacing: -0.045em; line-height: 1; }
+.ws-flow-title span { background: var(--grad); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.ws-flow { list-style: none; padding: 0; display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; margin-top: 40px; position: relative; }
+.ws-flow li { position: relative; padding-top: 28px; }
+.ws-flow li::before {            /* a dot on the line for each step */
+  content: ""; position: absolute; top: -6px; left: 0; width: 14px; height: 14px; border-radius: 50%;
+  background: var(--grad); box-shadow: 0 0 0 5px var(--ink), 0 0 18px rgba(160,107,255,0.5);
+}
+.ws-flow::before {               /* the line that joins the steps */
+  content: ""; position: absolute; top: 0; left: 0; right: 0; height: 2px; background: var(--grad); opacity: 0.55;
+}
+.ws-flow h3 { font-family: var(--font-display); font-weight: 700; font-size: clamp(1.4rem, 2.2vw, 1.9rem); letter-spacing: -0.03em; margin-bottom: 8px; }
+.ws-flow p { color: var(--text-2); }
+.ws-promises { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 44px; }
+.ws-promise {
+  padding: 28px; border-radius: var(--r-lg); border: 1px solid transparent;
+  background: linear-gradient(var(--ink), var(--ink)) padding-box, var(--grad) border-box;
+}
+.ws-promise h3 { font-family: var(--font-display); font-weight: 700; font-size: clamp(1.5rem, 2.6vw, 2.1rem); letter-spacing: -0.035em; margin-bottom: 8px; }
+.ws-promise p { color: var(--text-2); max-width: 46ch; }
+@media (max-width: 899.98px) {
+  .ws-flow { grid-template-columns: 1fr 1fr; row-gap: 36px; }
+  .ws-flow::before { display: none; }
+  .ws-flow li { border-top: 2px solid transparent; border-image: var(--grad) 1; }
+}
+@media (max-width: 640px) { .ws-flow, .ws-promises { grid-template-columns: 1fr; } }
