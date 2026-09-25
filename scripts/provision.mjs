@@ -5,8 +5,9 @@
      1. creates project "williams-systems-temp" in your first org
      2. waits until it is healthy
      3. applies supabase/schema.sql (tables, RLS, storage bucket, realtime)
-     4. turns off public sign-ups (only invited team members can log in)
-     5. creates the team login and marks it as admin
+     4. sets the site URLs; sign-ups stay on, but the database only lets
+        invited emails create an account (see Accounts in schema.sql)
+     5. invites the owner and creates the owner login
      6. writes .env.local, ADMIN-LOGIN.txt, and GitHub repo variables
 
    Needs a Supabase personal access token, from either:
@@ -120,18 +121,23 @@ await sql(readFileSync(p('supabase/schema.sql'), 'utf8'));
 console.log('  tables, security rules, storage bucket, and realtime ready');
 
 // ---------- 5. auth settings ----------
-step('Locking down sign-ups and setting site URLs');
+step('Setting site URLs (sign-ups are invite-only, enforced in the database)');
 await api(`/v1/projects/${state.ref}/config/auth`, {
   method: 'PATCH',
   body: {
-    disable_signup: true,
+    disable_signup: false,
     site_url: SITE_URL,
     uri_allow_list: `${SITE_URL}**,http://127.0.0.1:5173/**,http://localhost:5173/**`,
   },
 });
 
 // ---------- 6. team login ----------
-step(`Creating team login for ${ADMIN_EMAIL}`);
+step(`Creating the owner login for ${ADMIN_EMAIL}`);
+{
+  // the database only accepts new accounts that have an invite, so invite the owner first
+  const e = ADMIN_EMAIL.replace(/'/g, "''");
+  await sql(`insert into public.invites (email, role) select '${e}', 'owner' where not exists (select 1 from auth.users where lower(email) = lower('${e}')) and not exists (select 1 from public.invites where lower(email) = lower('${e}') and accepted_at is null);`);
+}
 const authHeaders = serviceKey.startsWith('sb_')
   ? { apikey: serviceKey }
   : { apikey: serviceKey, Authorization: `Bearer ${serviceKey}` };
@@ -153,7 +159,8 @@ if (!state.adminPassword) {
 }
 const safeEmail = ADMIN_EMAIL.replace(/'/g, "''");
 await sql(`insert into public.admins (user_id) select id from auth.users where email = '${safeEmail}' on conflict do nothing;`);
-console.log('  admin access granted');
+await sql(`insert into public.profiles (id, email, role) select id, email, 'owner' from auth.users where email = '${safeEmail}' on conflict (id) do update set role = 'owner';`);
+console.log('  owner access granted');
 
 // ---------- 7. outputs ----------
 step('Writing .env.local and ADMIN-LOGIN.txt');

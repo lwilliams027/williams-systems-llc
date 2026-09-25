@@ -53,12 +53,11 @@ boot();
 async function boot() {
   if (!isConfigured) return show('configNotice');
 
+  // sign-in happens on login.html; only owners get past this point
   const { data: { session } } = await supabase.auth.getSession();
-  if (session && (await isAdmin())) enterApp(session.user);
-  else {
-    if (session) await supabase.auth.signOut();
-    show('loginView');
-  }
+  if (!session) return location.replace('login.html?next=admin.html');
+  if (!(await isAdmin())) return location.replace('account.html');
+  enterApp(session.user);
 
   supabase.auth.onAuthStateChange((event) => {
     if (event === 'SIGNED_OUT') leaveApp();
@@ -118,14 +117,12 @@ async function enterApp(user) {
   if (!REDUCED) {
     gsap.from(['.admin-top', '.inbox', '.detail'], { y: 14, autoAlpha: 0, duration: 0.5, stagger: 0.07, ease: 'power3.out' });
   }
+  if (location.hash === '#access') switchView('access');
 }
 
 function leaveApp() {
   if (state.channel) supabase.removeChannel(state.channel);
-  Object.assign(state, { inquiries: [], selectedId: null, notes: [], channel: null });
-  $('#inquiryList').replaceChildren();
-  renderDetail();
-  show('loginView');
+  location.replace('login.html');
 }
 
 /* ------------------------------------------------------------------ */
@@ -515,3 +512,107 @@ function formatBytes(n = 0) {
 
 // Keep relative times fresh.
 setInterval(() => { if (!$('#appView').hidden) renderList(); }, 60_000);
+
+/* ------------------------------------------------------------------ */
+/*  Access: invites and "request a spot"                               */
+/*  Accounts are invite only. An invite is tied to an email; its link  */
+/*  opens signup.html, and the database refuses any new account whose  */
+/*  email has no open invite.                                          */
+/* ------------------------------------------------------------------ */
+const SITE = new URL('./', location.href).href;
+const inviteUrl = (token) => `${SITE}signup.html?invite=${token}`;
+const inviteMail = (email, token) => `mailto:${encodeURIComponent(email)}?subject=${encodeURIComponent('Your Williams Systems account')}&body=${encodeURIComponent(`Hi,\n\nHere's your invite to create your Williams Systems account:\n${inviteUrl(token)}\n\nSee you inside,\nLandon`)}`;
+const access = { requests: [], invites: [] };
+
+document.querySelectorAll('.admin-view').forEach((b) => b.addEventListener('click', () => switchView(b.dataset.view)));
+function switchView(view) {
+  document.querySelectorAll('.admin-view').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.view === view)));
+  $('#adminMain').hidden = view !== 'inbox';
+  $('#accessView').hidden = view !== 'access';
+  $('#liveBadge').hidden = view !== 'inbox';
+  history.replaceState(null, '', view === 'access' ? '#access' : location.pathname + location.search);
+  if (view === 'access') loadAccess();
+}
+
+async function loadAccess() {
+  const [req, inv] = await Promise.all([
+    supabase.from('access_requests').select('*').order('created_at', { ascending: false }),
+    supabase.from('invites').select('*').is('accepted_at', null).order('created_at', { ascending: false }),
+  ]);
+  if (req.error || inv.error) return toast(`Couldn’t load access: ${(req.error || inv.error).message}`, 'error');
+  access.requests = req.data;
+  access.invites = inv.data;
+  renderRequests();
+  renderInvites();
+}
+
+function renderInvites() {
+  $('#inviteList').replaceChildren(...access.invites.map((i) => el('li', { class: 'access-item' },
+    el('div', { class: 'access-who' },
+      el('b', { text: i.email }),
+      el('span', { class: 'access-meta', text: `${i.role === 'owner' ? 'Owner' : 'Client'} · invited ${new Date(i.created_at).toLocaleDateString()}` })),
+    el('div', { class: 'access-actions' },
+      el('button', { class: 'btn btn-ghost btn-sm', type: 'button', text: 'Copy link', onclick: () => copy(inviteUrl(i.token)) }),
+      el('button', { class: 'btn btn-ghost btn-sm', type: 'button', text: 'Revoke', onclick: () => revoke(i) })))));
+  $('#inviteEmpty').hidden = access.invites.length > 0;
+}
+
+function renderRequests() {
+  $('#requestList').replaceChildren(...access.requests.map((r) => el('li', { class: `access-item ${r.status}` },
+    el('div', { class: 'access-who' },
+      el('b', { text: r.name }),
+      el('span', { class: 'access-meta', text: [r.email, r.company].filter(Boolean).join(' · ') }),
+      r.message ? el('p', { class: 'access-msg', text: r.message }) : null,
+      el('span', { class: 'access-meta', text: `${new Date(r.created_at).toLocaleString()}${r.status !== 'new' ? ` · ${r.status}` : ''}` })),
+    r.status === 'new' ? el('div', { class: 'access-actions' },
+      el('button', { class: 'btn btn-primary btn-sm', type: 'button', text: 'Invite', onclick: () => invite(r.email, 'client', r) }),
+      el('button', { class: 'btn btn-ghost btn-sm', type: 'button', text: 'Decline', onclick: () => setRequest(r, 'declined') })) : null)));
+  $('#requestEmpty').hidden = access.requests.length > 0;
+}
+
+$('#inviteForm').addEventListener('submit', (e) => {
+  e.preventDefault();
+  const f = e.currentTarget;
+  const email = f.email.value.trim();
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return toast('Enter a valid email.', 'error');
+  invite(email, f.role.value).then((ok) => { if (ok) f.reset(); });
+});
+
+async function invite(email, role, request) {
+  // one open invite per email: reuse it if there is one
+  let row = access.invites.find((i) => i.email.toLowerCase() === email.toLowerCase());
+  if (!row) {
+    const { data: { user } } = await supabase.auth.getUser();
+    const { data, error } = await supabase.from('invites').insert({ email, role, invited_by: user.id }).select().single();
+    if (error) { toast(`Couldn’t create the invite: ${error.message}`, 'error'); return false; }
+    row = data;
+  }
+  if (request) await setRequest(request, 'invited', false);
+  $('#invitedEmail').textContent = row.email;
+  $('#inviteLink').value = inviteUrl(row.token);
+  $('#mailInvite').href = inviteMail(row.email, row.token);
+  $('#inviteResult').hidden = false;
+  toast('Invite ready. Send them the link.');
+  await loadAccess();
+  return true;
+}
+
+async function setRequest(r, status, reload = true) {
+  const { error } = await supabase.from('access_requests').update({ status }).eq('id', r.id);
+  if (error) return toast(`Couldn’t update: ${error.message}`, 'error');
+  if (reload) loadAccess();
+}
+
+async function revoke(i) {
+  if (!confirm(`Revoke the invite for ${i.email}? Their link will stop working.`)) return;
+  const { error } = await supabase.from('invites').delete().eq('id', i.id);
+  if (error) return toast(`Couldn’t revoke: ${error.message}`, 'error');
+  toast('Invite revoked');
+  loadAccess();
+}
+
+$('#copyInvite').addEventListener('click', () => copy($('#inviteLink').value));
+async function copy(text) {
+  try { await navigator.clipboard.writeText(text); toast('Link copied'); }
+  catch { $('#inviteLink').value = text; $('#inviteLink').select(); toast('Press Ctrl+C to copy', 'error'); }
+}

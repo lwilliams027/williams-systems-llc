@@ -1,0 +1,52 @@
+/* =====================================================================
+   Sign-in pages: login.html, signup.html (accept an invite), account.html
+   One centred card on the dark brand background.
+   ===================================================================== */
+body.auth { min-height: 100vh; min-height: 100dvh; display: grid; grid-template-rows: auto 1fr auto; background: var(--ink);
+  background-image: radial-gradient(60% 50% at 80% 10%, rgba(46,155,255,0.14), transparent 70%), radial-gradient(50% 45% at 10% 90%, rgba(160,107,255,0.14), transparent 70%); }
+.auth-top { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 18px var(--gutter); }
+.auth-top .brand { display: inline-flex; align-items: center; gap: 10px; }
+.auth-top .brand-mark .logo { width: 38px; height: auto; }
+.auth-back { color: var(--text-2); font-size: 0.95rem; font-weight: 500; }
+.auth-back:hover { color: var(--text); }
+
+.auth-main { display: grid; place-items: center; padding: 24px var(--gutter) 48px; }
+.auth-card { width: min(440px, 100%); display: grid; gap: 16px; padding: clamp(24px, 5vw, 36px); border-radius: 24px;
+  background: rgba(18,20,28,0.86); box-shadow: 0 40px 100px rgba(0,0,0,0.5), inset 0 0 0 1px var(--line-2); backdrop-filter: blur(12px); }
+.auth-card[hidden] { display: none; }
+.auth-kicker { margin: 0; font-size: 0.75rem; letter-spacing: 0.16em; text-transform: uppercase; background: var(--grad); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.auth-card h1 { margin: 0; font-family: var(--font-display); font-size: clamp(1.8rem, 5vw, 2.3rem); letter-spacing: -0.04em; line-height: 1.05; }
+.auth-card > p { margin: 0; color: var(--text-2); }
+.auth-card form { display: grid; gap: 14px; }
+
+.auth-field { display: grid; gap: 6px; }
+.auth-field span { color: var(--text-2); font-size: 0.85rem; font-weight: 600; }
+.auth-field input, .auth-field textarea { width: 100%; padding: 13px 14px; border-radius: 12px; border: 1px solid var(--line-2); background: rgba(255,255,255,0.04); color: var(--text); font: inherit; }
+.auth-field input:focus, .auth-field textarea:focus { outline: 2px solid rgba(46,155,255,0.6); outline-offset: 1px; border-color: transparent; }
+.auth-field input[readonly] { color: var(--text-2); background: rgba(255,255,255,0.02); }
+.auth-field textarea { min-height: 92px; resize: vertical; }
+.auth-row { display: flex; justify-content: space-between; align-items: center; gap: 10px; font-size: 0.9rem; }
+.auth-link { background: none; border: 0; padding: 0; color: #7CB8FF; font: inherit; font-weight: 600; cursor: pointer; }
+.auth-link:hover { text-decoration: underline; }
+.auth-card .btn { width: 100%; justify-content: center; }
+
+.auth-or { display: flex; align-items: center; gap: 12px; color: var(--text-3); font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.12em; }
+.auth-or::before, .auth-or::after { content: ''; flex: 1; height: 1px; background: var(--line-2); }
+.btn-google { display: inline-flex; align-items: center; gap: 10px; background: #fff; color: #1F1F1F; border: 0; }
+.btn-google:hover { background: #F1F3F4; }
+.btn-google svg { width: 18px; height: 18px; }
+
+.auth-msg { margin: 0; padding: 11px 14px; border-radius: 12px; font-size: 0.92rem; }
+.auth-msg.err { background: rgba(239,68,68,0.12); color: #FCA5A5; box-shadow: inset 0 0 0 1px rgba(239,68,68,0.35); }
+.auth-msg.ok { background: rgba(34,197,94,0.12); color: #86EFAC; box-shadow: inset 0 0 0 1px rgba(34,197,94,0.35); }
+.auth-msg[hidden] { display: none; }
+.auth-foot { margin: 0; color: var(--text-2); font-size: 0.92rem; text-align: center; }
+.auth-note { margin: 0; color: var(--text-3); font-size: 0.8rem; text-align: center; }
+
+.auth-badge { justify-self: start; padding: 4px 12px; border-radius: 999px; background: var(--grad); color: #fff; font-size: 0.78rem; font-weight: 700; letter-spacing: 0.04em; }
+.auth-list { margin: 0; padding: 0; list-style: none; display: grid; gap: 10px; }
+.auth-list a { display: flex; justify-content: space-between; align-items: center; padding: 14px 16px; border-radius: 14px; background: rgba(255,255,255,0.04); box-shadow: inset 0 0 0 1px var(--line-2); font-weight: 600; }
+.auth-list a:hover { background: rgba(255,255,255,0.07); }
+.auth-empty { margin: 0; padding: 18px; border-radius: 14px; border: 1px dashed var(--line-2); color: var(--text-2); text-align: center; }
+
+.auth-credit { padding: 18px var(--gutter) 24px; color: var(--text-3); font-size: 0.82rem; text-align: center; }

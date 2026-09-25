@@ -148,3 +148,139 @@ begin
     alter publication supabase_realtime add table public.inquiries;
   end if;
 end $$;
+
+-- =====================================================================
+-- Accounts: two tiers, invite only
+--
+--   public.profiles         One row per account: name and tier ('owner' or 'client').
+--   public.invites          Who may create an account, and at which tier.
+--   public.access_requests  "Request a spot" submissions from the login page.
+--
+-- Nobody can create an account unless their email has an open invite; a
+-- trigger on auth.users enforces this for password sign-ups and Google alike.
+-- Owners are also listed in public.admins (the team dashboard's check).
+-- =====================================================================
+
+create table if not exists public.profiles (
+  id         uuid primary key references auth.users (id) on delete cascade,
+  email      text not null,
+  full_name  text check (char_length(full_name) <= 120),
+  role       text not null default 'client' check (role in ('owner', 'client')),
+  created_at timestamptz not null default now()
+);
+alter table public.profiles enable row level security;
+revoke all on public.profiles from anon;
+
+drop policy if exists "See your own profile (owners see all)" on public.profiles;
+create policy "See your own profile (owners see all)" on public.profiles
+  for select to authenticated using (id = auth.uid() or public.is_admin());
+
+-- names can be changed by their owner; the tier can't (column-level grant below)
+drop policy if exists "Edit your own name" on public.profiles;
+create policy "Edit your own name" on public.profiles
+  for update to authenticated using (id = auth.uid()) with check (id = auth.uid());
+revoke update on public.profiles from authenticated;
+grant update (full_name) on public.profiles to authenticated;
+
+create or replace function public.my_role()
+returns text
+language sql
+stable
+security definer
+set search_path = ''
+as $$
+  select role from public.profiles where id = auth.uid();
+$$;
+revoke all on function public.my_role() from public;
+grant execute on function public.my_role() to authenticated;
+
+-- ---------- Invites ----------
+create table if not exists public.invites (
+  id          uuid primary key default gen_random_uuid(),
+  email       text not null check (char_length(email) between 3 and 200),
+  role        text not null default 'client' check (role in ('owner', 'client')),
+  token       uuid not null default gen_random_uuid() unique,
+  invited_by  uuid references auth.users (id) on delete set null,
+  created_at  timestamptz not null default now(),
+  accepted_at timestamptz
+);
+create unique index if not exists invites_one_open_per_email on public.invites (lower(email)) where accepted_at is null;
+alter table public.invites enable row level security;
+revoke all on public.invites from anon;
+
+drop policy if exists "Owners manage invites" on public.invites;
+create policy "Owners manage invites" on public.invites
+  for all to authenticated using (public.is_admin()) with check (public.is_admin());
+
+-- An invite link carries only its token; this tells the sign-up page which email
+-- (and tier) it's for, and nothing else.
+create or replace function public.invite_for_token(t uuid)
+returns table (email text, role text)
+language sql
+stable
+security definer
+set search_path = ''
+as $$
+  select i.email, i.role from public.invites i where i.token = t and i.accepted_at is null;
+$$;
+revoke all on function public.invite_for_token(uuid) from public;
+grant execute on function public.invite_for_token(uuid) to anon, authenticated;
+
+-- ---------- Every new account needs an open invite ----------
+create or replace function public.handle_new_user()
+returns trigger
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare
+  inv public.invites;
+begin
+  select * into inv from public.invites i
+   where lower(i.email) = lower(new.email) and i.accepted_at is null
+   order by i.created_at desc limit 1;
+  if inv.id is null then
+    raise exception 'invite_required: % has no invite', new.email using errcode = 'P0001';
+  end if;
+
+  insert into public.profiles (id, email, full_name, role)
+  values (new.id, new.email,
+          coalesce(new.raw_user_meta_data ->> 'full_name', new.raw_user_meta_data ->> 'name'),
+          inv.role)
+  on conflict (id) do nothing;
+  if inv.role = 'owner' then
+    insert into public.admins (user_id) values (new.id) on conflict do nothing;
+  end if;
+  update public.invites set accepted_at = now() where id = inv.id;
+  return new;
+end;
+$$;
+drop trigger if exists on_auth_user_created on auth.users;
+create trigger on_auth_user_created
+  after insert on auth.users
+  for each row execute function public.handle_new_user();
+
+-- ---------- Request a spot ----------
+create table if not exists public.access_requests (
+  id         uuid primary key default gen_random_uuid(),
+  name       text not null check (char_length(name) between 1 and 120),
+  email      text not null check (char_length(email) between 3 and 200),
+  company    text check (char_length(company) <= 160),
+  message    text check (char_length(message) <= 2000),
+  status     text not null default 'new' check (status in ('new', 'invited', 'declined')),
+  created_at timestamptz not null default now()
+);
+alter table public.access_requests enable row level security;
+
+drop policy if exists "Anyone can request a spot" on public.access_requests;
+create policy "Anyone can request a spot" on public.access_requests
+  for insert to anon, authenticated with check (status = 'new');
+drop policy if exists "Owners read requests" on public.access_requests;
+create policy "Owners read requests" on public.access_requests
+  for select to authenticated using (public.is_admin());
+drop policy if exists "Owners update requests" on public.access_requests;
+create policy "Owners update requests" on public.access_requests
+  for update to authenticated using (public.is_admin()) with check (public.is_admin());
+drop policy if exists "Owners delete requests" on public.access_requests;
+create policy "Owners delete requests" on public.access_requests
+  for delete to authenticated using (public.is_admin());

@@ -460,7 +460,7 @@ function initMobileNav() {
   if (actions) {
     actions.innerHTML = '<a href="contact.html" class="btn btn-primary mnav-contact">Contact us</a>'
       + '<a href="sms:+19472674788" class="btn btn-ghost">Text us</a><a href="tel:+19472674788" class="btn btn-ghost">Call</a>'
-      + '<a href="admin.html" class="mnav-login">Client login</a>';
+      + '<a href="login.html" class="mnav-login">Log in</a>';
   }
 
   const links = $$('.mnav-toggle, .mnav-actions > *', nav);

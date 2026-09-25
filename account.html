@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="robots" content="noindex, nofollow" />
+  <title>Your account — Williams Systems LLC</title>
+  <meta name="theme-color" content="#0B0C10" />
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@500;600;700;800&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/src/styles/main.css" />
+  <link rel="stylesheet" href="/src/styles/auth.css" />
+</head>
+<body class="auth" data-page="account">
+  <svg class="brand-defs" width="0" height="0" aria-hidden="true" focusable="false" style="position:absolute"><defs><linearGradient id="bpL" gradientUnits="userSpaceOnUse" x1="530" y1="-45" x2="860" y2="805"><stop offset="0" stop-color="#2E9BFF"/><stop offset="1" stop-color="#A06BFF"/></linearGradient><linearGradient id="bpWord" gradientUnits="userSpaceOnUse" x1="130" y1="0" x2="1630" y2="0"><stop offset="0" stop-color="#2E9BFF"/><stop offset="1" stop-color="#A06BFF"/></linearGradient><linearGradient id="bpBox" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#2E9BFF"/><stop offset="1" stop-color="#A06BFF"/></linearGradient><linearGradient id="bpIcon" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="120" y2="120"><stop offset="0" stop-color="#2E9BFF"/><stop offset="1" stop-color="#A06BFF"/></linearGradient><linearGradient id="bpArt" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="240" y2="240"><stop offset="0" stop-color="#2E9BFF"/><stop offset="1" stop-color="#A06BFF"/></linearGradient></defs></svg>
+  <header class="auth-top">
+    <a href="./" class="brand" aria-label="Williams Systems home"><span class="brand-mark" aria-hidden="true"><svg class="logo" viewBox="130 -45 1500 850" fill="currentColor"><path d="M500 805L500 691.86L243.14 435L500 178.14L500 65L130 435Z"/><path fill="url(#bpL)" d="M610 611.86L610 -45L530 35L530 805L858.79 476.21L802.22 419.64Z"/><path d="M806.72 381.72L863.28 325.15L1150 611.86L1150 -45L1230 35L1230 805Z"/><path d="M1260 805L1260 691.86L1516.86 435L1260 178.14L1260 65L1630 435Z"/></svg></span><span class="brand-name">Williams<span class="brand-thin"> Systems</span></span></a>
+    <a class="auth-back" href="./">← Back to website</a>
+  </header>
+
+  <main class="auth-main">
+    <section class="auth-card" id="notReady" hidden>
+      <p class="auth-kicker mono">Almost ready</p>
+      <h1>Sign-in is on its way.</h1>
+      <p>Client and owner accounts are being switched on. In the meantime, reach us any time.</p>
+      <a class="btn btn-primary" href="contact.html">Contact us</a>
+    </section>
+
+    <section class="auth-card" id="home" hidden>
+      <span class="auth-badge" id="tier"></span>
+      <h1 id="hello">Hi.</h1>
+      <p id="whoami"></p>
+      <ul class="auth-list" id="ownerLinks" hidden>
+        <li><a href="admin.html">Team dashboard <span>→</span></a></li>
+        <li><a href="admin.html#access">Invites and requests <span>→</span></a></li>
+      </ul>
+      <p class="auth-empty" id="clientEmpty" hidden>Your projects will show up here once we start working together.</p>
+      <button type="button" class="btn btn-ghost" id="signOut">Sign out</button>
+    </section>
+  </main>
+
+  <p class="auth-credit">© <span data-year></span> Williams Systems LLC · Built by Williams Systems LLC.</p>
+  <script type="module" src="/src/js/auth.js"></script>
+</body>
+</html>
