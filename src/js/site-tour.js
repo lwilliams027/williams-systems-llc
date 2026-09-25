@@ -32,7 +32,7 @@ function initTour() {
 
   // Where each stop sits in the sample site (design pixels), and how much room to leave around it.
   // The stops follow the captions, top to bottom of the sample page.
-  const PAD = { intro: 1, brand: 1.25, hero: 1.02, favs: 1.04, visit: 1.08, book: 1.1, footer: 1.04, site: 1.06 };
+  const PAD = { intro: 1, brand: 1.14, hero: 1.03, favs: 1.03, visit: 1.1, book: 1.1, footer: 1.03, site: 1.04 };
   const STOPS = caps.map((c) => {
     const n = c.dataset.stop;
     return { name: n, sel: n === 'site' || n === 'intro' ? null : `[data-stop="${n}"]`, pad: PAD[n] || 1.05 };
@@ -48,28 +48,27 @@ function initTour() {
     return { x, y, w: el.offsetWidth, h: el.offsetHeight };
   };
 
-  /** The part of the screen the camera frames into (beside or above the caption). */
-  const frame = () => ({ x: 0, y: 0, w: viewport.clientWidth, h: viewport.clientHeight });
+  /** The part of the screen the camera frames into: beside the captions (desktop) or above them (phones). */
+  const frame = () => {
+    const w = viewport.clientWidth, h = viewport.clientHeight;
+    if (section.classList.contains('is-static')) return { x: 16, y: 16, w: w - 32, h: h - 32 };
+    if (w < 900) return { x: 12, y: 12, w: w - 24, h: h * 0.4 - 12 };
+    const left = Math.max(w * 0.37, 470);
+    return { x: left, y: 20, w: w - left - 40, h: h - 48 };
+  };
 
   /** Camera settings that frame stop i: centre point and log of the scale. */
   const view = (i) => {
     const s = STOPS[i];
-    const r = s.sel ? boxOf($(s.sel, world)) : { x: 0, y: 0, ...WORLD() };
-    const f = frame();
     const W = WORLD();
-    // The final stop pulls back to show the whole page.
-    if (s.name === 'site') {
-      const scale = Math.min(f.w / (W.w * s.pad), f.h / (W.h * s.pad));
-      return { cx: W.w / 2, cy: W.h / 2, z: Math.log(scale) };
-    }
-    const clampTo = (v, lo, hi) => (lo > hi ? (lo + hi) / 2 : Math.min(hi, Math.max(lo, v)));
-    // The opening stop is the page as a browser shows it: full width, from the top.
-    if (s.name === 'intro') { const k = f.w / W.w; return { cx: W.w / 2, cy: f.h / (2 * k), z: Math.log(k) }; }
-    // Every other stop zooms in on its part of the page, never past the page edges.
-    const scale = Math.max(f.w / W.w, Math.min(f.w / (r.w * s.pad), f.h / (r.h * s.pad), 2.2));
-    const hw = f.w / (2 * scale), hh = f.h / (2 * scale);
-    return { cx: clampTo(r.x + r.w / 2, hw, W.w - hw), cy: clampTo(r.y + r.h / 2, hh, W.h - hh), z: Math.log(scale) };
+    const r = s.sel ? boxOf($(s.sel, world)) : { x: 0, y: 0, ...W };
+    const f = frame();
+    // Opening: the top of the page, as wide as the frame allows.
+    if (s.name === 'intro') { const k = f.w / W.w; return { cx: W.w / 2, cy: Math.min(W.h, f.h / k) / 2, z: Math.log(k) }; }
+    const scale = Math.min(f.w / (r.w * s.pad), f.h / (r.h * s.pad), 2.4);
+    return { cx: r.x + r.w / 2, cy: r.y + r.h / 2, z: Math.log(scale) };
   };
+
 
   const cam = { cx: 0, cy: 0, z: 0 };
   const render = () => {
@@ -111,11 +110,6 @@ function initTour() {
     }
     if (i > 0) tl.fromTo(caps[i], { autoAlpha: 0, y: 30 }, { autoAlpha: 1, y: 0, duration: 0.16 * SEG, ease: 'power3.out' }, at);
   }
-
-  // Header: the logo and brand colours get a highlight ring.
-  const logo = $('.tw-header .tw-logo', world);
-  tl.fromTo(logo, { boxShadow: '0 0 0 0px rgba(124,134,255,0)' }, { boxShadow: '0 0 0 6px rgba(124,134,255,0.55)', duration: 0.12, immediateRender: false }, stopAt('brand') + 0.06)
-    .to(logo, { boxShadow: '0 0 0 0px rgba(124,134,255,0)', duration: 0.12 }, stopAt('brand') + SEG - 0.3);
 
   // Visit section: the business shows up as the top search result.
   const serp = $('.tour-serp');

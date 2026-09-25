@@ -294,3 +294,41 @@ body:has(.tour) main { padding-top: 0; }
   /* captions sit right under the landscape window */
   .tour-captions { top: calc(var(--header-h) + 12px + (100vw - 2 * var(--gutter)) * 10.5 / 16 + 28px); bottom: auto; }
 }
+
+/* =====================================================================
+   Original concept: no frame. The sample site (with its own browser bar)
+   floats on the dark backdrop, and the camera glides and zooms across it.
+   The whole area below the site header is the stage; the site fades out
+   beside the captions.
+   ===================================================================== */
+.tour-window, .tour-window[style] {
+  position: absolute; inset: auto; top: var(--header-h); left: 0; right: 0; bottom: 0;
+  transform: none; aspect-ratio: auto; max-height: none; height: auto;
+  display: block; background: none; border-radius: 0; box-shadow: none; overflow: hidden;
+}
+.tour-viewport {
+  position: absolute; inset: 0; flex: none;
+  -webkit-mask-image: linear-gradient(90deg, transparent 0, transparent 30%, #000 38%);
+          mask-image: linear-gradient(90deg, transparent 0, transparent 30%, #000 38%);
+}
+.tw-world { border-radius: 14px; box-shadow: 0 40px 120px rgba(0,0,0,0.55), 0 0 0 1px rgba(255,255,255,0.08); }
+.tour-serp { top: auto; bottom: 36px; right: var(--gutter); }
+.tour-toast { top: 28px; right: var(--gutter); }
+@media (max-width: 899.98px) {
+  .tour-window, .tour-window[style] { top: var(--header-h); left: 0; right: 0; bottom: 0; height: auto; aspect-ratio: auto; }
+  .tour-viewport {
+    -webkit-mask-image: linear-gradient(180deg, #000 0, #000 46%, transparent 54%);
+            mask-image: linear-gradient(180deg, #000 0, #000 46%, transparent 54%);
+  }
+  .tour-captions { top: auto; bottom: 24px; }
+  .tour-serp { top: auto; bottom: calc(52% + 8px); right: 12px; }
+  .tour-toast { top: 12px; right: 12px; }
+}
+.tour.is-static .tour-window { position: relative; height: 60vh; }
+@media (max-width: 899.98px) {
+  .tour-viewport {
+    -webkit-mask-image: linear-gradient(180deg, #000 0, #000 40%, transparent 47%);
+            mask-image: linear-gradient(180deg, #000 0, #000 40%, transparent 47%);
+  }
+  .tour-serp { bottom: calc(58% + 8px); }
+}
