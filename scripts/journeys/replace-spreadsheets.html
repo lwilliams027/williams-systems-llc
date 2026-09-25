@@ -1,0 +1,112 @@
+    <!-- ============ Replace spreadsheets: the sheet becomes the app ============
+         A cleaning company's jobs spreadsheet (fictional: Brightway) at its messiest,
+         then its rows lift off the grid and land as cards on a real schedule. Crews
+         update it from their phones, the week's numbers add themselves up, every
+         change is recorded, and the old file is archived.
+         Animated by src/js/sheets-journey.js; styles in src/styles/sheets-journey.css. -->
+    <section class="sj rs" id="sheetsJourney" aria-labelledby="pageTitle">
+      <div class="sj-stage rs-stage">
+        <div class="sj-bg" aria-hidden="true"><i class="rs-cells"></i><i class="sj-glow"></i></div>
+
+        <div class="rs-copy">
+          <div class="rs-chap" data-label="Overview">
+            <p class="sj-k mono"><a href="launch-a-new-product.html">Solutions</a> / Replace spreadsheets</p>
+            <h1 class="sj-h" id="pageTitle">The spreadsheet got you here. <span>It will not get you further.</span></h1>
+            <p class="sj-p">Custom software built around the way you already work, so the thing everyone depends on stops being a file somebody could delete.</p>
+            <div class="sj-cta"><a class="btn btn-primary" href="contact.html#book">Get started</a><span class="tour-hint mono">Scroll to replace it ↓</span></div>
+          </div>
+          <div class="rs-chap" data-label="Today">
+            <p class="sj-k mono">Today</p>
+            <h2 class="sj-h">The file <span>everyone fears.</span></h2>
+            <p class="sj-p">Five tabs, broken formulas, and three people overwriting each other. Sound familiar?</p>
+          </div>
+          <div class="rs-chap" data-label="Tomorrow">
+            <p class="sj-k mono">Tomorrow</p>
+            <h2 class="sj-h">Every job in <span>one place.</span></h2>
+            <p class="sj-p">The spreadsheet becomes a real schedule the whole team sees, always up to date.</p>
+          </div>
+          <div class="rs-chap" data-label="From the field">
+            <p class="sj-k mono">From the field</p>
+            <h2 class="sj-h">No more <span>retyping.</span></h2>
+            <p class="sj-p">Crews log work from their phones, and the office sees it instantly.</p>
+          </div>
+          <div class="rs-chap" data-label="Reports">
+            <p class="sj-k mono">Reports</p>
+            <h2 class="sj-h">Your weekly numbers, <span>ready.</span></h2>
+            <p class="sj-p">Jobs and revenue add themselves up, instead of being rebuilt every Monday.</p>
+          </div>
+          <div class="rs-chap" data-label="History">
+            <p class="sj-k mono">Every change recorded</p>
+            <h2 class="sj-h">Know who <span>changed what.</span></h2>
+            <p class="sj-p">A clear history of every edit, so a wrong number always has an explanation.</p>
+          </div>
+          <div class="rs-chap" data-label="Switch over">
+            <p class="sj-k mono">Switch over</p>
+            <h2 class="sj-h">Your spreadsheet, <span>retired.</span></h2>
+            <p class="sj-p">Your data is brought across and checked with you before you switch.</p>
+            <div class="sj-cta"><a class="btn btn-primary" href="contact.html#book">Book a free call</a><a class="btn btn-ghost" href="contact.html#message">Send a message</a></div>
+          </div>
+        </div>
+
+        <div class="rs-side" aria-hidden="true">
+          <div class="rs-fit">
+            <!-- drawn at 780 × 520 and scaled to fit -->
+            <div class="rs-scene">
+              <div class="rs-win">
+                <!-- the spreadsheet -->
+                <div class="rs-sheet">
+                  <div class="rs-xl-bar"><b>X</b>Jobs_FINAL_v7 (2).xlsx<span class="rs-warn">Someone else is editing this file</span></div>
+                  <div class="rs-fx"><i>fx</i><span class="rs-formula">=SUM(E2:E7)</span></div>
+                  <div class="rs-letters"><span></span><span>A</span><span>B</span><span>C</span><span>D</span><span>E</span><span>F</span></div>
+                  <div class="rs-row" data-day="0"><span>2</span><span>Deep clean</span><span>Harbor &amp; Bean</span><span>Crew 1</span><span>Mon</span><span>$320</span><span>Booked</span></div>
+                  <div class="rs-row" data-day="1"><span>3</span><span>Carpet</span><span>Ridge Outfitters</span><span>Crew 2</span><span>Tue</span><span>$480</span><span>Booked</span></div>
+                  <div class="rs-row" data-day="2"><span>4</span><span>Windows</span><span>Blue Pine Dental</span><span>Crew 1</span><span>Wed</span><span>$260</span><span>Booked</span></div>
+                  <div class="rs-row" data-day="2"><span>5</span><span>Move-out</span><span>Lakeside Studio</span><span>Crew 3</span><span>Wed</span><span>$540</span><span>Booked</span></div>
+                  <div class="rs-row" data-day="3"><span>6</span><span>Office</span><span>Northwind</span><span>Crew 2</span><span>Thu</span><span>$390</span><span class="rs-ref">Booked</span></div>
+                  <div class="rs-row" data-day="4"><span>7</span><span>Deep clean</span><span>Juniper Studio</span><span>Crew 3</span><span>Fri</span><span>$300</span><span>Booked</span></div>
+                  <div class="rs-tabs"><span class="on">Jobs</span><span>Jobs (2)</span><span>OLD</span><span>Priya copy</span><span>DO NOT EDIT</span></div>
+                  <i class="rs-cur c1"><b>Maria</b></i><i class="rs-cur c2"><b>Dev</b></i><i class="rs-cur c3"><b>Priya</b></i>
+                </div>
+
+                <!-- the app -->
+                <div class="rs-app">
+                  <div class="rs-app-bar"><b>✦ Brightway</b><span>Schedule</span><span class="rs-live">● Live</span></div>
+                  <div class="rs-days"><span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span></div>
+                  <div class="rs-card" data-day="0" data-k="0"><b>Deep clean</b><span>Harbor &amp; Bean</span><small>Crew 1 · <em class="rs-price">$320</em></small><i class="rs-st">Booked</i></div>
+                  <div class="rs-card" data-day="1" data-k="0"><b>Carpet</b><span>Ridge Outfitters</span><small>Crew 2 · <em class="rs-price">$480</em></small><i class="rs-st">Booked</i></div>
+                  <div class="rs-card" data-day="2" data-k="0"><b>Windows</b><span>Blue Pine Dental</span><small>Crew 1 · <em class="rs-price">$260</em></small><i class="rs-st">Booked</i></div>
+                  <div class="rs-card" data-day="2" data-k="1"><b>Move-out</b><span>Lakeside Studio</span><small>Crew 3 · <em class="rs-price">$540</em></small><i class="rs-st">Booked</i></div>
+                  <div class="rs-card" data-day="3" data-k="0"><b>Office</b><span>Northwind</span><small>Crew 2 · <em class="rs-price">$390</em></small><i class="rs-st">Booked</i></div>
+                  <div class="rs-card" data-day="4" data-k="0"><b>Deep clean</b><span>Juniper Studio</span><small>Crew 3 · <em class="rs-price">$300</em></small><i class="rs-st">Booked</i></div>
+                  <!-- the week's report -->
+                  <div class="rs-report"><div><small>Jobs this week</small><b class="rs-n" data-count="48">0</b></div><div><small>Revenue</small><b class="rs-n" data-count="16320" data-prefix="$">$0</b></div></div>
+                  <div class="rs-bars"><i data-h="0.4"></i><i data-h="0.6"></i><i data-h="1"></i><i data-h="0.49"></i><i data-h="0.38"></i></div>
+                </div>
+
+                <!-- the change history -->
+                <div class="rs-hist">
+                  <b>Change history</b>
+                  <p class="new"><i>MR</i><span><b>Maria</b> changed Carpet · Ridge Outfitters from $480 to $520</span><em>just now</em></p>
+                  <p><i>DV</i><span><b>Dev</b> moved Windows · Blue Pine to Crew 1</span><em>1h ago</em></p>
+                  <p><i>PR</i><span><b>Priya</b> added Move-out · Lakeside Studio</span><em>Yesterday</em></p>
+                </div>
+              </div>
+
+              <!-- the crew's phone -->
+              <div class="rs-phone">
+                <p class="rs-ph-top">Today · Crew 3</p>
+                <div class="rs-ph-job"><b>Move-out</b><span>Lakeside Studio</span></div>
+                <p class="rs-ph-photos">📷 2 photos added</p>
+                <span class="rs-ph-btn">Mark job done</span>
+              </div>
+
+              <!-- switch over -->
+              <div class="rs-archive"><span class="rs-folder">🗄 Archive</span><span class="rs-xlsx"><b>X</b>Jobs_FINAL_v7 (2).xlsx</span></div>
+              <ul class="rs-checks"><li>1,284 rows brought across</li><li>Checked with you</li><li>Team switched over</li></ul>
+            </div>
+          </div>
+        </div>
+
+        <ol class="sj-progress" aria-hidden="true"></ol>
+      </div>
+    </section>

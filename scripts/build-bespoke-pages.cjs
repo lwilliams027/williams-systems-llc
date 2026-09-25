@@ -16,6 +16,7 @@ const PAGES = {
   'mobile-apps': { id: 'mobileJourney', name: 'mobile-journey' },
   'launch-a-new-product': { id: 'launchJourney', name: 'launch-journey' },
   'modernize-an-app': { id: 'modernizeJourney', name: 'modernize-journey' },
+  'replace-spreadsheets': { id: 'sheetsJourney', name: 'sheets-journey' },
 };
 
 const only = process.argv.slice(2);

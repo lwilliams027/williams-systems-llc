@@ -1,0 +1,102 @@
+/* =====================================================================
+   Replace spreadsheets: the sheet becomes the app
+   (markup: scripts/journeys/replace-spreadsheets.html, motion: src/js/sheets-journey.js)
+   ===================================================================== */
+.rs-stage { display: grid; grid-template-columns: minmax(0, 0.72fr) minmax(0, 1.28fr); align-items: center; gap: clamp(28px, 4vw, 64px);
+  padding: calc(var(--header-h) + 24px) max(var(--gutter), calc((100vw - var(--container)) / 2)) 90px; }
+.rs-cells { position: absolute; inset: 0; background-image: linear-gradient(rgba(20,184,166,0.08) 1px, transparent 1px), linear-gradient(90deg, rgba(20,184,166,0.08) 1px, transparent 1px); background-size: 110px 30px;
+  -webkit-mask-image: radial-gradient(ellipse at 65% 50%, #000 15%, transparent 70%); mask-image: radial-gradient(ellipse at 65% 50%, #000 15%, transparent 70%); }
+.rs .sj-glow { background: radial-gradient(closest-side, rgba(20,184,166,0.22), rgba(46,155,255,0.08), transparent); }
+.rs .sj-k, .rs .sj-h span { background: linear-gradient(90deg, #5EEAD4, #2E9BFF); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.rs .sj-progress li { white-space: nowrap; }
+.rs .sj-progress li.on { background: linear-gradient(90deg, #14B8A6, #2E9BFF); box-shadow: 0 6px 20px rgba(20,184,166,0.35); }
+.rs .sj-h { font-size: clamp(2.3rem, 4.4vw, 4.4rem); }
+.rs-copy { position: relative; z-index: 2; display: grid; }
+.rs-chap { grid-area: 1 / 1; align-self: center; }
+.rs-side { position: relative; z-index: 1; display: grid; place-items: center; }
+.rs-fit { position: relative; }
+
+.rs-scene { position: absolute; left: 0; top: 0; width: 780px; height: 520px; transform-origin: 0 0; font: 14px/1.3 'Inter', system-ui, sans-serif; }
+.rs-scene * { box-sizing: border-box; }
+.rs-win { position: absolute; left: 20px; top: 30px; width: 740px; height: 460px; border-radius: 14px; overflow: hidden; background: #fff; color: #1F2937; box-shadow: 0 50px 110px rgba(0,0,0,0.55), 0 0 0 1px rgba(255,255,255,0.1); }
+
+/* the spreadsheet */
+.rs-sheet { position: absolute; inset: 0; font-family: Calibri, 'Segoe UI', Arial, sans-serif; }
+.rs-xl-bar { display: flex; align-items: center; gap: 10px; height: 32px; padding: 0 12px; background: #107C41; color: #fff; font-weight: 600; }
+.rs-xl-bar > b { display: grid; place-items: center; width: 20px; height: 20px; border-radius: 3px; background: #fff; color: #107C41; font-size: 12px; }
+.rs-warn { margin-left: auto; padding: 3px 10px; border-radius: 4px; background: #FDE68A; color: #7C2D12; font-size: 12px; opacity: 0; }
+.rs-fx { display: flex; align-items: center; gap: 10px; height: 30px; padding: 0 10px; border-bottom: 1px solid #D4D4D4; font-family: Consolas, monospace; }
+.rs-fx i { color: #6B7280; font-style: italic; }
+.rs-letters, .rs-row { display: grid; grid-template-columns: 36px 140px 170px 100px 80px 90px 1fr; }
+.rs-letters { height: 26px; background: #F3F3F3; border-bottom: 1px solid #D4D4D4; color: #555; font-size: 12px; }
+.rs-letters span, .rs-row span { display: flex; align-items: center; padding: 0 8px; border-right: 1px solid #E3E3E3; }
+.rs-letters span { justify-content: center; }
+.rs-row { position: relative; height: 42px; border-bottom: 1px solid #E3E3E3; transform-origin: 0 0; }
+.rs-row span:first-child { justify-content: center; background: #F3F3F3; color: #555; font-size: 12px; }
+.rs-ref.bad { color: #DC2626; font-weight: 700; background: #FEE2E2; }
+.rs-tabs { position: absolute; left: 0; right: 0; bottom: 0; display: flex; gap: 2px; height: 32px; padding: 0 8px; background: #F3F3F3; border-top: 1px solid #D4D4D4; font-size: 12px; }
+.rs-tabs span { display: flex; align-items: center; padding: 0 12px; color: #555; }
+.rs-tabs .on { background: #fff; color: #107C41; font-weight: 700; box-shadow: inset 0 -2px #107C41; }
+.rs-cur { position: absolute; left: 0; top: 0; width: 2px; height: 30px; opacity: 0; }
+.rs-cur b { position: absolute; left: 0; top: -18px; padding: 1px 6px; border-radius: 3px; color: #fff; font-size: 11px; white-space: nowrap; }
+.rs-cur.c1 { background: #E11D48; } .rs-cur.c1 b { background: #E11D48; }
+.rs-cur.c2 { background: #7C3AED; } .rs-cur.c2 b { background: #7C3AED; }
+.rs-cur.c3 { background: #EA580C; } .rs-cur.c3 b { background: #EA580C; }
+
+/* the app */
+.rs-app { position: absolute; inset: 0; background: #F6F8FA; opacity: 0; }
+.rs-app-bar { display: flex; align-items: center; gap: 16px; height: 44px; padding: 0 16px; background: #fff; border-bottom: 1px solid #E5E7EB; }
+.rs-app-bar b { color: #0F766E; font-size: 16px; } .rs-app-bar span { color: #6B7280; font-weight: 600; }
+.rs-live { margin-left: auto; color: #059669 !important; }
+.rs-days { position: absolute; left: 16px; top: 54px; display: grid; grid-template-columns: repeat(5, 140px); gap: 4px; color: #6B7280; font-weight: 700; font-size: 13px; }
+.rs-days span { padding: 6px 10px; border-radius: 8px; background: #EEF2F5; }
+.rs-card { position: absolute; width: 136px; height: 76px; padding: 9px 10px; border-radius: 12px; background: #fff; box-shadow: 0 6px 16px rgba(15,23,42,0.08); border-left: 4px solid #14B8A6; display: grid; align-content: start; gap: 1px; font-size: 12px; }
+.rs-card b { font-size: 13px; } .rs-card span, .rs-card small { color: #6B7280; }
+.rs-card em { font-style: normal; font-weight: 700; color: #0F172A; border-radius: 4px; padding: 0 2px; }
+.rs-st { position: absolute; right: 8px; bottom: 8px; padding: 1px 7px; border-radius: 999px; background: #E0F2FE; color: #0369A1; font-style: normal; font-weight: 700; font-size: 10px; }
+.rs-st.done { background: #DCFCE7; color: #15803D; }
+.rs-card.pulse { box-shadow: 0 0 0 3px #22C55E, 0 6px 16px rgba(15,23,42,0.08); }
+.rs-report { position: absolute; left: 16px; top: 60px; display: flex; gap: 14px; opacity: 0; }
+.rs-report div { padding: 12px 18px; border-radius: 14px; background: #fff; box-shadow: 0 6px 16px rgba(15,23,42,0.06); }
+.rs-report small { color: #6B7280; font-weight: 700; } .rs-report b { display: block; font: 800 30px var(--font-display); color: #0F172A; font-variant-numeric: tabular-nums; }
+.rs-bars { position: absolute; left: 16px; bottom: 30px; display: grid; grid-template-columns: repeat(5, 140px); gap: 4px; align-items: end; height: 220px; }
+.rs-bars i { display: block; margin: 0 24px; height: calc(var(--h) * 100%); border-radius: 10px 10px 4px 4px; background: linear-gradient(180deg, #2DD4BF, #0F766E); transform: scaleY(0); transform-origin: 50% 100%; }
+
+/* history */
+.rs-hist { position: absolute; z-index: 3; right: 14px; top: 56px; width: 330px; padding: 16px; border-radius: 16px; background: #fff; box-shadow: 0 24px 60px rgba(15,23,42,0.3); opacity: 0; }
+.rs-hist > b { font-size: 15px; }
+.rs-hist p { display: flex; gap: 10px; align-items: flex-start; margin: 12px 0 0; font-size: 12.5px; color: #374151; }
+.rs-hist p i { display: grid; place-items: center; width: 28px; height: 28px; flex: none; border-radius: 50%; background: #CCFBF1; color: #0F766E; font-style: normal; font-weight: 800; font-size: 10px; }
+.rs-hist p span { flex: 1; } .rs-hist p em { color: #9CA3AF; font-style: normal; font-size: 11px; white-space: nowrap; }
+.rs-hist p.new { padding: 8px; margin-left: -8px; margin-right: -8px; border-radius: 10px; background: #F0FDFA; }
+
+/* the crew's phone */
+.rs-phone { position: absolute; left: 580px; top: 80px; width: 190px; height: 360px; display: grid; align-content: start; gap: 12px; padding: 30px 14px 14px; border-radius: 30px; border: 8px solid #111827; background: #fff; color: #111827; box-shadow: 0 40px 80px rgba(0,0,0,0.55); opacity: 0; }
+.rs-ph-top { margin: 0; color: #6B7280; font-weight: 700; font-size: 12px; }
+.rs-ph-job { display: grid; gap: 2px; padding: 14px; border-radius: 14px; background: #F0FDFA; } .rs-ph-job b { font-size: 16px; } .rs-ph-job span { color: #6B7280; }
+.rs-ph-photos { margin: 0; color: #0F766E; font-weight: 600; font-size: 13px; }
+.rs-ph-btn { margin-top: 70px; padding: 14px; border-radius: 14px; background: #0F766E; color: #fff; text-align: center; font-weight: 800; }
+.rs-ph-btn.done { background: #16A34A; }
+.rs-link { position: absolute; left: 0; top: 0; width: 10px; height: 10px; margin: -5px 0 0 -5px; border-radius: 50%; background: #22C55E; box-shadow: 0 0 12px #22C55E; opacity: 0; }
+
+/* switch over */
+.rs-archive { position: absolute; left: 60px; top: 360px; display: flex; align-items: center; gap: 30px; opacity: 0; }
+.rs-folder { padding: 22px 28px; border-radius: 16px; background: #1F2937; color: #E5E7EB; font-weight: 800; font-size: 18px; box-shadow: 0 20px 50px rgba(0,0,0,0.5); }
+.rs-xlsx { display: flex; align-items: center; gap: 8px; padding: 10px 14px; border-radius: 10px; background: #fff; color: #1F2937; font-weight: 600; box-shadow: 0 12px 30px rgba(0,0,0,0.4); }
+.rs-xlsx b { display: grid; place-items: center; width: 22px; height: 22px; border-radius: 4px; background: #107C41; color: #fff; font-size: 12px; }
+.rs-checks { position: absolute; left: 420px; top: 330px; width: 320px; margin: 0; padding: 18px 20px; list-style: none; display: grid; gap: 10px; border-radius: 16px; background: #fff; color: #1F2937; box-shadow: 0 24px 60px rgba(0,0,0,0.45); font-weight: 700; opacity: 0; }
+.rs-checks li::before { content: '✓'; display: inline-grid; place-items: center; width: 22px; height: 22px; margin-right: 10px; border-radius: 50%; background: #14B8A6; color: #fff; font-size: 12px; }
+
+@media (max-width: 899.98px) {
+  .rs-stage { grid-template-columns: 1fr; grid-template-rows: auto 1fr; align-content: center; gap: 22px; padding: calc(var(--header-h) + 16px) var(--gutter) 70px; }
+  .rs-side { order: -1; }
+  .rs-chap { align-self: start; }
+  .rs .sj-h { font-size: clamp(2rem, 9vw, 2.8rem); margin: 8px 0 10px; }
+  .rs .sj-progress { gap: 6px; }
+  .rs .sj-progress li:not(.on) { width: 8px; height: 8px; padding: 0; font-size: 0; border-radius: 50%; }
+}
+@media (max-width: 1199.98px) and (min-width: 900px) { .rs .sj-progress li { font-size: 0.66rem; padding: 6px 9px; } }
+
+.rs.is-static .rs-stage { height: auto; grid-template-columns: 1fr; }
+.rs.is-static .rs-chap { grid-area: auto; margin-bottom: 40px; }
+.rs.is-static .sj-progress { display: none; }
