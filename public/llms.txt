@@ -6,9 +6,9 @@
 - Front-end development: React, Next.js, TypeScript
 - Back-end and API development: Node.js, Python, PostgreSQL
 - SaaS platform development: multi-tenant products, subscriptions and billing, admin tools, analytics
-- Mobile app development: iOS and Android from one codebase (React Native)
+- Mobile app development: iOS and Android apps, published to the App Store and Google Play
 - Cloud and DevOps: AWS, Docker, CI/CD, monitoring, backups
-- Personalized AI: AI assistants built around a person or business, trained on their own documents, written in their voice, connected to their tools, and private by design
+- Personalized AI: AI assistants built around a person or business, trained on their own documents, written in their voice, connected to their tools
 
 ## How projects work
 1. Meet: a free call about the goal, the users, and whether we are the right team for it
@@ -29,7 +29,7 @@ Every job is priced either as a one-time cost for the work or as a monthly plan,
 - [Websites](https://lwilliams027.github.io/williams-systems-llc/websites.html): Fast, accessible marketing websites designed and built from scratch around your brand, not a template. They load quickly, show up in search, and turn visitors into customers.
 - [Web apps](https://lwilliams027.github.io/williams-systems-llc/web-apps.html): Customer portals, dashboards, and internal tools that replace spreadsheets and manual steps. Secure sign-in, the right permissions for every role, and data you can trust.
 - [SaaS platforms](https://lwilliams027.github.io/williams-systems-llc/saas.html): Multi-tenant software products with sign-up, subscriptions and billing, admin tools, and analytics built in, so you can launch, charge, and grow.
-- [Mobile apps](https://lwilliams027.github.io/williams-systems-llc/mobile-apps.html): Native-feeling iOS and Android apps from a single codebase that share the back end and design of your web product, published to the App Store and Google Play.
+- [Mobile apps](https://lwilliams027.github.io/williams-systems-llc/mobile-apps.html): iOS and Android apps that share the back end and design of your web product, published to the App Store and Google Play.
 - [Cloud & DevOps](https://lwilliams027.github.io/williams-systems-llc/cloud.html): Hosting, deployments, monitoring, and backups set up properly in your own cloud accounts, so releases are routine and outages are rare.
 - [Personalized AI](https://lwilliams027.github.io/williams-systems-llc/personalized-ai.html): Personalized AI assistants built around you and your business. They know your documents, your products, and the way you work, and they plug into the tools you already use.
 
@@ -38,8 +38,11 @@ Every job is priced either as a one-time cost for the work or as a monthly plan,
 - [Modernize an existing app](https://lwilliams027.github.io/williams-systems-llc/modernize-an-app.html): Review, repair, and speed up software you already own: fix what is broken, remove the risk, and make it something a team can safely change again.
 - [Replace spreadsheets](https://lwilliams027.github.io/williams-systems-llc/replace-spreadsheets.html): Turn the spreadsheet your business runs on into real software: shaped around your process, safe from accidents, and usable by the whole team at once.
 - [Secure your software](https://lwilliams027.github.io/williams-systems-llc/secure-your-software.html): Security work on the software you run: authentication, permissions, secrets, dependencies, and hardening, reviewed and fixed by the team that builds it.
-- [Move to the cloud](https://lwilliams027.github.io/williams-systems-llc/move-to-the-cloud.html): Migrate from an old server or host into cloud infrastructure you own, with a planned cutover, tested backups, and a bill that makes sense.
+- [Move to the cloud](https://lwilliams027.github.io/williams-systems-llc/move-to-the-cloud.html): Migrate from an old server or host into reliable cloud infrastructure, with a planned cutover, tested backups, and a bill that makes sense.
 - [Ongoing support](https://lwilliams027.github.io/williams-systems-llc/ongoing-support.html): Ongoing support from the team that built your software: monitoring, updates, fixes, and new features on a monthly plan, with no handover to a stranger.
+
+## Questions and answers
+- [FAQ](https://lwilliams027.github.io/williams-systems-llc/faq.html): 56 answers about cost, timelines, ownership, support, and every product
 
 ## Contact
 - Email: lwilliams24270@gmail.com

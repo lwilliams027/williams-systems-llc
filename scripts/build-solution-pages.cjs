@@ -91,7 +91,7 @@ const S = {
   ], meet: 'A quick call about what you run, who has access, and what worries you.', design: 'We review your setup and agree, in plain English, what to fix first.' },
 
   'move-to-the-cloud': { from: W.migrate, caps: [
-    cap('map', 'The move', 'From the closet to the cloud.', 'Your old office server moves into a cloud account you own, backed up and monitored.', 1.06),
+    cap('map', 'The move', 'From the closet to the cloud.', 'Your old office server moves to the cloud, backed up and monitored.', 1.06),
     cap('plan', 'A clear plan', 'Every step agreed first.', 'You know exactly what moves, when, and how it’s tested before anything changes.', 1.1),
     cap('transfer', 'Safe copy', 'Every file, checked.', 'Your data is copied and verified against the original, so nothing gets lost.', 1.1),
     cap('switch', 'Switch-over', 'Zero downtime.', 'We switch over overnight, so your team arrives Monday to a faster system.', 1.1),

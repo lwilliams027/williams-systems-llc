@@ -19,6 +19,7 @@ export default defineConfig({
         admin: resolve(import.meta.dirname, 'admin.html'),
         about: resolve(import.meta.dirname, 'about.html'),
         schedule: resolve(import.meta.dirname, 'schedule.html'),
+        faq: resolve(import.meta.dirname, 'faq.html'),
         websites: resolve(import.meta.dirname, 'websites.html'),
         webApps: resolve(import.meta.dirname, 'web-apps.html'),
         saas: resolve(import.meta.dirname, 'saas.html'),

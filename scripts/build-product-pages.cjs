@@ -78,7 +78,7 @@ const PAGES = {
       cap('roles', 'Sign-in and roles', 'The right access for everyone.', 'Secure accounts with permissions for owners, managers, staff, and customers.', 1.1),
       cap('auto', 'Automation', 'Work that moves itself.', 'Approvals, reminders, and hand-offs happen on their own, so nothing waits in an inbox.', 1.1),
       cap('connect', 'Integrations', 'Plugs into your tools.', 'Payments, accounting, email, and your CRM, connected so data flows without retyping.', 1.06),
-      cap('site', 'Launch', 'Your app, <span>live.</span>', 'Designed, built, and launched by one team, in accounts you own.', 1.04),
+      cap('site', 'Launch', 'Your app, <span>live.</span>', 'Designed, built, and launched by one team.', 1.04),
     ],
     design: 'We map out the screens and workflows with you: who uses it, what they need to see, and what happens next.',
     meet: 'A quick call about how your team works today: the spreadsheets, the manual steps, and what slows you down.',
@@ -193,12 +193,12 @@ const PAGES = {
             </div>`,
     pops: '',
     caps: [
-      cap('home', 'Fast and smooth', 'Feels right at home.', 'Native speed and gestures, with a home screen built around what your customers do most.', 1.08),
+      cap('home', 'Fast and smooth', 'Feels right at home.', 'Smooth and fast, with a home screen built around what your customers do most.', 1.08),
       cap('book', 'Built for your customers', 'Book in two taps.', 'The main job of your app is quick and obvious, on iPhone and Android alike.', 1.08),
       cap('pay', 'Sign-in and payments', 'Checkout in a tap.', 'Secure accounts, saved cards, and in-app payments, with no forms to fill in.', 1.15),
       cap('push', 'Push notifications', 'Bring people back.', 'Reminders, updates, and offers that land right on the lock screen.', 1.2),
       cap('store', 'Store launch', 'Live in both stores.', 'We handle App Store and Google Play setup, review, and release, under your accounts.', 1.1),
-      cap('site', 'Launch', 'One app, <span>every phone.</span>', 'iPhone and Android from one codebase, built and launched by one team.', 1.04),
+      cap('site', 'Launch', 'One app, <span>every phone.</span>', 'iPhone and Android apps, built and launched by one team.', 1.04),
     ],
     design: 'We design every screen with you: the colors, the layout, and how it feels on iPhone and Android.',
     meet: 'A quick call about your customers and the one thing they should be able to do in your app.',
@@ -248,7 +248,7 @@ const PAGES = {
       cap('backups', 'Backups and recovery', 'Nothing gets lost.', 'Automatic nightly backups, verified and restore-tested, kept in your own accounts.', 1.08),
       cap('secure', 'Security hardening', 'Locked down by default.', 'Encrypted traffic, two-factor sign-in, secrets kept out of code, and systems kept up to date.', 1.08),
       cap('cost', 'Cost control', 'Pay for what you use.', 'Right-sized servers and storage, so you are not paying for capacity you never touch.', 1.1),
-      cap('site', 'Launch', 'Infrastructure that <span>just works.</span>', 'Set up, monitored, and supported by one team, in cloud accounts you own.', 1.04),
+      cap('site', 'Launch', 'Infrastructure that <span>just works.</span>', 'Set up, monitored, and supported by one team.', 1.04),
     ],
     design: 'We plan the setup with you: hosting, deployments, monitoring, backups, and who can access what.',
     meet: 'A quick call about what you run today, where it’s hosted, and what keeps you up at night.',
@@ -273,7 +273,7 @@ const PAGES = {
                 </section>
                 <section class="ai-block ai-private" data-stop="private">
                   <b class="ai-t">Privacy</b>
-                  <ul class="checks" data-anim="check" data-delay="0.1"><li>Data stays in your accounts</li><li>Never used to train AI models</li><li>Access by role</li></ul>
+                  <ul class="checks" data-anim="check" data-delay="0.1"><li>Only the documents you approve</li><li>Only the tools you connect</li><li>Access by role</li></ul>
                 </section>
               </aside>
               <main class="ai-main">
@@ -308,7 +308,7 @@ const PAGES = {
       cap('action', 'Takes action', 'Does the work, not just chat.', 'It drafts the email, books the meeting, and updates your records when you say so.', 1.08),
       cap('tools', 'Connected to your tools', 'Plugged into your business.', 'Email, calendar, CRM, accounting, and your own software, connected so it can act.', 1.1),
       cap('where', 'Where you already work', 'Right where you are.', 'On your website, in Slack or Teams, over text, or inside your own app.', 1.1),
-      cap('private', 'Private by design', 'Your data stays yours.', 'It runs in accounts you control, isn’t used to train AI models, and only sees what you allow.', 1.12),
+      cap('private', 'Clear limits', 'You decide what it sees.', 'It only reads the documents and tools you approve, and we set clear limits on what it can do.', 1.12),
       cap('site', 'Launch', 'Your AI, <span>built for you.</span>', 'Designed, built, and tuned by one team, around how you work.', 1.04),
     ],
     design: 'We decide together what it should know, how it should sound, and what it’s allowed to do.',

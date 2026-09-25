@@ -26,6 +26,10 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@500;600;700;800&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="/src/styles/main.css" />
   <link rel="stylesheet" href="/src/styles/pages.css" />
+  <link rel="stylesheet" href="/src/styles/ask.css" />
+  <link rel="stylesheet" href="/src/styles/about.css" />
+  <link rel="stylesheet" href="/src/styles/product-worlds.css" />
+  <link rel="stylesheet" href="/src/styles/tour.css" />
   <script>document.documentElement.classList.add('js');</script>
 </head>
 <body class="page">
@@ -47,7 +51,7 @@
               <li><a href="websites.html"><b>Websites</b><span>Fast, accessible marketing sites that rank</span></a></li>
               <li><a href="web-apps.html"><b>Web apps</b><span>Dashboards, portals, and internal tools</span></a></li>
               <li><a href="saas.html"><b>SaaS platforms</b><span>Subscriptions, billing, and admin built in</span></a></li>
-              <li><a href="mobile-apps.html"><b>Mobile apps</b><span>iOS and Android from one codebase</span></a></li>
+              <li><a href="mobile-apps.html"><b>Mobile apps</b><span>Apps for iPhone and Android</span></a></li>
               <li><a href="cloud.html"><b>Cloud &amp; DevOps</b><span>Hosting, CI/CD, monitoring, and backups</span></a></li>
               <li><a href="personalized-ai.html"><b>Personalized AI</b><span>AI assistants built around you</span></a></li>
             </ul>
@@ -62,7 +66,7 @@
               <li><a href="modernize-an-app.html"><b>Modernize an existing app</b><span>Fix, speed up, and future-proof what you have</span></a></li>
               <li><a href="replace-spreadsheets.html"><b>Replace spreadsheets</b><span>A real tool shaped like how you work</span></a></li>
               <li><a href="secure-your-software.html"><b>Secure your software</b><span>Sign-in, permissions, and hardening</span></a></li>
-              <li><a href="move-to-the-cloud.html"><b>Move to the cloud</b><span>Reliable hosting in accounts you own</span></a></li>
+              <li><a href="move-to-the-cloud.html"><b>Move to the cloud</b><span>Reliable, monitored hosting</span></a></li>
               <li><a href="ongoing-support.html"><b>Ongoing support</b><span>Updates and new features after launch</span></a></li>
             </ul>
           </div>
@@ -75,7 +79,7 @@
               <li><a href="about.html"><b>About us</b><span>One team, end to end</span></a></li>
               <li><a href="./#process"><b>How we work</b><span>Discover, design, build, launch, support</span></a></li>
               <li><a href="./#testimonials"><b>Client stories</b><span>Hear it from the people we build for</span></a></li>
-              <li><a href="./#faq"><b>FAQ</b><span>Cost, timelines, ownership, and more</span></a></li>
+              <li><a href="faq.html"><b>FAQ</b><span>Cost, timelines, ownership, and more</span></a></li>
               <li><a href="schedule.html"><b>Schedule a call</b><span>Book a free discovery call</span></a></li>
               <li><a href="#contact"><b>Contact us</b><span>Email us about your project</span></a></li>
             </ul>
@@ -98,7 +102,7 @@
         <p class="mnav-head mono">Solutions</p><a href="launch-a-new-product.html">Launch a new product</a><a href="modernize-an-app.html">Modernize an existing app</a><a href="replace-spreadsheets.html">Replace spreadsheets</a><a href="secure-your-software.html">Secure your software</a><a href="move-to-the-cloud.html">Move to the cloud</a><a href="ongoing-support.html">Ongoing support</a>
       </div>
       <div class="mnav-group">
-        <p class="mnav-head mono">About</p><a href="about.html">About us</a><a href="./#process">How we work</a><a href="./#testimonials">Client stories</a><a href="./#faq">FAQ</a><a href="schedule.html">Schedule a call</a><a href="#contact">Contact us</a>
+        <p class="mnav-head mono">About</p><a href="about.html">About us</a><a href="./#process">How we work</a><a href="./#testimonials">Client stories</a><a href="faq.html">FAQ</a><a href="schedule.html">Schedule a call</a><a href="#contact">Contact us</a>
       </div>
       <div class="mnav-actions">
         <a href="admin.html" class="btn btn-ghost">Login</a>
@@ -107,55 +111,124 @@
     </div>
   </header>
 
-  <main id="main">
-    <section class="pg-hero">
-      <div class="container">
-        <p class="scene-eyebrow mono">About</p>
-        <h1 class="pg-title">A full-service software company, built around one team.</h1>
-        <p class="pg-lede">Williams Systems LLC designs, builds, and runs software for businesses: marketing websites, web apps, SaaS platforms, mobile apps, and the cloud infrastructure behind them. The people who scope your project are the people who build it, launch it, and answer when you need something changed.</p>
-        <div class="pg-actions"><a class="btn btn-primary" href="schedule.html">Schedule a call</a><a class="btn btn-ghost" href="./#process">See how we work</a></div>
-      </div>
-    </section>
-
-    <section class="pg-section">
-      <div class="container pg-split">
+  <main id="main" class="product-page about-page">
+    <section class="about-hero">
+      <div class="container about-hero-grid">
         <div>
-          <p class="scene-eyebrow mono">What we do</p>
-          <h2 class="pg-h2">Everything it takes to ship software.</h2>
-          <p class="pg-p">Most companies stitch together a designer, a front-end shop, a back-end contractor, and someone for the servers. We are all of them, which means fewer hand-offs, fewer surprises, and software where the pieces actually fit.</p>
+          <p class="scene-eyebrow mono">About · Who we are</p>
+          <h1 class="tour-h1 about-h1" id="pageTitle">A software company <span>built around you.</span></h1>
+          <p class="pg-lede">Williams Systems LLC designs, builds, and supports websites, web apps, SaaS platforms, mobile apps, and personalized AI for businesses around the world. You work directly with the person building it, from the first call to long after launch.</p>
+          <div class="pg-actions"><a class="btn btn-primary" href="schedule.html">Book a free call</a><a class="btn btn-ghost" href="#how">See how we work</a></div>
         </div>
-        <ul class="pg-cards">
-          <li><h3>Front-end development</h3><p>Fast, accessible interfaces in React, Next.js, and TypeScript, from marketing sites to complex dashboards.</p></li>
-          <li><h3>Back-end &amp; APIs</h3><p>Reliable services, clean data models, and well-documented APIs in Node.js and Python, with sign-in, payments, and integrations.</p></li>
-          <li><h3>SaaS platforms</h3><p>Multi-tenant products with subscriptions and billing, admin tools, and analytics, built with room to grow.</p></li>
-          <li><h3>Mobile apps</h3><p>iOS and Android apps from one codebase that share your web product's back end and design.</p></li>
-          <li><h3>Cloud &amp; DevOps</h3><p>Hosting, CI/CD pipelines, monitoring, and backups, set up in your own accounts.</p></li>
-          <li><h3>Personalized AI</h3><p>AI assistants built around you and your business: trained on your knowledge, connected to your tools, and private by design.</p></li>
-        </ul>
+        <aside class="founder-card">
+          <div class="founder-top"><span class="founder-av" aria-hidden="true">LW</span><div><b>Landon Williams</b><span>Founder</span></div></div>
+          <p>Williams Systems LLC is led by its founder, Landon Williams. When you work with us, you talk directly to the person designing and building your project.</p>
+          <ul class="founder-facts"><li>Works with clients worldwide, remotely</li><li>Free discovery call to start</li><li>Takes on new builds and existing projects</li><li>Support after launch</li></ul>
+        </aside>
       </div>
     </section>
 
-    <section class="pg-section">
+    <section class="pg-section about-what">
       <div class="container">
-        <p class="scene-eyebrow mono">How we think</p>
-        <h2 class="pg-h2">What you can expect from us.</h2>
-        <ul class="pg-principles">
-          <li><h3>One team, end to end</h3><p>Design, front end, back end, cloud, and support come from the same people, so nothing gets lost between vendors.</p></li>
-          <li><h3>You own everything</h3><p>Your code, your data, your accounts. We build in your repositories and your cloud, and we document as we go.</p></li>
-          <li><h3>Built to last</h3><p>Clean architecture and real infrastructure from day one, so the next version is an upgrade, not a rewrite.</p></li>
-          <li><h3>Straight answers</h3><p>A written scope, an honest timeline, and a price before work starts — one-time or monthly, whichever suits the job — plus a direct line to the people doing the work.</p></li>
-        </ul>
+        <p class="scene-eyebrow mono">What we do</p>
+        <h2 class="pg-h2 qa-title">Everything it takes to <span>ship software.</span></h2>
+        <div class="about-cards"><a class="about-card" href="websites.html"><i class="ac-0"></i><b>Websites</b><span>Fast, custom sites that win you work</span><em>Take the tour →</em></a><a class="about-card" href="web-apps.html"><i class="ac-1"></i><b>Web apps</b><span>Dashboards, portals, and internal tools</span><em>Take the tour →</em></a><a class="about-card" href="saas.html"><i class="ac-2"></i><b>SaaS platforms</b><span>Subscriptions and billing built in</span><em>Take the tour →</em></a><a class="about-card" href="mobile-apps.html"><i class="ac-3"></i><b>Mobile apps</b><span>Apps for iPhone and Android</span><em>Take the tour →</em></a><a class="about-card" href="cloud.html"><i class="ac-4"></i><b>Cloud &amp; DevOps</b><span>Hosting, deployments, and backups</span><em>Take the tour →</em></a><a class="about-card" href="personalized-ai.html"><i class="ac-5"></i><b>Personalized AI</b><span>AI assistants built around you</span><em>Take the tour →</em></a></div>
       </div>
     </section>
 
-    <section class="pg-section pg-cta">
-      <div class="container">
-        <h2 class="pg-h2">Have something to build?</h2>
-        <p class="pg-p">Tell us about it. We'll reply with a scope, a timeline, and a price, in plain English.</p>
-        <div class="pg-actions"><a class="btn btn-primary btn-lg" href="schedule.html">Schedule a free call</a></div>
+    <div id="how"></div>
+    <!-- ============ About tour ============
+         A sample project (Lakeside Studio, fictional) run the way we work:
+         meet, design, scope, build, launch. Generated by scripts/build-about-faq.cjs. -->
+    <section class="tour" id="tour" aria-labelledby="howTitle">
+      <div class="tour-stage">
+        <div class="tour-window" aria-hidden="true">
+          <div class="tour-viewport">
+          <div class="tw-world w-project" id="tourWorld">
+            <div class="tw-chrome"><span class="tw-dots"><i></i><i></i><i></i></span><span class="tw-url"><svg viewBox="0 0 16 16"><rect x="3.5" y="7" width="9" height="7" rx="1.5"/><path d="M5.5 7V5a2.5 2.5 0 0 1 5 0v2"/></svg>projects.williamssystems.dev<b class="tw-live">Live</b></span><span class="tw-sample">Sample project</span></div>
+            <div class="pj-top"><span class="pj-logo"><i></i>Project: Lakeside Studio website</span><ol class="pj-steps"><li>Meet</li><li>Design</li><li>Scope</li><li>Build</li><li>Launch</li></ol></div>
+            <div class="pj-grid">
+              <section class="pj-card pj-meet" data-stop="meet">
+                <div class="pj-call"><span class="pj-face a">LS</span><span class="pj-face b">LW</span><em>Discovery call · 28 min</em></div>
+                <b class="pj-t">Call notes</b>
+                <ul class="pj-notes" data-anim="rise" data-delay="0.08"><li>Goal: more bookings from the website</li><li>Customers mostly on phones</li><li>Must match the new logo</li><li>Launch before the spring season</li></ul>
+              </section>
+              <section class="pj-card pj-design" data-stop="design">
+                <b class="pj-t">Look &amp; feel, agreed together</b>
+                <div class="pj-swatches" data-anim="rise" data-delay="0.08"><i style="background:#1F3B4D"></i><i style="background:#E07A5F"></i><i style="background:#F2CC8F"></i><i style="background:#F4F1DE"></i></div>
+                <div class="pj-type"><b>Lakeside Studio</b><span>Fraunces headings · Inter body</span></div>
+                <div class="pj-mock"><span></span><span></span><span class="short"></span><i></i></div>
+                <p class="pj-approve" data-anim="pop" data-delay="0.5">✓ Approved by Lakeside Studio</p>
+              </section>
+            </div>
+            <div class="pj-grid">
+              <section class="pj-card pj-scope" data-stop="scope">
+                <b class="pj-t">Scope of work</b>
+                <ul class="checks big" data-anim="check" data-delay="0.08"><li>6 pages, designed to match your brand</li><li>Online booking with email alerts</li><li>Found on Google (SEO + business listing)</li><li>Hosting and domain set up</li></ul>
+                <div class="pj-terms"><span><small>Timeline</small><b>In writing, before we start</b></span><span><small>Price</small><b>One-time or monthly, your choice</b></span></div>
+                <span class="pj-sign" data-anim="press" data-delay="0.55">Sign &amp; start</span>
+              </section>
+              <section class="pj-card pj-build" data-stop="build">
+                <b class="pj-t">Build progress</b>
+                <div class="pj-prog"><i data-anim="fill" data-delay="0.06" data-dur="0.45"></i></div>
+                <div class="pj-week" data-anim="rise" data-delay="0.1"><p><em>Step 1</em>Pages built, preview link sent</p><p><em>Step 2</em>Booking connected, your feedback in</p><p><em>Step 3</em>Final checks on every phone</p></div>
+              </section>
+            </div>
+            <section class="pj-card pj-launch" data-stop="launch">
+              <div class="pj-site"><div class="pj-site-top"><b>Lakeside Studio</b><span>Book now</span></div><div class="pj-site-hero"><b>Photography in the light you love.</b><span>Book a session →</span></div></div>
+              <div class="pj-own"><b class="pj-t">Handed over</b><ul class="checks" data-anim="check" data-delay="0.1"><li>Launched and tested</li><li>Hosting and domain set up</li><li>Same team on call for support</li></ul></div>
+            </section>
+          </div>
+          </div>
+          <div class="tour-toast tour-pop" data-at="build" data-delay="0.5" aria-hidden="true"><span class="tour-toast-dot"></span><div><b>Preview ready</b><span>Lakeside Studio · take a look on your phone</span></div></div>
+        </div>
+        <div class="tour-captions">
+          <p class="scene-eyebrow mono">How we work</p>
+          <ol class="tour-caps">
+            <li class="tour-cap tour-intro" data-stop="intro"><h2 class="tour-h1" id="howTitle">How we <span>work.</span></h2><p>Here’s a sample project, start to finish: the same steps every client goes through with us.</p><div class="tour-actions"><span class="tour-hint mono">Keep scrolling ↓</span></div></li>
+            <li class="tour-cap" data-stop="meet" data-pad="1.1"><p class="tour-cap-k">Meet</p><h3>We start by listening.</h3><p>A free discovery call about your business, your customers, and what the project needs to do. You talk directly to the person who builds it.</p></li>
+            <li class="tour-cap" data-stop="design" data-pad="1.1"><p class="tour-cap-k">Design</p><h3>Your look, agreed together.</h3><p>Colors, fonts, and layout settled with you before anything is built, and revised until it’s right.</p></li>
+            <li class="tour-cap" data-stop="scope" data-pad="1.08"><p class="tour-cap-k">Straight answers</p><h3>Everything in writing.</h3><p>A scope of work with every feature, the timeline, and the price: one-time or monthly, whichever fits. No surprises later.</p></li>
+            <li class="tour-cap" data-stop="build" data-pad="1.1"><p class="tour-cap-k">Built to last</p><h3>Fast, and done right.</h3><p>Work starts as soon as you sign. You get progress updates as it’s built, on a foundation that’s easy to grow.</p></li>
+            <li class="tour-cap" data-stop="launch" data-pad="1.06"><p class="tour-cap-k">Launch and support</p><h3>Live, and looked after.</h3><p>We launch it, hand it over the way your plan calls for, and stay on to support it for as long as you want.</p></li>
+            <li class="tour-cap" data-stop="site" data-pad="1.04"><p class="tour-cap-k">End to end</p><h3>Start to finish, <span>one place.</span></h3><p>Design, build, launch, and support in one place, so nothing gets lost between vendors.</p></li>
+          </ol>
+          <ul class="tour-dots" aria-hidden="true"><li></li><li></li><li></li><li></li><li></li><li></li><li></li></ul>
+        </div>
       </div>
     </section>
+
+    <section class="pg-section about-promises">
+      <div class="container">
+        <p class="scene-eyebrow mono">What you can expect</p>
+        <h2 class="pg-h2 qa-title">Our <span>promises.</span></h2>
+        <div class="promise-grid"><div class="ws-promise win-card"><h3>Straight answers</h3><p>A written scope with every feature, the timeline, and the price, one-time or monthly, before any work begins.</p></div><div class="ws-promise win-card"><h3>Built around you</h3><p>Your brand, your colors, your way of working. We revise with you until it’s right, within the agreed scope.</p></div><div class="ws-promise win-card"><h3>Fast turnaround</h3><p>Work starts as soon as you approve the scope, and you get progress updates while it’s built.</p></div><div class="ws-promise win-card"><h3>Looked after</h3><p>After launch, a monthly support plan or pay per job, whichever suits you.</p></div></div>
+      </div>
+    </section>
+
+    <section class="ask" id="aboutAsk" aria-labelledby="aboutAskTitle">
+      <div class="container ask-wrap">
+        <div class="ask-head">
+          <p class="scene-eyebrow mono">Ask us anything</p>
+          <h2 class="ask-title" id="aboutAskTitle">Got a question? <span>Just ask.</span></h2>
+          <p class="pg-p">Type a question the way you'd ask it. Answers come straight from what we tell every client, and if we don't have one written down, you can ask us on a free call.</p>
+        </div>
+        <div class="ask-box" data-ask>
+          <div class="ask-chat" aria-live="polite">
+            <div class="ask-msg bot"><i class="ask-av" aria-hidden="true"></i><p>Hi! Ask me about cost, timelines, ownership, support, or any of our products.</p></div>
+          </div>
+          <form class="ask-form">
+            <label class="sr-only" for="aboutAskInput">Your question</label>
+            <input id="aboutAskInput" type="text" autocomplete="off" placeholder="e.g. How long does a website take?" />
+            <button class="btn btn-primary btn-sm" type="submit">Ask</button>
+          </form>
+          <div class="ask-chips"><button type="button" class="ask-chip">How much does it cost?</button><button type="button" class="ask-chip">How long does a project take?</button><button type="button" class="ask-chip">Do I own the code?</button><button type="button" class="ask-chip">Can you fix my existing app?</button><button type="button" class="ask-chip">Do you offer support after launch?</button><button type="button" class="ask-chip">Is my data private with a personalized AI?</button></div>
+        </div>
+      </div>
+    </section>
+    <p class="ask-all container"><a href="faq.html">See every question and answer →</a></p>
   </main>
+  <script type="application/json" id="askData">[{"q":"What does Williams Systems LLC do?","a":"Williams Systems LLC is a full-service software company. We design and build websites, web applications, SaaS platforms, and mobile apps, and we set up and run the cloud infrastructure behind them. One team handles design, front end, back end, and hosting, so nothing gets lost between vendors.","topic":"General","url":"faq.html"},{"q":"How much does a website or app cost?","a":"It depends on the job. Every project starts with a free discovery call, and afterwards you get a written scope with the timeline and the price before any work begins. Some jobs are a one-time price, others suit a monthly plan; we agree which before we start, so there are no surprises.","topic":"General","url":"faq.html"},{"q":"How long does a project take?","a":"It depends on the size of the project. The timeline is written into your scope before any work begins, we move fast, and you get progress updates while it’s being built.","topic":"General","url":"faq.html"},{"q":"Do I own the code and the accounts?","a":"It depends on the plan. On a one-time project, the code, the domain, and the accounts are yours. On a monthly plan, we host and manage it for you. Either way, it’s written into your scope before we start.","topic":"General","url":"faq.html"},{"q":"What technologies do you use?","a":"Mostly React, Next.js, and JavaScript on the front end, Node.js and Python on the back end, and Supabase and PostgreSQL for data and sign-in. We pick what fits your project.","topic":"General","url":"faq.html"},{"q":"Can you work on an existing website or app?","a":"Yes. We can review an existing codebase, fix problems, add features, and improve performance and security, as well as build new products from scratch.","topic":"General","url":"faq.html"},{"q":"Do you offer support after launch?","a":"Yes, two ways: a monthly support plan that covers fixes, updates, and new features, or pay per job whenever you need something. Monthly plans have a 3-month minimum, then continue month to month.","topic":"General","url":"faq.html"},{"q":"Where are you based, and who do you work with?","a":"We work remotely with businesses anywhere in the world.","topic":"General","url":"faq.html"},{"q":"Who will I talk to?","a":"You talk directly to Landon Williams, the founder, who is the person building your project.","topic":"General","url":"faq.html"},{"q":"Do you require a deposit?","a":"Payment terms, including any deposit, are written into your scope before work begins.","topic":"General","url":"faq.html"},{"q":"How many revisions do I get?","a":"We revise the design with you until it’s right, within the agreed scope.","topic":"General","url":"faq.html"},{"q":"How do I get started?","a":"Schedule a free discovery call or email us about your project. We will ask about your goals and users, then send back a scope, timeline, and price.","topic":"General","url":"faq.html"},{"q":"How long does a website take?","a":"It depends on the number of pages and how ready your content is. The timeline is written into your scope before work begins, and we move fast.","topic":"Websites","url":"websites.html"},{"q":"Will my website show up on Google?","a":"We build every site with technical SEO, fast load times, and structured data, which gives search engines and AI assistants what they need to understand your business. Rankings also depend on content and competition, so we will talk through that honestly.","topic":"Websites","url":"websites.html"},{"q":"Do you handle the domain and hosting?","a":"Yes. We set up the domain, hosting, and SSL. On a one-time project they’re in your name; on a monthly plan, we host and manage them for you.","topic":"Websites","url":"websites.html"},{"q":"Can you replace our spreadsheets with a web app?","a":"Yes. We start by learning how your team uses the spreadsheets today, then build a web app that keeps what works, removes the manual steps, and keeps your data in one safe place.","topic":"Web apps","url":"web-apps.html"},{"q":"Can it connect to the tools we already use?","a":"Usually, yes. Most modern tools have APIs, so the app can sync with payments, accounting, email, calendars, and CRMs.","topic":"Web apps","url":"web-apps.html"},{"q":"Who owns the web app?","a":"It depends on the plan. On a one-time project, the code, the domain, and the accounts are yours. On a monthly plan, we host and manage it for you. Either way, it’s written into your scope before we start.","topic":"Web apps","url":"web-apps.html"},{"q":"How secure is it?","a":"Security is built in from the start: encrypted connections, role-based access, audit logs, and regular backups.","topic":"Web apps","url":"web-apps.html"},{"q":"Can you build an MVP first?","a":"Yes. We help you choose the smallest set of features that proves the idea, build that well, and plan what comes next.","topic":"SaaS platforms","url":"saas.html"},{"q":"How do payments and subscriptions work?","a":"We use Stripe for plans, trials, invoices, and card payments, so billing is secure and handles taxes and receipts for you.","topic":"SaaS platforms","url":"saas.html"},{"q":"Do I own the code and the product?","a":"It depends on the plan. On a one-time project, the code, the domain, and the accounts are yours. On a monthly plan, we host and manage it for you. Either way, it’s written into your scope before we start.","topic":"SaaS platforms","url":"saas.html"},{"q":"What happens after launch?","a":"We can stay on to fix issues, add features, and help you scale, with the same team that built it.","topic":"SaaS platforms","url":"saas.html"},{"q":"Do I need two separate apps for iPhone and Android?","a":"Not necessarily. We build for both iPhone and Android and choose the approach that fits your project and budget.","topic":"Mobile apps","url":"mobile-apps.html"},{"q":"Will you publish the app to the App Store and Google Play?","a":"Yes. We handle the store listings, screenshots, review process, and release, under your developer accounts.","topic":"Mobile apps","url":"mobile-apps.html"},{"q":"Can the app use the same accounts as my website?","a":"Yes. The app can share the same back end, so customers sign in once and see the same data everywhere.","topic":"Mobile apps","url":"mobile-apps.html"},{"q":"How are updates handled after launch?","a":"We handle updates and releases through the App Store and Google Play, on a monthly support plan or as one-off jobs.","topic":"Mobile apps","url":"mobile-apps.html"},{"q":"Whose cloud accounts do you use?","a":"It depends on the plan. On a one-time setup, everything is in accounts you own. On a monthly plan, we can host and manage it for you. Either way, we document it all.","topic":"Cloud & DevOps","url":"cloud.html"},{"q":"Can you move us from our current host?","a":"Yes. We plan the migration, move data safely, and switch over with as little downtime as possible.","topic":"Cloud & DevOps","url":"cloud.html"},{"q":"Do you manage the infrastructure after setup?","a":"We can. Ongoing monitoring, updates, and support are available from the same team.","topic":"Cloud & DevOps","url":"cloud.html"},{"q":"Will this lower our hosting bill?","a":"Often, yes. Right-sizing resources and removing unused services usually brings costs down.","topic":"Cloud & DevOps","url":"cloud.html"},{"q":"What is a personalized AI?","a":"A personalized AI is an assistant built around a specific person or business. It is connected to your own documents, data, and tools, and set up to respond in your voice, so its answers and actions fit how you actually work.","topic":"Personalized AI","url":"personalized-ai.html"},{"q":"Is my data private?","a":"We set clear limits on what the assistant can see and do, and we talk through which AI provider and settings fit your needs before anything is connected.","topic":"Personalized AI","url":"personalized-ai.html"},{"q":"What can a personalized AI connect to?","a":"Most tools with an API, including email, calendars, CRMs, help desks, spreadsheets, databases, and your own software.","topic":"Personalized AI","url":"personalized-ai.html"},{"q":"Do I need technical knowledge to use it?","a":"No. You talk to it the way you would talk to a colleague, on your website, in your app, or in the chat tools you already use.","topic":"Personalized AI","url":"personalized-ai.html"},{"q":"How small can a first version be?","a":"Smaller than you think. We look for the shortest path to something people can genuinely use, then add from there once it is in their hands.","topic":"Launch a new product","url":"launch-a-new-product.html"},{"q":"How long does it take?","a":"We move fast, and the timeline is written into your scope before we start.","topic":"Launch a new product","url":"launch-a-new-product.html"},{"q":"What does it cost?","a":"Either a one-time price for the job or a monthly plan, depending on what the work looks like. Whichever it is, it is agreed in the scope before anything begins.","topic":"Launch a new product","url":"launch-a-new-product.html"},{"q":"Who owns what we build?","a":"It depends on the plan. On a one-time project, the code, the domain, and the accounts are yours. On a monthly plan, we host and manage it for you. Either way, it’s written into your scope before we start.","topic":"Launch a new product","url":"launch-a-new-product.html"},{"q":"Do we have to rewrite it?","a":"Usually not. A rewrite is the expensive answer and rarely the right one. We tell you honestly when it is.","topic":"Modernize an existing app","url":"modernize-an-app.html"},{"q":"Can you work with our current developers?","a":"Yes. We can review, advise, and work alongside them, or take it over completely.","topic":"Modernize an existing app","url":"modernize-an-app.html"},{"q":"Will the site go down while you work?","a":"No. Changes go out the same safe way every time, and we test before anything reaches your users.","topic":"Modernize an existing app","url":"modernize-an-app.html"},{"q":"Do we lose the data already in our spreadsheets?","a":"No. We bring it across and check it with you before switching over.","topic":"Replace spreadsheets","url":"replace-spreadsheets.html"},{"q":"Can we still export to a spreadsheet?","a":"Yes. Plenty of people still want the numbers in a sheet, and that keeps working.","topic":"Replace spreadsheets","url":"replace-spreadsheets.html"},{"q":"How long before we can stop using the old file?","a":"It depends on the spreadsheet. We get the core of it working first so you can move off the sheet early, and the timeline is in your scope.","topic":"Replace spreadsheets","url":"replace-spreadsheets.html"},{"q":"Is this a penetration test?","a":"It is a review and a fix. We look at how it is built, find the weaknesses, and repair them, rather than only producing a report.","topic":"Secure your software","url":"secure-your-software.html"},{"q":"Can you work on software you did not build?","a":"Yes. Most of this work is on software somebody else wrote.","topic":"Secure your software","url":"secure-your-software.html"},{"q":"Will you help with a security questionnaire?","a":"Yes. We can answer the technical parts and fix whatever the answers reveal.","topic":"Secure your software","url":"secure-your-software.html"},{"q":"How much downtime is there?","a":"Usually minutes, planned for a quiet hour. We rehearse the cutover first so the real one is dull.","topic":"Move to the cloud","url":"move-to-the-cloud.html"},{"q":"Which cloud do you use?","a":"Whichever suits the job. We’ll explain the trade-offs rather than just picking for you.","topic":"Move to the cloud","url":"move-to-the-cloud.html"},{"q":"Will it cost more to run?","a":"Often less. Paying for what you actually use tends to beat paying for a box that sits idle.","topic":"Move to the cloud","url":"move-to-the-cloud.html"},{"q":"Do you run it afterwards?","a":"We can. Monitoring, updates, and support are available as a monthly plan, or you can take it from there.","topic":"Move to the cloud","url":"move-to-the-cloud.html"},{"q":"Is there a long contract?","a":"Monthly plans have a 3-month minimum, then continue month to month, so you can stop whenever it stops being worth it.","topic":"Ongoing support","url":"ongoing-support.html"},{"q":"How fast do you respond?","a":"Agreed with you up front and written into the plan, so you know what you are getting.","topic":"Ongoing support","url":"ongoing-support.html"},{"q":"Do unused hours roll over?","a":"We keep plans simple and talk to you when a month is quiet or busy, rather than counting minutes.","topic":"Ongoing support","url":"ongoing-support.html"},{"q":"Can you support software you did not build?","a":"Usually. We review it first and tell you honestly whether we can look after it well.","topic":"Ongoing support","url":"ongoing-support.html"}]</script>
 
   <!-- ============ Footer · contact us ============ -->
   <footer class="site-footer" id="contact">
@@ -186,7 +259,7 @@
           <a href="about.html">About</a>
           <a href="./#process">Process</a>
           <a href="./#testimonials">Testimonials</a>
-          <a href="./#faq">FAQ</a>
+          <a href="faq.html">FAQ</a>
           <a href="schedule.html">Schedule a call</a>
           <a href="admin.html">Team login</a>
         </nav>
@@ -225,5 +298,7 @@
   </footer>
 
   <script type="module" src="/src/js/main.js"></script>
+  <script type="module" src="/src/js/ask.js"></script>
+  <script type="module" src="/src/js/site-tour.js"></script>
 </body>
 </html>
