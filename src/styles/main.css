@@ -1484,7 +1484,8 @@ fieldset.field .field-label { margin-bottom: 8px; }
 .sf-email { font-family: var(--font-display); font-weight: 600; font-size: clamp(1.2rem, 2vw, 1.6rem); color: var(--text); border-bottom: 1px solid var(--line-2); padding-bottom: 4px; }
 .sf-email:hover { color: var(--accent-fg); border-color: var(--accent); }
 .sf-btns { display: flex; flex-wrap: wrap; gap: 12px; }
-.sf-grid { display: grid; grid-template-columns: 1.5fr 1fr 1fr 1fr; gap: 40px; padding-block: 56px 44px; }
+/* Brand blurb, then Company / Products / Solutions / Contact. */
+.sf-grid { display: grid; grid-template-columns: 1.4fr repeat(4, minmax(0, 1fr)); gap: 40px 32px; padding-block: 56px 44px; }
 .sf-brand img { height: 84px; width: auto; }
 .sf-brand p { color: var(--text-2); margin-top: 16px; max-width: 38ch; font-size: 0.95rem; }
 .sf-col { display: flex; flex-direction: column; gap: 4px; }
@@ -1493,6 +1494,12 @@ fieldset.field .field-label { margin-bottom: 8px; }
 .sf-col a:hover { color: var(--text); }
 .sf-bottom { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 12px; padding-block: 22px; border-top: 1px solid var(--line-solid); color: var(--text-3); }
 
+@media (max-width: 1180px) {
+  /* Five columns get cramped before the tablet breakpoint: brand on its own row. */
+  .sf-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  .sf-brand { grid-column: 1 / -1; }
+  .sf-brand p { max-width: 60ch; }
+}
 @media (max-width: 899.98px) {
   .faq-inner, .sf-contact { grid-template-columns: 1fr; }
   .faq-head { position: static; }

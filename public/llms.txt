@@ -11,11 +11,14 @@
 - Personalized AI: AI assistants built around a person or business, trained on their own documents, written in their voice, connected to their tools, and private by design
 
 ## How projects work
-1. Discover: goals, users, and a written scope, timeline, and fixed price up front
-2. Design: wireframes, designs, and a clickable prototype
-3. Build: working software every week
-4. Launch: cloud setup, CI/CD, monitoring, and handover; the client owns the code and accounts
-5. Support: fixes, updates, and new features from the same team
+1. Meet: a free call about the goal, the users, and whether we are the right team for it
+2. Design: colours, layout, and feel agreed with the client before anything is built
+3. Scope: a written scope of work covering what is being built, how long it takes, and the price
+4. Build: work starts as soon as the scope is signed, and jobs are delivered fast
+5. Launch and support: cloud setup, monitoring, and handover; the client owns the code and accounts, and the same team handles fixes, updates, and new features
+
+## Pricing
+Every job is priced either as a one-time cost for the work or as a monthly plan, depending on what the job is. Which one applies is agreed in the written scope before any work begins.
 
 ## Pages
 - [Home](https://lwilliams027.github.io/williams-systems-llc/): services, process, security, testimonials, FAQ
@@ -29,6 +32,14 @@
 - [Mobile apps](https://lwilliams027.github.io/williams-systems-llc/mobile-apps.html): Native-feeling iOS and Android apps from a single codebase that share the back end and design of your web product, published to the App Store and Google Play.
 - [Cloud & DevOps](https://lwilliams027.github.io/williams-systems-llc/cloud.html): Hosting, deployments, monitoring, and backups set up properly in your own cloud accounts, so releases are routine and outages are rare.
 - [Personalized AI](https://lwilliams027.github.io/williams-systems-llc/personalized-ai.html): Personalized AI assistants built around you and your business. They know your documents, your products, and the way you work, and they plug into the tools you already use.
+
+## Solution pages
+- [Launch a new product](https://lwilliams027.github.io/williams-systems-llc/launch-a-new-product.html): Take a new software product from idea to launch with one team: design, build, launch, and support, with a written scope and price before any work starts.
+- [Modernize an existing app](https://lwilliams027.github.io/williams-systems-llc/modernize-an-app.html): Review, repair, and speed up software you already own: fix what is broken, remove the risk, and make it something a team can safely change again.
+- [Replace spreadsheets](https://lwilliams027.github.io/williams-systems-llc/replace-spreadsheets.html): Turn the spreadsheet your business runs on into real software: shaped around your process, safe from accidents, and usable by the whole team at once.
+- [Secure your software](https://lwilliams027.github.io/williams-systems-llc/secure-your-software.html): Security work on the software you run: authentication, permissions, secrets, dependencies, and hardening, reviewed and fixed by the team that builds it.
+- [Move to the cloud](https://lwilliams027.github.io/williams-systems-llc/move-to-the-cloud.html): Migrate from an old server or host into cloud infrastructure you own, with a planned cutover, tested backups, and a bill that makes sense.
+- [Ongoing support](https://lwilliams027.github.io/williams-systems-llc/ongoing-support.html): Ongoing support from the team that built your software: monitoring, updates, fixes, and new features on a monthly plan, with no handover to a stranger.
 
 ## Contact
 - Email: lwilliams24270@gmail.com
