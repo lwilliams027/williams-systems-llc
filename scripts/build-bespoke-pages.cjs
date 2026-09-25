@@ -13,6 +13,7 @@ const PAGES = {
   'cloud': { id: 'cloudJourney', name: 'cloud-journey' },
   'personalized-ai': { id: 'aiJourney', name: 'ai-journey' },
   'websites': { id: 'websiteJourney', name: 'websites-journey' },
+  'mobile-apps': { id: 'mobileJourney', name: 'mobile-journey' },
 };
 
 const only = process.argv.slice(2);
