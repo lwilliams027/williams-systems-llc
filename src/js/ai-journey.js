@@ -5,7 +5,8 @@
    around it drifts away and the next thing drifts in:
      1 Overview      the orb gathers itself out of particles and says hello (plays on load)
      2 Knows you     documents float in and are absorbed; its knowledge ring fills
-     3 Your voice    a customer asks, it answers warmly, and cites its source
+     3 Right answer  answers from your data with its source; web search is off; if it isn't
+                     in your data, it says so instead of guessing
      4 Takes action  one request becomes a drafted reply, a booked call, an updated CRM
      5 Connected     the tools light up around it, with signals running out to each
      6 Everywhere    the same answer appears on the website, Slack, text and Teams
@@ -121,14 +122,18 @@ function init() {
       .to(know, { opacity: 0, duration: 0.3 }, 2 * SCENE - 0.35);
   }
 
-  /* ---------- 3 · your voice: a question, a warm answer, its source ---------- */
+  /* ---------- 3 · right answer or no answer: from your data, never a guess ---------- */
   {
     const T = 2 * SCENE, g = group(2);
-    tl.from($('.pa-bub.them', g), { opacity: 0, x: -30, duration: 0.3, ease: OUT }, T + 0.1)
-      .from($('.pa-tone', g), { opacity: 0, x: 20, duration: 0.25, ease: OUT }, T + 0.4)
-      .from($('.pa-bub.me', g), { opacity: 0, x: 30, duration: 0.25, ease: OUT }, T + 0.5);
-    type(tl, $('.pa-typed', g), T + 0.6, 0.5);
-    tl.from($('.pa-cite', g), { opacity: 0, y: 8, duration: 0.2, ease: OUT }, T + 1.12);
+    const [q1, q2] = $$('.pa-bub.them', g), [a1, a2] = $$('.pa-bub.me', g);
+    tl.from(q1, { opacity: 0, x: -30, duration: 0.25, ease: OUT }, T + 0.05)
+      .from(a1, { opacity: 0, x: 30, duration: 0.2, ease: OUT }, T + 0.25);
+    type(tl, $('.pa-typed', a1), T + 0.3, 0.3);
+    tl.from($('.pa-cite', g), { opacity: 0, y: 8, duration: 0.18, ease: OUT }, T + 0.62)
+      .from($('.pa-web', g), { opacity: 0, x: -14, duration: 0.2, ease: OUT }, T + 0.62)
+      .from(q2, { opacity: 0, x: -30, duration: 0.2, ease: OUT }, T + 0.75)
+      .from(a2, { opacity: 0, x: 30, duration: 0.2, ease: OUT }, T + 0.92);
+    type(tl, $('.pa-typed', a2), T + 0.97, 0.35);
   }
 
   /* ---------- 4 · takes action: one request, three things done ---------- */
