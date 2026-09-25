@@ -25,7 +25,7 @@ import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { ScrambleTextPlugin } from 'gsap/ScrambleTextPlugin';
 import { DrawSVGPlugin } from 'gsap/DrawSVGPlugin';
-import { chapterNav } from './chapter-nav.js';
+import { chapterNav, pinLength } from './chapter-nav.js';
 
 gsap.registerPlugin(ScrollTrigger, ScrambleTextPlugin, DrawSVGPlugin);
 
@@ -306,7 +306,7 @@ document.querySelectorAll('[data-journey]').forEach((section, idx) => {
   ScrollTrigger.create({
     trigger: section,
     start: 'top top',
-    end: () => '+=' + window.innerHeight * (scenes.length * 1.8 + 0.4),
+    end: () => '+=' + pinLength(scenes.length),
     pin: section.querySelector('.sj-stage'),
     scrub: 0.7,
     animation: tl,

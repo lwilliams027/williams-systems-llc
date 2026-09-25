@@ -14,7 +14,7 @@
    ===================================================================== */
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
-import { chapterNav } from './chapter-nav.js';
+import { chapterNav, pinLength } from './chapter-nav.js';
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -185,7 +185,7 @@ function init() {
   ScrollTrigger.create({
     trigger: section,
     start: 'top top',
-    end: () => '+=' + window.innerHeight * (chaps.length * 1.8 + 0.4),
+    end: () => '+=' + pinLength(chaps.length),
     pin: $('.sc-stage'),
     scrub: 0.7,
     animation: tl,

@@ -13,7 +13,7 @@ import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { ScrambleTextPlugin } from 'gsap/ScrambleTextPlugin';
 import { DrawSVGPlugin } from 'gsap/DrawSVGPlugin';
-import { chapterNav } from './chapter-nav.js';
+import { chapterNav, pinLength } from './chapter-nav.js';
 
 gsap.registerPlugin(ScrollTrigger, ScrambleTextPlugin, DrawSVGPlugin);
 
@@ -128,7 +128,7 @@ function init() {
   ScrollTrigger.create({
     trigger: section,
     start: 'top top',
-    end: () => '+=' + window.innerHeight * 9,
+    end: () => '+=' + pinLength(5),
     pin: $('.sj-stage'),
     scrub: 0.7,
     animation: tl,

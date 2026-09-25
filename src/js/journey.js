@@ -36,6 +36,8 @@ import { buildFall } from './fall.js';
 import { createFinale } from './finale.js';
 
 gsap.registerPlugin(ScrollTrigger, DrawSVGPlugin, ScrambleTextPlugin, SplitText);
+// phones show and hide their address bar while you scroll; don't re-measure the pinned journey when that happens
+ScrollTrigger.config({ ignoreMobileResize: true });
 
 const $  = (sel, root = document) => root.querySelector(sel);
 const $$ = (sel, root = document) => Array.from(root.querySelectorAll(sel));
