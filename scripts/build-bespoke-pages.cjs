@@ -18,6 +18,7 @@ const PAGES = {
   'modernize-an-app': { id: 'modernizeJourney', name: 'modernize-journey' },
   'replace-spreadsheets': { id: 'sheetsJourney', name: 'sheets-journey' },
   'secure-your-software': { id: 'secureJourney', name: 'secure-journey' },
+  'move-to-the-cloud': { id: 'migrateJourney', name: 'migrate-journey' },
 };
 
 const only = process.argv.slice(2);
