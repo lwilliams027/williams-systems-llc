@@ -1,52 +1,60 @@
 /* =====================================================================
-   Website tour (websites.html): a real client site (Face & Mane) seen up
-   close, with a camera that glides across it. The page is a full-page
-   capture cut into tiles; site-tour.js moves and scales the whole world.
+   Website tour (websites.html): a real client site (Face & Mane), one
+   screen at a time. Recordings of the live site play in a floating browser
+   window as you scroll; site-tour.js runs the transitions.
    ===================================================================== */
-.tour { position: relative; background: var(--ink); border-bottom: 1px solid var(--line-solid); }
+.tour { position: relative; background: var(--ink); border-bottom: 1px solid var(--line-solid); overflow: hidden; }
 .tour-stage { position: relative; height: 100vh; height: 100svh; overflow: hidden; }
-.tour-viewport {
-  position: absolute; inset: 0; overflow: hidden;
-  /* the site only shows beside the captions (desktop) */
-  -webkit-mask-image: linear-gradient(90deg, transparent 0, transparent 30%, #000 37%);
-          mask-image: linear-gradient(90deg, transparent 0, transparent 30%, #000 37%);
-}
 
-/* ---------- the client site ---------- */
-.tw-world {
-  position: absolute; left: 0; top: 0; transform-origin: 0 0;
-  width: 1440px; height: 7960px;
-  background: #F6F3EE; border-radius: 14px; overflow: hidden;
-  box-shadow: 0 40px 120px rgba(0,0,0,0.55), 0 0 0 1px rgba(255,255,255,0.06);
+/* ---------- devices ---------- */
+.tour-devices {
+  position: absolute; z-index: 1;
+  right: clamp(24px, 4vw, 72px); top: calc(var(--header-h) + 24px); bottom: 40px;
+  left: max(38vw, 480px);
+  display: grid; place-items: center;
+  perspective: 1600px;   /* flat stacking: the glow always stays behind the window */
+}
+.tour-glow {
+  position: absolute; inset: 8% 6%; border-radius: 50%;
+  background: radial-gradient(closest-side, rgba(46,155,255,0.35), rgba(160,107,255,0.22) 55%, transparent 75%);
+  filter: blur(40px); opacity: 0.8; pointer-events: none;
+}
+.tour-browser {
+  position: relative; width: min(100%, calc((100svh - var(--header-h) - 110px) * 1.6)); aspect-ratio: 1280 / 836;
+  border-radius: 14px; overflow: hidden; background: #0f1116;
+  box-shadow: 0 50px 120px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,255,255,0.08);
+  transform-origin: 50% 50%; will-change: transform;
 }
 .tw-chrome {
-  position: absolute; left: 0; top: 0; width: 100%; height: 44px;
-  display: flex; align-items: center; gap: 16px; padding: 0 16px;
-  background: #1E2129; color: #C9CED8; font: 13px/1 'Inter', system-ui, sans-serif;
+  height: 36px; display: flex; align-items: center; gap: 14px; padding: 0 14px;
+  background: #1E2129; color: #C9CED8; font: 12px/1 'Inter', system-ui, sans-serif;
 }
-.tw-dots { display: flex; gap: 7px; }
-.tw-dots i { width: 12px; height: 12px; border-radius: 50%; background: #FF5F57; }
+.tw-dots { display: flex; gap: 6px; }
+.tw-dots i { width: 11px; height: 11px; border-radius: 50%; background: #FF5F57; }
 .tw-dots i:nth-child(2) { background: #FEBC2E; }
 .tw-dots i:nth-child(3) { background: #28C840; }
-.tw-url { flex: 1; max-width: 520px; margin-inline: auto; display: flex; align-items: center; gap: 8px; padding: 7px 14px; border-radius: 8px; background: #2A2E38; }
-.tw-url svg { width: 14px; height: 14px; fill: none; stroke: #8FE3A1; stroke-width: 1.6; }
-.tw-live { margin-left: auto; padding: 3px 10px; border-radius: 999px; background: #28C840; color: #0B2A12; font-size: 11px; opacity: 0; }
-.tw-sample { padding: 4px 10px; border-radius: 999px; border: 1px solid #3A3F4B; font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; }
-.tw-page { position: absolute; left: 0; top: 44px; width: 1440px; height: 7916px; }
-.tw-page img { position: absolute; left: 0; width: 1440px; height: auto; display: block; max-width: none; }
-.tw-stop { position: absolute; display: block; visibility: hidden; pointer-events: none; }
-/* the glowing outline around whatever the camera is looking at */
-.tw-frame {
-  position: absolute; left: 0; top: 0; width: 10px; height: 10px; pointer-events: none;
-  border-radius: 18px; border: 4px solid #7B86FF;
-  box-shadow: 0 0 0 1px rgba(255,255,255,0.25) inset, 0 0 36px rgba(123,134,255,0.55), 0 0 0 9999px rgba(11,12,16,0.18);
-  opacity: 0;
+.tw-url { flex: 1; max-width: 440px; margin-inline: auto; display: flex; align-items: center; gap: 8px; padding: 6px 12px; border-radius: 8px; background: #2A2E38; white-space: nowrap; overflow: hidden; }
+.tw-url svg { width: 13px; height: 13px; flex: none; fill: none; stroke: #8FE3A1; stroke-width: 1.6; }
+.tw-live { margin-left: auto; padding: 3px 9px; border-radius: 999px; background: #28C840; color: #0B2A12; font-size: 10px; opacity: 0; }
+.tw-sample { padding: 4px 9px; border-radius: 999px; border: 1px solid #3A3F4B; font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase; white-space: nowrap; }
+.tour-screen { position: relative; aspect-ratio: 1280 / 800; background: #F6F3EE; overflow: hidden; }
+.tour-clip { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: 0; visibility: hidden; }
+.tour-clip:first-child { opacity: 1; visibility: visible; }
+
+.tour-phone {
+  position: absolute; right: -2%; bottom: -3%;
+  width: clamp(120px, 15vw, 210px); aspect-ratio: 390 / 844;
+  border-radius: 30px; padding: 8px; background: #0d0f14;
+  box-shadow: 0 30px 80px rgba(0,0,0,0.65), 0 0 0 1px rgba(255,255,255,0.12), inset 0 0 0 2px #2a2e38;
+  opacity: 0; visibility: hidden;
 }
+.tour-phone video { width: 100%; height: 100%; object-fit: cover; border-radius: 23px; display: block; }
+.tour-phone-notch { position: absolute; z-index: 1; top: 12px; left: 50%; width: 30%; height: 16px; transform: translateX(-50%); border-radius: 999px; background: #0d0f14; }
 
 /* ---------- captions ---------- */
 .tour-captions {
   position: absolute; z-index: 5; left: var(--gutter); top: 50%; transform: translateY(-46%);
-  width: min(400px, 30vw);
+  width: min(400px, 31vw);
 }
 .tour-title { margin-top: 12px; font-family: var(--font-display); font-weight: 700; letter-spacing: -0.04em; line-height: 1; font-size: clamp(1.9rem, 3vw, 2.7rem); color: var(--heading); }
 .tour-caps { list-style: none; padding: 0; margin: 28px 0 0; display: grid; }
@@ -60,23 +68,24 @@
 .tour-dots li { width: 22px; height: 4px; border-radius: 4px; background: var(--line-2); transition: background 0.3s, width 0.3s; }
 .tour-dots li.on { width: 40px; background: var(--grad); }
 
-/* ---------- phones and narrow screens: the site on top, the caption below ---------- */
+/* ---------- phones and narrow screens: devices on top, caption below ---------- */
 @media (max-width: 899.98px) {
-  .tour-viewport {
-    -webkit-mask-image: linear-gradient(180deg, #000 0, #000 50%, transparent 57%);
-            mask-image: linear-gradient(180deg, #000 0, #000 50%, transparent 57%);
-  }
+  .tour-devices { left: var(--gutter); right: var(--gutter); top: calc(var(--header-h) + 18px); bottom: auto; height: 38svh; }
+  .tour-browser { width: min(100%, calc(38svh * 1.53)); }
+  .tour-phone { width: 26vw; right: -1%; bottom: -18%; border-radius: 22px; padding: 5px; }
+  .tour-phone video { border-radius: 18px; }
   .tour-captions { left: var(--gutter); right: var(--gutter); top: auto; bottom: 26px; transform: none; width: auto; }
   .tour-title { font-size: 1.3rem; }
   .tour-caps { margin-top: 12px; }
   .tour-cap h3 { font-size: clamp(1.9rem, 8vw, 2.6rem); margin: 6px 0 8px; }
   .tour-cap p:not(.tour-cap-k) { font-size: 0.98rem; }
   .tour-dots { margin-top: 14px; }
+  .tw-sample { display: none; }
 }
 
-/* ---------- reduced motion: a still picture of the site and all the captions ---------- */
-.tour.is-static .tour-stage { height: auto; overflow: visible; padding-block: 80px; }
-.tour.is-static .tour-viewport { position: relative; height: 60vh; -webkit-mask-image: none; mask-image: none; }
+/* ---------- reduced motion: the site, and all the captions as a list ---------- */
+.tour.is-static .tour-stage { height: auto; overflow: visible; padding-block: 80px; perspective: none; }
+.tour.is-static .tour-devices { position: relative; inset: auto; margin: 0 var(--gutter) 40px; }
 .tour.is-static .tour-captions { position: static; transform: none; width: auto; padding: 0 var(--gutter); }
 .tour.is-static .tour-caps { gap: 28px; }
 .tour.is-static .tour-cap { grid-area: auto; opacity: 1; visibility: visible; }

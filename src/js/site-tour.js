@@ -1,14 +1,14 @@
 /* =====================================================================
    Website tour (websites.html)
 
-   The section is pinned while you scroll, and a "camera" glides across a
-   real client site (Face & Mane): logo and menu → Book Now → video hero →
-   trust section → treatment chooser → before-and-after sliders → footer,
-   then pulls back to show the site. A glowing outline marks what each
-   caption is talking about.
+   A real client site (Face & Mane), one screen at a time. The section is
+   pinned while you scroll; each step swaps the recording playing in a
+   floating browser window (the live site's own animations, a hover, a
+   click, a drag), with a modern transition between them: the old screen
+   blurs and falls back, the new one opens from a rounded mask, and the
+   window tilts gently in 3D. At the end a phone joins with the mobile site.
 
-   The camera is a transform on #tourWorld (translate + scale). Each stop is
-   an invisible .tw-stop box placed over the page in page pixels.
+   Only the clip on screen plays; each clip loads just before it's needed.
    ===================================================================== */
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
@@ -23,108 +23,105 @@ function initTour() {
   const $$ = (s, r = section) => Array.from(r.querySelectorAll(s));
   const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-  const viewport = $('.tour-viewport');
-  const world = $('#tourWorld');
-  const stops = $$('.tw-stop', world);
+  const stage = $('.tour-stage');
+  const browser = $('.tour-browser');
+  const glow = $('.tour-glow');
+  const phone = $('.tour-phone');
+  const phoneVid = $('.tour-clip-phone');
+  const clips = Object.fromEntries($$('.tour-clip').map((v) => [v.dataset.clip, v]));
   const caps = $$('.tour-cap');
   const dots = $$('.tour-dots li');
-  const frameBox = $('.tw-frame', world);
-  const N = stops.length;
+  const live = $('.tw-live');
+  const N = caps.length;
 
-  // Sharp tiles on desktop, lighter ones on phones (they never zoom in as far).
-  const set = window.innerWidth >= 900 ? 'd' : 'm';
-  $$('img[data-tile]', world).forEach((img) => {
-    img.decoding = 'async';
-    img.src = `${import.meta.env.BASE_URL}tour/fnm/${set}${img.dataset.tile}.jpg`;
-  });
-
-  const boxOf = (el) => ({ x: el.offsetLeft, y: el.offsetTop, w: el.offsetWidth, h: el.offsetHeight });
-
-  /** The part of the screen the camera frames into (beside or above the caption). */
-  const frame = () => {
-    const w = viewport.clientWidth, h = viewport.clientHeight;
-    if (section.classList.contains('is-static')) return { x: 16, y: 16, w: w - 32, h: h - 32 };
-    const top = (parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--header-h')) || 76) + 16;
-    if (w < 900) return { x: 12, y: top, w: w - 24, h: h * 0.5 - top };
-    const left = Math.max(w * 0.36, 460);
-    return { x: left, y: top + 8, w: w - left - 40, h: h - top - 48 };
+  const load = (v) => {
+    if (v && v.dataset.src && !v.getAttribute('src')) {
+      v.src = import.meta.env.BASE_URL + v.dataset.src.replace(/^\//, '');
+      v.preload = 'auto';
+    }
   };
 
-  /** Camera settings that frame stop i: centre point and log of the scale. */
-  const view = (i) => {
-    const r = boxOf(stops[i]);
-    const f = frame();
-    const pad = r.w < 800 ? 1.18 : 1.04;
-    const scale = Math.min(f.w / (r.w * pad), f.h / (r.h * pad), 2);
-    return { cx: r.x + r.w / 2, cy: r.y + r.h / 2, z: Math.log(scale) };
-  };
-
-  const cam = { cx: 0, cy: 0, z: 0 };
-  const render = () => {
-    const f = frame();
-    const s = Math.exp(cam.z);
-    world.style.transform = `translate(${f.x + f.w / 2 - cam.cx * s}px, ${f.y + f.h / 2 - cam.cy * s}px) scale(${s})`;
-  };
-  const frameAt = (i, inset = 10) => { const r = boxOf(stops[i]); return { left: r.x + inset, top: r.y + inset, width: r.w - inset * 2, height: r.h - inset * 2 }; };
-
-  // Reduced motion: a still picture of the site and every caption, no pinning.
+  // Reduced motion: the first screen as a still picture, and every caption.
   if (reduced) {
     section.classList.add('is-static');
-    Object.assign(cam, view(N - 1));
-    render();
-    gsap.set($('.tw-live', world), { opacity: 1 });
-    window.addEventListener('resize', () => { Object.assign(cam, view(N - 1)); render(); });
+    gsap.set(live, { opacity: 1 });
     return;
   }
 
-  /* ------------------------------------------------------------ timeline */
-  const SEG = 1;
-  const tl = gsap.timeline({ defaults: { ease: 'none' }, onUpdate: () => { render(); setDot(); } });
-  let lastDot = -1;
-  const setDot = () => {
-    const i = Math.min(N - 1, Math.max(0, Math.floor(tl.time() / SEG + 0.08)));
-    if (i === lastDot) return;
-    lastDot = i;
+  /* -------------------------------------------------- which clip plays */
+  let active = -1;
+  let inView = false;
+  const playActive = () => {
+    const i = Math.max(0, active);
+    const want = caps[i].dataset.clip;
+    Object.entries(clips).forEach(([k, v]) => {
+      if (inView && k === want) { load(v); v.play().catch(() => {}); } else v.pause();
+    });
+    if (inView && caps[i].hasAttribute('data-phone')) { load(phoneVid); phoneVid.play().catch(() => {}); } else phoneVid.pause();
+  };
+  const setStop = (i) => {
+    if (i === active) return;
+    const prevClip = caps[active]?.dataset.clip;
+    active = i;
     dots.forEach((d, k) => d.classList.toggle('on', k === i));
+    const clip = clips[caps[i].dataset.clip];
+    if (clip && caps[i].dataset.clip !== prevClip) { load(clip); try { clip.currentTime = 0; } catch { /* not loaded yet */ } }
+    const next = caps[i + 1];                         // warm up the next clip
+    if (next) load(next.hasAttribute('data-phone') ? phoneVid : clips[next.dataset.clip]);
+    playActive();
   };
 
-  // Start: close on the logo, easing back to frame the brand and menu.
-  Object.assign(cam, view(0));
-  tl.fromTo(cam,
-    { cx: () => view(0).cx - 160, cy: () => view(0).cy, z: () => view(0).z + 0.35 },
-    { cx: () => view(0).cx, cy: () => view(0).cy, z: () => view(0).z, duration: 0.45, ease: 'power2.out' }, 0)
-    .fromTo(frameBox, { ...frameAt(0, 4), opacity: 0 }, { opacity: 1, duration: 0.15 }, 0.3);
+  /* -------------------------------------------------- scroll timeline */
+  const tl = gsap.timeline({
+    defaults: { ease: 'none' },
+    onUpdate: () => setStop(Math.min(N - 1, Math.max(0, Math.floor(tl.time() + 0.12)))),
+  });
 
-  for (let i = 0; i < N; i++) {
-    const at = i * SEG;
-    const last = i === N - 1;
-    if (i > 0) {
-      tl.to(cam, { cx: () => view(i).cx, cy: () => view(i).cy, z: () => view(i).z, duration: 0.42 * SEG, ease: 'power2.inOut' }, at - 0.3 * SEG);
-      // the outline follows the camera to the next thing (and steps away for the final pull-back)
-      tl.to(frameBox, last ? { opacity: 0, duration: 0.12 } : { ...frameAt(i, stops[i].offsetWidth < 800 ? 4 : 14), duration: 0.42 * SEG, ease: 'power2.inOut' }, at - 0.3 * SEG);
-      tl.to(caps[i - 1], { autoAlpha: 0, y: -24, duration: 0.12 * SEG, ease: 'power2.in' }, at - 0.18 * SEG);
+  // Intro: the window swings in from a tilt and settles.
+  tl.fromTo(browser, { rotateY: 16, rotateX: 8, scale: 0.9, y: 30 }, { rotateY: -5, rotateX: 3, scale: 1, y: 0, duration: 0.45, ease: 'power2.out' }, 0)
+    .fromTo(caps[0], { autoAlpha: 0, y: 30 }, { autoAlpha: 1, y: 0, duration: 0.16, ease: 'power3.out' }, 0.05);
+
+  for (let i = 1; i < N; i++) {
+    const at = i;
+    const from = caps[i - 1].dataset.clip, to = caps[i].dataset.clip;
+    const side = i % 2 ? 1 : -1;
+    // captions
+    tl.to(caps[i - 1], { autoAlpha: 0, y: -24, duration: 0.12, ease: 'power2.in' }, at - 0.18)
+      .fromTo(caps[i], { autoAlpha: 0, y: 30 }, { autoAlpha: 1, y: 0, duration: 0.16, ease: 'power3.out' }, at);
+    // screens: the old one blurs and falls back, the new one opens from a rounded mask
+    if (from !== to) {
+      tl.to(clips[from], { autoAlpha: 0, scale: 0.92, filter: 'blur(10px)', duration: 0.24, ease: 'power2.in' }, at - 0.22)
+        .fromTo(clips[to],
+          { autoAlpha: 0, scale: 1.08, filter: 'blur(8px)', clipPath: 'inset(12% 8% 12% 8% round 24px)' },
+          { autoAlpha: 1, scale: 1, filter: 'blur(0px)', clipPath: 'inset(0% 0% 0% 0% round 0px)', duration: 0.34, ease: 'power3.out', immediateRender: false }, at - 0.1);
     }
-    tl.fromTo(caps[i], { autoAlpha: 0, y: 30 }, { autoAlpha: 1, y: 0, duration: 0.16 * SEG, ease: 'power3.out' }, i === 0 ? 0.05 : at);
+    // the window floats to a new angle; the glow drifts with it
+    tl.to(browser, { rotateY: side * 6, rotateX: 2 + side, y: side * -8, duration: 0.5, ease: 'sine.inOut' }, at - 0.3)
+      .to(glow, { xPercent: side * 12, yPercent: side * -6, duration: 0.5, ease: 'sine.inOut' }, at - 0.3);
   }
 
-  // Book Now: the outline gives the button a little pulse.
-  tl.to(frameBox, { keyframes: { scale: [1, 1.06, 1] }, transformOrigin: '50% 50%', duration: 0.2 }, 1 * SEG + 0.2);
-
-  // Final: it's live.
-  tl.fromTo($('.tw-live', world), { opacity: 0, scale: 0.6 }, { opacity: 1, scale: 1, duration: 0.1, ease: 'back.out(2.5)' }, (N - 1) * SEG + 0.2)
-    .to({}, { duration: 0.5 }, (N - 1) * SEG + 0.3);   // hold on the finished site
+  // Last step: the window steps back and a phone slides in beside it.
+  const last = N - 1;
+  tl.to(browser, { rotateY: 8, rotateX: 3, x: () => -browser.offsetWidth * 0.07, scale: 0.9, duration: 0.4, ease: 'power2.inOut' }, last - 0.25)
+    .fromTo(phone, { autoAlpha: 0, y: 90, x: 40, rotateY: -28, rotateZ: 4 },
+      { autoAlpha: 1, y: 0, x: 0, rotateY: -10, rotateZ: 0, duration: 0.4, ease: 'power3.out' }, last - 0.1)
+    .fromTo(live, { opacity: 0, scale: 0.6 }, { opacity: 1, scale: 1, duration: 0.1, ease: 'back.out(2.5)' }, last + 0.15)
+    .to({}, { duration: 0.6 }, last + 0.25);           // hold on the finished picture
 
   ScrollTrigger.create({
     trigger: section,
     start: 'top top',
     end: () => '+=' + window.innerHeight * N * 1.1,
-    pin: $('.tour-stage'),
+    pin: stage,
     scrub: 0.7,
     animation: tl,
     invalidateOnRefresh: true,
-    onRefresh: render,
   });
-  render();
-  setDot();
+  // Play only while the tour is on screen.
+  ScrollTrigger.create({
+    trigger: section, start: 'top bottom', end: 'bottom top',
+    onToggle: (self) => { inView = self.isActive; if (active < 0) setStop(0); else playActive(); },
+  });
+
   if (import.meta.env.DEV) window.__tour = tl;   // for tuning in the console
 }

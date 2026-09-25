@@ -119,40 +119,32 @@
     </section>
 
     <!-- ============ Website tour: Face & Mane ============
-         A real client site we built, seen up close. The camera glides from the
-         header to the hero, the content, the treatment chooser, the before-and-
-         after sliders and the footer, then pulls back. Driven by site-tour.js.
-         The page image is a full-page capture of the live site, cut into tiles
-         (public/tour/fnm: d* = sharp tiles for desktop, m* = lighter tiles for phones). -->
+         A real client site we built, one screen at a time: short recordings of
+         the live site (its own animations, a visible cursor) play in a floating
+         browser window as you scroll, and a phone joins at the end.
+         Driven by site-tour.js. Clips: public/tour/fnm/clips (scripts/record-tour.cjs). -->
     <section class="tour" id="tour" aria-labelledby="tourTitle">
       <div class="tour-stage">
-        <div class="tour-viewport" aria-hidden="true">
-          <div class="tw-world" id="tourWorld">
+        <div class="tour-devices" aria-hidden="true">
+          <div class="tour-glow"></div>
+          <div class="tour-browser">
             <div class="tw-chrome">
               <span class="tw-dots"><i></i><i></i><i></i></span>
               <span class="tw-url"><svg viewBox="0 0 16 16"><rect x="3.5" y="7" width="9" height="7" rx="1.5"/><path d="M5.5 7V5a2.5 2.5 0 0 1 5 0v2"/></svg>Face &amp; Mane · Aesthetics at home<b class="tw-live">Live</b></span>
               <span class="tw-sample">Client site</span>
             </div>
-            <div class="tw-page">
-              <img data-tile="0" alt="" width="1440" height="1000" style="top:0" />
-              <img data-tile="1" alt="" width="1440" height="1000" style="top:1000px" />
-              <img data-tile="2" alt="" width="1440" height="1000" style="top:2000px" />
-              <img data-tile="3" alt="" width="1440" height="1000" style="top:3000px" />
-              <img data-tile="4" alt="" width="1440" height="1000" style="top:4000px" />
-              <img data-tile="5" alt="" width="1440" height="1000" style="top:5000px" />
-              <img data-tile="6" alt="" width="1440" height="1000" style="top:6000px" />
-              <img data-tile="7" alt="" width="1440" height="916" style="top:7000px" />
+            <div class="tour-screen">
+              <video class="tour-clip" data-clip="hero" src="/tour/fnm/clips/hero.mp4" poster="/tour/fnm/clips/hero.jpg" muted playsinline loop preload="auto"></video>
+              <video class="tour-clip" data-clip="book" data-src="/tour/fnm/clips/book.mp4" poster="/tour/fnm/clips/book.jpg" muted playsinline loop preload="none"></video>
+              <video class="tour-clip" data-clip="scroll" data-src="/tour/fnm/clips/scroll.mp4" poster="/tour/fnm/clips/scroll.jpg" muted playsinline loop preload="none"></video>
+              <video class="tour-clip" data-clip="hudak" data-src="/tour/fnm/clips/hudak.mp4" poster="/tour/fnm/clips/hudak.jpg" muted playsinline loop preload="none"></video>
+              <video class="tour-clip" data-clip="chooser" data-src="/tour/fnm/clips/chooser.mp4" poster="/tour/fnm/clips/chooser.jpg" muted playsinline loop preload="none"></video>
+              <video class="tour-clip" data-clip="results" data-src="/tour/fnm/clips/results.mp4" poster="/tour/fnm/clips/results.jpg" muted playsinline loop preload="none"></video>
             </div>
-            <!-- Camera stops, in page pixels (the page starts 44px down, under the browser bar). -->
-            <i class="tw-stop" data-stop="brand"   style="left:24px;top:44px;width:740px;height:89px"></i>
-            <i class="tw-stop" data-stop="book"    style="left:1196px;top:52px;width:170px;height:72px"></i>
-            <i class="tw-stop" data-stop="hero"    style="left:0;top:44px;width:1440px;height:899px"></i>
-            <i class="tw-stop" data-stop="trust"   style="left:0;top:943px;width:1440px;height:1141px"></i>
-            <i class="tw-stop" data-stop="chooser" style="left:0;top:4460px;width:1440px;height:1303px"></i>
-            <i class="tw-stop" data-stop="results" style="left:0;top:5763px;width:1440px;height:1560px"></i>
-            <i class="tw-stop" data-stop="footer"  style="left:0;top:7324px;width:1440px;height:636px"></i>
-            <i class="tw-stop" data-stop="site"    style="left:0;top:0;width:1440px;height:2084px"></i>
-            <span class="tw-frame"></span>
+          </div>
+          <div class="tour-phone">
+            <span class="tour-phone-notch"></span>
+            <video class="tour-clip-phone" data-src="/tour/fnm/clips/mobile.mp4" poster="/tour/fnm/clips/mobile.jpg" muted playsinline loop preload="none"></video>
           </div>
         </div>
 
@@ -161,16 +153,15 @@
           <p class="scene-eyebrow mono">A real site we built</p>
           <h2 class="tour-title" id="tourTitle">Face &amp; Mane, up close.</h2>
           <ol class="tour-caps">
-            <li class="tour-cap"><p class="tour-cap-k">Custom design</p><h3>Designed around their brand.</h3><p>Face &amp; Mane brings aesthetic treatments to patients’ homes. Their site pairs an editorial serif look with their own teal and gold, built from scratch.</p></li>
-            <li class="tour-cap"><p class="tour-cap-k">Connected</p><h3>Booking, one tap away.</h3><p>“Book Now” sits in the header on every page, so a visitor goes from interested to booked in seconds.</p></li>
-            <li class="tour-cap"><p class="tour-cap-k">First impression</p><h3>A welcome that moves.</h3><p>A full-screen video hero and smooth scroll animations make the site feel as premium as the service.</p></li>
-            <li class="tour-cap"><p class="tour-cap-k">Clear content</p><h3>Content that builds trust.</h3><p>Clear sections explain the service, the doctor behind it, and why patients can trust it.</p></li>
-            <li class="tour-cap"><p class="tour-cap-k">Interactive</p><h3>Guides every visitor.</h3><p>A treatment chooser helps each visitor find the right service instead of leaving them to hunt for it.</p></li>
-            <li class="tour-cap"><p class="tour-cap-k">Proof</p><h3>Results, side by side.</h3><p>Before-and-after sliders let visitors drag to compare real results for themselves.</p></li>
-            <li class="tour-cap"><p class="tour-cap-k">Found in search</p><h3>Built to be found.</h3><p>Every page is pre-rendered with a sitemap and clean structure, so search engines can read all of it.</p></li>
-            <li class="tour-cap"><p class="tour-cap-k">Launch</p><h3>Live, and <span>yours next.</span></h3><p>Designed, built, and launched by Williams Systems LLC. Let’s build yours.</p><a class="btn btn-primary" href="schedule.html">Get started</a></li>
+            <li class="tour-cap" data-clip="hero"><p class="tour-cap-k">First impression</p><h3>A welcome that moves.</h3><p>A full-screen video hero greets every visitor, in Face &amp; Mane’s own editorial type and teal and gold, designed from scratch.</p></li>
+            <li class="tour-cap" data-clip="book"><p class="tour-cap-k">Connected</p><h3>Booking, one tap away.</h3><p>“Book Now” sits in the header on every page and opens a guided booking flow: where, what, and when.</p></li>
+            <li class="tour-cap" data-clip="scroll"><p class="tour-cap-k">Modern animation</p><h3>Every section comes alive.</h3><p>Content eases in as you scroll, so the story unfolds one step at a time.</p></li>
+            <li class="tour-cap" data-clip="hudak"><p class="tour-cap-k">Trusted professionals</p><h3>Up to medical standards.</h3><p>Dr. Hudak’s section shows patients they’re in consistent, professional hands, with every provider personally trained and certified by her.</p></li>
+            <li class="tour-cap" data-clip="chooser"><p class="tour-cap-k">Interactive</p><h3>Guides every visitor.</h3><p>A treatment chooser helps each visitor find the right service, with the photo and details changing as they explore.</p></li>
+            <li class="tour-cap" data-clip="results"><p class="tour-cap-k">Innovative solutions</p><h3>Results at a swipe.</h3><p>Custom before-and-after sliders let patients drag to compare real results for themselves.</p></li>
+            <li class="tour-cap" data-clip="hero" data-phone><p class="tour-cap-k">On every screen</p><h3>Live, and <span>yours next.</span></h3><p>Fast on every phone, pre-rendered for search, and launched by Williams Systems LLC.</p><a class="btn btn-primary" href="schedule.html">Get started</a></li>
           </ol>
-          <ul class="tour-dots" aria-hidden="true"><li></li><li></li><li></li><li></li><li></li><li></li><li></li><li></li></ul>
+          <ul class="tour-dots" aria-hidden="true"><li></li><li></li><li></li><li></li><li></li><li></li><li></li></ul>
         </div>
       </div>
     </section>
