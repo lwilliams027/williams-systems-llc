@@ -48,6 +48,7 @@ function initTour() {
   });
   const N = STOPS.length;
   const SEG = 1;                                   // one stop per unit of timeline
+  const has = (name) => STOPS.some((st) => st.name === name);
   const stopAt = (name) => Math.max(0, STOPS.findIndex((st) => st.name === name)) * SEG;
 
   /** Layout box of an element in the sample product's own coordinates. */
@@ -126,6 +127,8 @@ function initTour() {
   const perStop = {};                               // several "type" fields in one stop go one after another
   $$('[data-anim]', world).forEach((el) => {
     const name = stopOf(el);
+    // a stop this page doesn't visit: leave the element in its finished state
+    if (!has(name)) { if (el.dataset.fill) el.textContent = el.dataset.fill; return; }
     const at = stopAt(name) + (parseFloat(el.dataset.delay) || 0.06);
     const kind = el.dataset.anim;
     if (kind === 'rise') {
@@ -172,7 +175,7 @@ function initTour() {
   });
 
   // Overlays (search result, notification, ...) show during their stop.
-  $$('.tour-pop[data-at]').forEach((pop) => {
+  $$('.tour-pop[data-at]').filter((pop) => has(pop.dataset.at)).forEach((pop) => {
     const s = stopAt(pop.dataset.at), d = parseFloat(pop.dataset.delay) || 0.12;
     tl.fromTo(pop, { autoAlpha: 0, y: -18, scale: 0.96 }, { autoAlpha: 1, y: 0, scale: 1, duration: 0.14, ease: 'back.out(1.6)', ...IR }, s + d)
       .to(pop, { autoAlpha: 0, y: -12, duration: 0.1 }, s + SEG - 0.24);

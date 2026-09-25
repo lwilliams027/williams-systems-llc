@@ -317,12 +317,12 @@ const PAGES = {
 };
 
 /* ------------------------------------------------------------------ page assembly */
-for (const [slug, P] of Object.entries(PAGES)) {
-  const f = `${slug}.html`;
+function assemble(f, P) {
   let src = read(f);
-  if (src.includes('id="tour"')) { console.log(f, 'already converted, skipped'); continue; }
+  if (src.includes('id="tour"')) { console.log(f, 'already converted, skipped'); return; }
 
-  const name = src.match(/<p class="scene-eyebrow mono"><a href="\.\/#services">Products<\/a> \/ ([^<]+)<\/p>/)[1];
+  const crumb = src.match(/<p class="scene-eyebrow mono">(<a href="[^"]*">(?:Products|Solutions)<\/a>) \/ ([^<]+)<\/p>/);
+  const name = crumb[2];
   const h1 = src.match(/<h1 class="pg-title pd-title">([\s\S]*?)<\/h1>/)[1];
   const lede = src.match(/<p class="pg-lede">([\s\S]*?)<\/p>/)[1];
   const faqs = [...src.matchAll(/<details class="faq-item"( open)?><summary>([\s\S]*?)<\/summary><p>([\s\S]*?)<\/p><\/details>/g)].map((m) => [m[2], m[3]]);
@@ -345,7 +345,7 @@ for (const [slug, P] of Object.entries(PAGES)) {
         </div>
 
         <div class="tour-captions">
-          <p class="scene-eyebrow mono"><a href="./#services">Products</a> / ${name}</p>
+          <p class="scene-eyebrow mono">${crumb[1]} / ${name}</p>
           <ol class="tour-caps">
             ${allCaps.join('\n            ')}
           </ol>
@@ -401,3 +401,5 @@ ${faqs.map(([q, a], i) => `          <details class="faq-item qa-item"${i === 0 
   fs.writeFileSync(R + f, src);
   console.log(f, '→', allCaps.length, 'stops,', faqs.length, 'questions');
 }
+module.exports = { PAGES, chrome, cap, pill, assemble };
+if (require.main === module) for (const [slug, P] of Object.entries(PAGES)) assemble(`${slug}.html`, P);
