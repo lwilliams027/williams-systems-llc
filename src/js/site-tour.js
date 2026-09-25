@@ -56,14 +56,18 @@ function initTour() {
     const s = STOPS[i];
     const r = s.sel ? boxOf($(s.sel, world)) : { x: 0, y: 0, ...WORLD() };
     const f = frame();
-    const scale = Math.min(f.w / (r.w * s.pad), f.h / (r.h * s.pad), 2.4);
-    // The header stop shows the top of the page: browser bar at the top of the frame, hero below it.
-    // The opening stop is the page as a browser shows it: full width, from the top.
-    if (s.name === 'intro') { const k = f.w / WORLD().w; return { cx: WORLD().w / 2, cy: f.h / (2 * k), z: Math.log(k) }; }
-    // Keep the camera inside the page so no empty space shows at its edges.
-    const W = WORLD(), hw = f.w / (2 * scale), hh = f.h / (2 * scale);
+    const W = WORLD();
+    // The final stop pulls back to show the whole page.
+    if (s.name === 'site') {
+      const scale = Math.min(f.w / (W.w * s.pad), f.h / (W.h * s.pad));
+      return { cx: W.w / 2, cy: W.h / 2, z: Math.log(scale) };
+    }
+    // Every other stop is the site as a browser shows it: always full width,
+    // scrolled so the section sits in view (the header stop is the top of the page).
+    const k = f.w / W.w, hh = f.h / (2 * k);
     const clampTo = (v, lo, hi) => (lo > hi ? (lo + hi) / 2 : Math.min(hi, Math.max(lo, v)));
-    return { cx: clampTo(r.x + r.w / 2, hw, W.w - hw), cy: clampTo(r.y + r.h / 2, hh, W.h - hh), z: Math.log(scale) };
+    const cy = s.name === 'intro' || s.name === 'brand' ? hh : r.y + Math.min(r.h, f.h / k) / 2;
+    return { cx: W.w / 2, cy: clampTo(cy, hh, W.h - hh), z: Math.log(k) };
   };
 
   const cam = { cx: 0, cy: 0, z: 0 };
@@ -106,6 +110,11 @@ function initTour() {
     }
     if (i > 0) tl.fromTo(caps[i], { autoAlpha: 0, y: 30 }, { autoAlpha: 1, y: 0, duration: 0.16 * SEG, ease: 'power3.out' }, at);
   }
+
+  // Header: the logo and brand colours get a highlight ring.
+  const logo = $('.tw-header .tw-logo', world);
+  tl.fromTo(logo, { boxShadow: '0 0 0 0px rgba(124,134,255,0)' }, { boxShadow: '0 0 0 6px rgba(124,134,255,0.55)', duration: 0.12, immediateRender: false }, stopAt('brand') + 0.06)
+    .to(logo, { boxShadow: '0 0 0 0px rgba(124,134,255,0)', duration: 0.12 }, stopAt('brand') + SEG - 0.3);
 
   // Visit section: the business shows up as the top search result.
   const serp = $('.tour-serp');

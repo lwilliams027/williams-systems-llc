@@ -262,3 +262,8 @@ body:has(.tour) main { padding-top: 0; }
   .tour-window .tw-sample { display: none; }
   .tour-window .tw-dots i { width: 9px; height: 9px; }
 }
+.tw-header .tw-logo { padding: 6px 12px; margin-left: -12px; border-radius: 12px; }
+@media (max-width: 899.98px) {
+  .tour-toast { width: auto; left: 12px; right: 12px; padding: 10px 12px; font-size: 12px; gap: 8px; }
+  .tour-toast b { font-size: 13px; }
+}
