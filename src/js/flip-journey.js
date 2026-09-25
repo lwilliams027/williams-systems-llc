@@ -129,6 +129,37 @@ const STYLES = {
   },
 };
 
+/* Hand-overs shared by every page, like the home page's: each page mixes these
+   with its own signature move, so no two chapters in a row change the same way. */
+const MOVES = {
+  // the camera dives into the picture and comes out in the next chapter
+  dive: {
+    origin: '72% 55%', from: { scale: 0.45 }, out: { scale: 3.4 }, ease: 'power3.out', dur: 0.45, outDur: 0.4, outEase: 'power2.in',
+    copy: { x: -40 }, visual: { scale: 0.6, rotateY: -25 }, visEase: 'power3.out',
+  },
+  // an elevator ride: the old chapter goes up as the next one comes up from below
+  elevator: {
+    from: { y: '100%' }, out: { y: '-100%' }, ease: 'power3.inOut', dur: 0.5, outAt: 0, outDur: 0.5, outEase: 'power3.inOut', keepOut: true,
+    copy: { y: 50 }, copyOut: { y: -50 }, visual: { y: 140 }, visDur: 0.5,
+  },
+  // the home page's page flips
+  flipY: { from: { rotateY: -90 }, out: { rotateY: 90 }, copy: { y: 40 }, visual: { rotateY: 70 }, visEase: 'back.out(1.4)' },
+  flipX: { from: { rotateX: -90 }, out: { rotateX: 90 }, copy: { y: 40 }, visual: { rotateX: -70 }, visEase: 'back.out(1.4)' },
+  // the chapter tumbles away and the next spins in
+  tumble: {
+    from: { rotateZ: -120, scale: 0.3 }, out: { rotateZ: 120, scale: 0.3 }, ease: 'back.out(1.2)', dur: 0.5,
+    copy: { rotateZ: -6, y: 30 }, visual: { rotateZ: 25, scale: 0.5 }, visEase: 'back.out(1.7)',
+  },
+  // shutters open from the middle
+  shutter: {
+    from: { clipPath: 'inset(50% 0% 50% 0%)' }, out: { clipPath: 'inset(0% 50% 0% 50%)' }, rest: { clipPath: 'inset(0% 0% 0% 0%)' }, ease: 'power3.inOut', dur: 0.45, outAt: 0, outDur: 0.45, keepOut: true,
+    copy: { x: -40 }, visual: { clipPath: 'inset(50% 0% 50% 0%)' }, visRest: { clipPath: 'inset(0% 0% 0% 0%)' }, visDur: 0.5,
+  },
+};
+const TRANS = { ...STYLES, ...MOVES };
+Object.entries(FLIP).forEach(([k, [from, out]]) => { TRANS[`flip:${k}`] = { from, out, copy: { y: 40 } }; });
+delete TRANS.flip;
+
 /** Product pieces are drawn at their real design size and scaled to fit the chapter. */
 function fitAll() {
   document.querySelectorAll('.fj-fit').forEach((box) => {
@@ -169,12 +200,18 @@ document.querySelectorAll('[data-journey]').forEach((section, idx) => {
   }
 
   /* ---------- starting state ---------- */
-  const S = STYLES[section.dataset.style] || STYLES.flip;
-  gsap.set(scenes, { autoAlpha: 0, transformPerspective: 1600, transformOrigin: S.origin || '50% 50%' });
-  if (S.rest) gsap.set(scenes, S.rest);
+  // Each chapter's own hand-over: data-seq on the section (a list, one per change of
+  // chapter), else data-flip on the scene (the home-page flips), else the page's style.
+  const S = TRANS[section.dataset.style] || TRANS['flip:y'];
+  const seq = (section.dataset.seq || '').split(/[\s,]+/).filter((k) => TRANS[k]);
+  const moveOf = (scene, i) => (i === 0 ? S
+    : seq.length ? TRANS[seq[(i - 1) % seq.length]]
+    : scene.dataset.flip ? TRANS[`flip:${scene.dataset.flip}`] || S : S);
+  const moves = scenes.map(moveOf);
+  const originOf = (m) => m.origin || '50% 50%';
+  gsap.set(scenes, { autoAlpha: 0, transformPerspective: 1600, transformOrigin: originOf(S), ...S.rest });
   gsap.set(scenes[0], { autoAlpha: 1 });
-  gsap.set($$('.sj-copy > *'), { autoAlpha: 0, ...S.copy });
-  const copyRest = { ...COPY_REST, ...(S.copy.filter ? { filter: 'blur(0px)' } : {}) };
+  scenes.forEach((scene, i) => gsap.set($$('.sj-copy > *', scene), { autoAlpha: 0, ...moves[i].copy }));
 
   if (steps[0]) steps[0].classList.add('on');       // the first chapter is showing from the start
   const SCENE = 1.8;                               // timeline units per chapter
@@ -186,28 +223,29 @@ document.querySelectorAll('[data-journey]').forEach((section, idx) => {
 
   scenes.forEach((scene, i) => {
     const T = i * SCENE;
-    // the page's style decides how chapters hand over; the plain flip reads each scene's data-flip
-    const [inFrom, outTo] = S.flip ? (FLIP[scene.dataset.flip || 'y'] || FLIP.y) : [S.from, S.out];
+    const M = moves[i];
     if (i > 0) {
       const prev = scenes[i - 1];
-      const outAt = S.outAt ?? -0.35;
-      tl.to($$('.sj-copy > *', prev), { autoAlpha: 0, duration: 0.2, stagger: 0.03, ease: 'power2.in', ...(S.copyOut || { y: -30 }) }, T - 0.45)
-        .to(prev, { ...outTo, autoAlpha: S.keepOut ? 1 : 0, duration: S.outDur || 0.35, ease: S.outEase || 'power2.in' }, T + outAt)
+      const outAt = M.outAt ?? -0.35;
+      tl.to($$('.sj-copy > *', prev), { autoAlpha: 0, duration: 0.2, stagger: 0.03, ease: 'power2.in', ...(M.copyOut || { y: -30 }) }, T - 0.45)
+        // the old chapter leaves the way the new one arrives (starting from that move's own resting pose)
+        .fromTo(prev, { ...REST, ...M.rest, transformOrigin: originOf(M) }, { ...M.out, autoAlpha: M.keepOut ? 1 : 0, duration: M.outDur || 0.35, ease: M.outEase || 'power2.in', immediateRender: false }, T + outAt)
         // visible only from its own moment (a set reverts when scrolling back); the entry pose is prepared in advance
         .set(scene, { autoAlpha: 1 }, T)
-        .fromTo(scene, { ...REST, ...S.rest, ...inFrom }, { ...REST, ...S.rest, duration: S.dur || 0.4, ease: S.ease || 'power3.out' }, T);
-      if (S.keepOut) tl.set(prev, { autoAlpha: 0 }, T + outAt + (S.outDur || 0.35));
+        .fromTo(scene, { ...REST, ...M.rest, ...M.from, transformOrigin: originOf(M) }, { ...REST, ...M.rest, duration: M.dur || 0.4, ease: M.ease || 'power3.out' }, T);
+      if (M.keepOut) tl.set(prev, { autoAlpha: 0 }, T + outAt + (M.outDur || 0.35));
     }
     mark(i, T + 0.001);
     // The first chapter plays by itself when the page loads; the rest are scrubbed by scroll.
     const A = i === 0 ? intro : tl;
     const B = i === 0 ? 0 : T;
-    A.to($$('.sj-copy > *', scene), { ...copyRest, autoAlpha: 1, duration: 0.3, stagger: 0.07, ease: S.copyEase || 'power3.out' }, B + 0.12);
-    // the chapter's picture arrives in the page's own way (unless it animates itself)
+    const copyRest = { ...COPY_REST, ...(M.copy?.filter ? { filter: 'blur(0px)' } : {}) };
+    A.to($$('.sj-copy > *', scene), { ...copyRest, autoAlpha: 1, duration: 0.3, stagger: 0.07, ease: M.copyEase || 'power3.out' }, B + 0.12);
+    // the chapter's picture arrives to match its move (unless it animates itself)
     const vis = scene.querySelector('.sj-visual:not([data-sj])');
-    if (vis && S.visual) {
-      A.fromTo(vis, { autoAlpha: 0, ...S.visual }, { ...VIS_REST, ...S.visRest, autoAlpha: 1, duration: S.visDur || 0.4, ease: S.visEase || 'power3.out' }, B + 0.15);
-      if (S.after) S.after(A, vis, B + 0.15 + (S.visDur || 0.4));
+    if (vis && M.visual) {
+      A.fromTo(vis, { autoAlpha: 0, ...M.visual }, { ...VIS_REST, ...M.visRest, autoAlpha: 1, duration: M.visDur || 0.4, ease: M.visEase || 'power3.out' }, B + 0.15);
+      if (M.after) M.after(A, vis, B + 0.15 + (M.visDur || 0.4));
     }
 
     // the animations inside this scene
