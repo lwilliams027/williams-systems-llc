@@ -100,12 +100,15 @@ const addAssets = (src, css, js) => {
   f = f.replace(/<script type="application\/ld\+json">[\s\S]*?<\/script>/, `<script type="application/ld+json">${JSON.stringify(ld)}</script>`);
   f = f.replace(/ aria-current="page"/g, '');
   const cards = KB.map((k, i) => `          <details class="faq-item qa-item" data-topic="${esc(k.topic)}"${i === 0 ? ' open' : ''}><summary><span class="qa-q">${esc(k.q)}</span><span class="qa-icon" aria-hidden="true"></span></summary><div class="qa-a"><p>${esc(k.a)}</p>${k.url !== 'faq.html' ? `<a class="qa-more" href="${k.url}">More about ${esc(k.topic)} →</a>` : ''}</div></details>`).join('\n');
+  const JOURNEY = new Function(`return \`${fs.readFileSync(path.join(__dirname, 'journeys', 'faq.html'), 'utf8').replace(/\r\n/g, '\n').trimEnd()}\`;`)();
   const main = `  <main id="main" class="faq-page">
+${JOURNEY}
+
     <section class="ask ask-hero" id="ask" aria-labelledby="askTitle">
       <div class="container ask-wrap">
         <div class="ask-head">
           <p class="scene-eyebrow mono">Questions &amp; answers</p>
-          <h1 class="ask-title" id="askTitle">Ask us <span>anything.</span></h1>
+          <h2 class="ask-title" id="askTitle">Ask us <span>anything.</span></h2>
           <p class="pg-p">Type a question the way you'd ask it. Answers come straight from what we tell every client, and if we don't have one written down, you can ask us on a free call.</p>
           <div class="qa-ask"><p>Rather talk it through?</p><a class="btn btn-primary btn-sm" href="contact.html#book">Book a free call</a><a class="qa-mail" href="mailto:lwilliams24270@gmail.com">lwilliams24270@gmail.com</a></div>
         </div>
@@ -138,7 +141,9 @@ ${cards}
   </main>
   ${kbScript}`;
   f = withMain(f, main);
-  f = addAssets(f, ['/src/styles/ask.css'], ['/src/js/ask.js']);
+  f = f.replace(/\n  <link rel="stylesheet" href="\/src\/styles\/(?:about-section|story-contact|story-journey|flip-journey)\.css" \/>/g, '')
+    .replace(/\n  <script type="module" src="\/src\/js\/(?:story-journey|flip-journey|contact|schedule)\.js"><\/script>/g, '');
+  f = addAssets(f, ['/src/styles/ask.css', '/src/styles/story-journey.css', '/src/styles/flip-journey.css'], ['/src/js/ask.js', '/src/js/flip-journey.js']);
   write('faq.html', f);
   console.log('faq.html written');
 }

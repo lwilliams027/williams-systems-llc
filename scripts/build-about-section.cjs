@@ -14,6 +14,8 @@ const BASE = 'https://lwilliams027.github.io/williams-systems-llc/';
 const read = (f) => fs.readFileSync(R + f, 'utf8').replace(/\r\n/g, '\n');
 const write = (f, s) => fs.writeFileSync(R + f, s);
 const PHONE = '(947) 267-4788', TEL = '+19472674788';
+// Flip journeys live in scripts/journeys/*.html and may use ${...} expressions.
+const J = (name) => new Function(`return \`${fs.readFileSync(path.join(__dirname, 'journeys', name + '.html'), 'utf8').replace(/\r\n/g, '\n').trimEnd()}\`;`)();
 
 /* ------------------------------------------------------------------ shell */
 const SHELL = read('faq.html');        // clean head/header/footer without tour assets
@@ -29,8 +31,8 @@ const makePage = (file, { title, desc, crumb, main, css = [], js = [], ld = [] }
   const a = s.indexOf('  <main id="main"'), b = s.indexOf('  </main>') + '  </main>'.length;
   s = s.slice(0, a) + main + s.slice(b);
   s = s.replace(/\s*<script type="application\/json" id="askData">[\s\S]*?<\/script>/, '');
-  s = s.replace(/\n  <link rel="stylesheet" href="\/src\/styles\/(?:ask|tour|product-worlds|about|about-section)\.css" \/>/g, '')
-    .replace(/\n  <script type="module" src="\/src\/js\/(?:ask|site-tour|contact)\.js"><\/script>/g, '');
+  s = s.replace(/\n  <link rel="stylesheet" href="\/src\/styles\/(?:ask|tour|product-worlds|about|about-section|story-contact|story-journey|flip-journey)\.css" \/>/g, '')
+    .replace(/\n  <script type="module" src="\/src\/js\/(?:ask|site-tour|contact|schedule|story-journey|flip-journey)\.js"><\/script>/g, '');
   for (const c of css) s = s.replace('<link rel="stylesheet" href="/src/styles/pages.css" />', `<link rel="stylesheet" href="/src/styles/pages.css" />\n  <link rel="stylesheet" href="${c}" />`);
   for (const j of [...js].reverse()) s = s.replace('<script type="module" src="/src/js/main.js"></script>', `<script type="module" src="/src/js/main.js"></script>\n  <script type="module" src="${j}"></script>`);
   s = s.replace(/ aria-current="page"/g, '').split(`<a href="${file}">`).join(`<a href="${file}" aria-current="page">`);
@@ -52,22 +54,6 @@ const subnav = (here) => `
       <div class="container">${[['about.html', 'About us'], ['how-we-work.html', 'How we work'], ['client-stories.html', 'Client stories'], ['faq.html', 'FAQ'], ['contact.html', 'Contact us']]
         .map(([h, t]) => `<a href="${h}"${h === here ? ' class="on" aria-current="page"' : ''}>${t}</a>`).join('')}</div>
     </nav>`;
-
-/* ------------------------------------------------------------------ keep the sample-project tour for How we work */
-let TOUR = '';
-{
-  const src = fs.existsSync(R + 'how-we-work.html') && read('how-we-work.html').includes('id="tour"') ? read('how-we-work.html') : read('about.html');
-  const a = src.indexOf('    <!-- ============ About tour ============');
-  const t = src.indexOf('<section class="tour"', a);
-  const e = src.indexOf('\n    </section>', src.indexOf('<div class="tour-captions">', t)) + '\n    </section>'.length;
-  if (a < 0 || t < 0) throw new Error('sample-project tour not found');
-  TOUR = src.slice(a, e)
-    .replace('aria-labelledby="howTitle"', 'aria-labelledby="pageTitle"')
-    .replace(/<h2 class="tour-h1" id="howTitle">How we <span>work\.<\/span><\/h2><p>[\s\S]*?<\/p><div class="tour-actions">[\s\S]*?<\/div>/,
-      '<h1 class="tour-h1" id="pageTitle">How we <span>work.</span></h1><p>Meet, design, scope, build, launch. Here’s a sample project going through the same steps every client does.</p><div class="tour-actions"><a class="btn btn-primary" href="contact.html#book">Book a free call</a><span class="tour-hint mono">Scroll to follow the project ↓</span></div>')
-    .replace('<p class="scene-eyebrow mono">How we work</p>', '<p class="scene-eyebrow mono"><a href="about.html">About</a> / How we work</p>');
-  if (!TOUR.includes('<h1 class="tour-h1"')) throw new Error('tour intro not converted');
-}
 
 /* ------------------------------------------------------------------ about.html */
 {
@@ -161,15 +147,7 @@ ${cta('Have an idea? <span>Let’s build it.</span>', 'Tell us what you have in 
     ['Launch & support', 'We launch it, test it, and hand it over the way your plan calls for. Then a monthly support plan or pay per job.'],
   ];
   const main = `  <main id="main" class="as-page how-page product-page">
-${TOUR}
-
-    <section class="pg-section">
-      <div class="container">
-        <p class="scene-eyebrow mono">The steps</p>
-        <h2 class="pg-h2 ws-flow-title">Meet. Design. Scope. <span>Built fast.</span></h2>
-        <ol class="as-steps">${STEPS.map(([t, d], i) => `<li><span class="as-step-n">${i + 1}</span><div><h3>${t}</h3><p>${d}</p></div></li>`).join('')}</ol>
-      </div>
-    </section>
+${J('how')}
 
     <section class="pg-section">
       <div class="container">
@@ -193,7 +171,7 @@ ${cta('Ready for <span>step one?</span>', 'Book a free discovery call. It’s th
   makePage('how-we-work.html', {
     title: 'How We Work | Williams Systems LLC',
     desc: 'How a project with Williams Systems LLC runs: a free call, design together, a written scope with the price, a fast build, launch, and support. One-time or monthly.',
-    crumb: 'How we work', main, css: ['/src/styles/tour.css', '/src/styles/product-worlds.css', '/src/styles/about.css', '/src/styles/about-section.css', '/src/styles/story-contact.css'], js: ['/src/js/site-tour.js'],
+    crumb: 'How we work', main, css: ['/src/styles/about.css', '/src/styles/about-section.css', '/src/styles/story-contact.css', '/src/styles/story-journey.css', '/src/styles/flip-journey.css'], js: ['/src/js/flip-journey.js'],
     ld: [ORG, { '@type': 'WebPage', '@id': BASE + 'how-we-work.html#page', url: BASE + 'how-we-work.html', name: 'How we work' }],
   });
 }
@@ -205,14 +183,7 @@ ${cta('Ready for <span>step one?</span>', 'Book a free discovery call. It’s th
             <figcaption><b>Your story here</b><span>${tag}</span></figcaption>
           </figure>`;
   const main = `  <main id="main" class="as-page stories-page">
-    <section class="as-hero as-hero-sm">
-      <div class="as-orbs" aria-hidden="true"><i></i><i></i><i></i></div>
-      <div class="container">
-        <p class="scene-eyebrow mono"><a href="about.html">About</a> / Client stories</p>
-        <h1 class="as-h1" id="pageTitle">Hear it from <span>them.</span></h1>
-        <p class="pg-lede">Real stories from the people we build for, in their own words. We’re collecting them now, so check back soon.</p>
-      </div>
-    </section>
+${J('stories')}
 
     <section class="pg-section">
       <div class="container">
@@ -239,7 +210,7 @@ ${cta('Want to be <span>the next story?</span>', 'Tell us what you want to build
   makePage('client-stories.html', {
     title: 'Client Stories | Williams Systems LLC',
     desc: 'Stories from the people Williams Systems LLC builds for: websites, apps, SaaS, and personalized AI.',
-    crumb: 'Client stories', main, css: ['/src/styles/about.css', '/src/styles/about-section.css', '/src/styles/story-contact.css'],
+    crumb: 'Client stories', main, css: ['/src/styles/about.css', '/src/styles/about-section.css', '/src/styles/story-contact.css', '/src/styles/story-journey.css', '/src/styles/flip-journey.css'], js: ['/src/js/flip-journey.js'],
     ld: [ORG],
   });
 }
@@ -312,11 +283,13 @@ ${cta('Want to be <span>the next story?</span>', 'Tell us what you want to build
         </div>
       </div>
     </section>
+
+${J('contact')}
   </main>`;
   makePage('contact.html', {
     title: 'Contact Williams Systems LLC | Book a Free Call or Send a Message',
     desc: `Contact Williams Systems LLC: book a free discovery call, send a message, or call or text ${PHONE}. We reply within 24 hours.`,
-    crumb: 'Contact', main, css: ['/src/styles/about.css', '/src/styles/about-section.css', '/src/styles/story-contact.css'], js: ['/src/js/schedule.js', '/src/js/contact.js'],
+    crumb: 'Contact', main, css: ['/src/styles/about.css', '/src/styles/about-section.css', '/src/styles/story-contact.css', '/src/styles/story-journey.css', '/src/styles/flip-journey.css'], js: ['/src/js/schedule.js', '/src/js/contact.js', '/src/js/flip-journey.js'],
     ld: [ORG, { '@type': 'ContactPage', '@id': BASE + 'contact.html#page', url: BASE + 'contact.html', name: 'Contact Williams Systems LLC' }],
   });
 

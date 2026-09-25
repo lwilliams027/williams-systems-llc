@@ -26,6 +26,8 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@500;600;700;800&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="/src/styles/main.css" />
   <link rel="stylesheet" href="/src/styles/pages.css" />
+  <link rel="stylesheet" href="/src/styles/flip-journey.css" />
+  <link rel="stylesheet" href="/src/styles/story-journey.css" />
   <link rel="stylesheet" href="/src/styles/ask.css" />
   <script>document.documentElement.classList.add('js');</script>
 </head>
@@ -109,11 +111,91 @@
   </header>
 
   <main id="main" class="faq-page">
+    <!-- FAQ: the big questions, one chapter each (facts confirmed by Landon) -->
+    <section class="sj" data-journey aria-labelledby="pageTitle">
+      <div class="sj-stage">
+        <div class="sj-bg" aria-hidden="true"><i class="sj-grid"></i><i class="sj-glow"></i></div>
+
+        <div class="sj-scene" data-scene data-label="Cost">
+          <div class="sj-copy">
+            <p class="sj-k mono">Questions &amp; answers · Cost</p>
+            <h1 class="sj-h" id="pageTitle">“How much does <span>it cost?”</span></h1>
+            <p class="sj-p">It depends on the job. Some are a one-time price, some suit a monthly plan, and either way it’s agreed in your written scope before any work begins.</p>
+          </div>
+          <div class="sj-visual sj-board" aria-hidden="true">
+            <div class="sj-board-head"><span>Option</span><span>When</span></div>
+            <div class="sj-row"><span class="sj-flap" data-sj="flap" data-text="ONE-TIME PRICE"></span><span class="sj-flap st" data-sj="flap" data-d="0.1" data-color="#4ADE80" data-text="PAY ONCE"></span></div>
+            <div class="sj-row"><span class="sj-flap" data-sj="flap" data-d="0.2" data-text="MONTHLY PLAN"></span><span class="sj-flap st" data-sj="flap" data-d="0.3" data-color="#4ADE80" data-text="WE RUN IT"></span></div>
+            <span class="fj-stamp fj-stamp-board" data-sj="stamp" data-d="0.75">IN YOUR SCOPE</span>
+          </div>
+        </div>
+
+        <div class="sj-scene" data-scene data-label="Timeline" data-flip="y">
+          <div class="sj-copy">
+            <p class="sj-k mono">Timeline</p>
+            <h2 class="sj-h">“How long does <span>it take?”</span></h2>
+            <p class="sj-p">It depends on the project. The timeline is written into your scope before we start, we move fast, and you get progress updates along the way.</p>
+          </div>
+          <div class="sj-visual" aria-hidden="true">
+            <div class="fj-road">
+              <svg viewBox="0 0 600 120" preserveAspectRatio="none"><path d="M20 60C150 10 200 110 300 60S450 10 580 60" data-sj="draw" data-dur="0.7"/></svg>
+              <div class="fj-stops" data-sj="rise" data-d="0.25"><span>Free call</span><span>Scope</span><span>Build</span><span class="live">Live</span></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="sj-scene" data-scene data-label="Ownership" data-flip="x">
+          <div class="sj-copy">
+            <p class="sj-k mono">Ownership</p>
+            <h2 class="sj-h">“Do I <span>own it?”</span></h2>
+            <p class="sj-p">It depends on the plan, and it’s written into your scope before we start.</p>
+          </div>
+          <div class="sj-visual fj-own" data-sj="flip" aria-hidden="true">
+            <div class="sj-tile"><div class="sj-tile-in"><div class="sj-face back"></div><div class="sj-face front"><em>One-time project</em><b>It’s yours.</b><span>Code, domain, and accounts in your name</span></div></div></div>
+            <div class="sj-tile"><div class="sj-tile-in"><div class="sj-face back"></div><div class="sj-face front"><em>Monthly plan</em><b>We run it.</b><span>We host and manage it for you</span></div></div></div>
+          </div>
+        </div>
+
+        <div class="sj-scene" data-scene data-label="Who you talk to" data-flip="-y">
+          <div class="sj-copy">
+            <p class="sj-k mono">Who you talk to</p>
+            <h2 class="sj-h">“Who will <span>I talk to?”</span></h2>
+            <p class="sj-p">Landon Williams, the founder, who is the person building your project. No account managers and no hand-offs.</p>
+          </div>
+          <div class="sj-visual" aria-hidden="true">
+            <div class="fj-person" data-sj="pop">
+              <span class="fj-av">LW</span>
+              <b>Landon Williams</b><em>Founder</em>
+              <ul class="fj-checks" data-sj="check" data-d="0.3"><li>Answers your calls and texts</li><li>Designs and builds your project</li><li>Supports it after launch</li></ul>
+            </div>
+          </div>
+        </div>
+
+        <div class="sj-scene" data-scene data-label="Anything else" data-flip="zoom">
+          <div class="sj-copy">
+            <p class="sj-k mono">Anything else?</p>
+            <h2 class="sj-h">Just <span>ask.</span></h2>
+            <p class="sj-p">Type any question below and get a straight answer, or browse every answer by topic.</p>
+          </div>
+          <div class="sj-visual" aria-hidden="true">
+            <div class="fj-chat" data-sj="rise">
+              <p class="me">Do you work with businesses outside Michigan?</p>
+              <p class="bot">Yes! We work remotely with businesses anywhere in the world.</p>
+              <p class="me">Can you fix an app someone else built?</p>
+              <p class="bot">Yes. We can review it, fix problems, and add features.</p>
+            </div>
+          </div>
+        </div>
+
+        <ol class="sj-progress" aria-hidden="true"></ol>
+      </div>
+    </section>
+
     <section class="ask ask-hero" id="ask" aria-labelledby="askTitle">
       <div class="container ask-wrap">
         <div class="ask-head">
           <p class="scene-eyebrow mono">Questions &amp; answers</p>
-          <h1 class="ask-title" id="askTitle">Ask us <span>anything.</span></h1>
+          <h2 class="ask-title" id="askTitle">Ask us <span>anything.</span></h2>
           <p class="pg-p">Type a question the way you'd ask it. Answers come straight from what we tell every client, and if we don't have one written down, you can ask us on a free call.</p>
           <div class="qa-ask"><p>Rather talk it through?</p><a class="btn btn-primary btn-sm" href="contact.html#book">Book a free call</a><a class="qa-mail" href="mailto:lwilliams24270@gmail.com">lwilliams24270@gmail.com</a></div>
         </div>
@@ -269,6 +351,7 @@
   </footer>
 
   <script type="module" src="/src/js/main.js"></script>
+  <script type="module" src="/src/js/flip-journey.js"></script>
   <script type="module" src="/src/js/ask.js"></script>
 </body>
 </html>

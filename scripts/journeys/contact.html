@@ -1,0 +1,67 @@
+    <!-- Contact: what happens after you reach out -->
+    <section class="sj" data-journey aria-label="What happens after you reach out">
+      <div class="sj-stage">
+        <div class="sj-bg" aria-hidden="true"><i class="sj-grid"></i><i class="sj-glow"></i></div>
+
+        <div class="sj-scene" data-scene data-label="You reach out">
+          <div class="sj-copy">
+            <p class="sj-k mono">What happens next · 1</p>
+            <h2 class="sj-h">You <span>reach out.</span></h2>
+            <p class="sj-p">Text, call, book a time, or send a message. Whatever’s easiest for you.</p>
+          </div>
+          <div class="sj-visual sj-tiles fj-ways" data-sj="flip" aria-hidden="true">
+            <div class="sj-tile"><div class="sj-tile-in"><div class="sj-face back"></div><div class="sj-face front"><b>💬</b><span>Text</span></div></div></div>
+            <div class="sj-tile"><div class="sj-tile-in"><div class="sj-face back"></div><div class="sj-face front"><b>📞</b><span>Call</span></div></div></div>
+            <div class="sj-tile"><div class="sj-tile-in"><div class="sj-face back"></div><div class="sj-face front"><b>📅</b><span>Book</span></div></div></div>
+            <div class="sj-tile"><div class="sj-tile-in"><div class="sj-face back"></div><div class="sj-face front"><b>✉</b><span>Message</span></div></div></div>
+          </div>
+        </div>
+
+        <div class="sj-scene" data-scene data-label="We reply" data-flip="y">
+          <div class="sj-copy">
+            <p class="sj-k mono">What happens next · 2</p>
+            <h2 class="sj-h">We reply within <span>24 hours.</span></h2>
+            <p class="sj-p">Landon gets back to you himself, usually much sooner.</p>
+          </div>
+          <div class="sj-visual" aria-hidden="true">
+            <div class="fj-clock">
+              <svg viewBox="0 0 200 200"><circle class="bg" cx="100" cy="100" r="86"/><circle class="fg" cx="100" cy="100" r="86" data-sj="draw" data-dur="0.8"/></svg>
+              <div class="fj-clock-in"><b data-sj="count" data-count="24">24</b><span>hours</span></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="sj-scene" data-scene data-label="Free call" data-flip="x">
+          <div class="sj-copy">
+            <p class="sj-k mono">What happens next · 3</p>
+            <h2 class="sj-h">A free <span>discovery call.</span></h2>
+            <p class="sj-p">We talk about your goals, your customers, and what you want to build. No cost, no obligation.</p>
+          </div>
+          <div class="sj-visual" aria-hidden="true">
+            <div class="fj-cal">
+              <div class="fj-cal-head"><b>Pick a day</b><span>Free · 30 min</span></div>
+              <div class="fj-cal-grid" data-sj="rise">${['Mon', 'Tue', 'Wed', 'Thu', 'Fri'].map((d, i) => `<span${i === 2 ? ' class="pick"' : ''}><small>${d}</small><b>${12 + i}</b></span>`).join('')}</div>
+              <span class="fj-stamp" data-sj="stamp" data-d="0.7">FREE</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="sj-scene" data-scene data-label="Your scope" data-flip="zoom">
+          <div class="sj-copy">
+            <p class="sj-k mono">What happens next · 4</p>
+            <h2 class="sj-h">Then a <span>written scope.</span></h2>
+            <p class="sj-p">Every feature, the timeline, the price, and the payment terms, in writing. Nothing starts until you approve it.</p>
+            <div class="sj-cta"><a class="btn btn-primary" href="#book">Book your free call</a></div>
+          </div>
+          <div class="sj-visual" aria-hidden="true">
+            <div class="fj-doc">
+              <b class="fj-doc-t">Scope of work</b>
+              <ul class="fj-checks" data-sj="check"><li>What we’ll build</li><li>The timeline</li><li>The price: one-time or monthly</li><li>Payment terms</li></ul>
+              <span class="fj-stamp" data-sj="stamp" data-d="0.6">NO SURPRISES</span>
+            </div>
+          </div>
+        </div>
+
+        <ol class="sj-progress" aria-hidden="true"></ol>
+      </div>
+    </section>
