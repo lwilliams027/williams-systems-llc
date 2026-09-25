@@ -267,3 +267,30 @@ body:has(.tour) main { padding-top: 0; }
   .tour-toast { width: auto; left: 12px; right: 12px; padding: 10px 12px; font-size: 12px; gap: 8px; }
   .tour-toast b { font-size: 13px; }
 }
+
+/* The display is a wide, landscape browser window, centred beside the captions. */
+@media (min-width: 900px) {
+  .tour-window {
+    top: calc(50% + var(--header-h) / 2); bottom: auto; transform: translateY(-50%);
+    left: max(38vw, 470px); right: var(--gutter);
+    height: auto; aspect-ratio: 16 / 10;
+    max-height: calc(100svh - var(--header-h) - 60px);
+  }
+  .tour-viewport { min-height: 0; }
+}
+@media (max-width: 899.98px) {
+  .tour-window { height: auto; aspect-ratio: 16 / 10.5; }
+}
+@media (max-width: 899.98px) {
+  .tour-serp { width: 230px; padding: 8px; bottom: 8px; right: 8px; top: auto; font-size: 11px; }
+  .tour-serp-q { padding: 4px 10px; font-size: 11px; }
+  .tour-serp-q svg { width: 13px; height: 13px; }
+  .tour-serp-r { margin-top: 6px; padding: 6px; gap: 1px; }
+  .tour-serp-r b { font-size: 12px; }
+  .tour-toast { top: 44px; left: auto; right: 8px; width: 230px; padding: 8px 10px; font-size: 11px; }
+  .tour-toast b { font-size: 12px; }
+}
+@media (max-width: 899.98px) {
+  /* captions sit right under the landscape window */
+  .tour-captions { top: calc(var(--header-h) + 12px + (100vw - 2 * var(--gutter)) * 10.5 / 16 + 28px); bottom: auto; }
+}

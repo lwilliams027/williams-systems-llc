@@ -32,7 +32,7 @@ function initTour() {
 
   // Where each stop sits in the sample site (design pixels), and how much room to leave around it.
   // The stops follow the captions, top to bottom of the sample page.
-  const PAD = { intro: 1, brand: 1.5, hero: 1, favs: 1, visit: 1.06, book: 1.1, footer: 1, site: 1.06 };
+  const PAD = { intro: 1, brand: 1.25, hero: 1.02, favs: 1.04, visit: 1.08, book: 1.1, footer: 1.04, site: 1.06 };
   const STOPS = caps.map((c) => {
     const n = c.dataset.stop;
     return { name: n, sel: n === 'site' || n === 'intro' ? null : `[data-stop="${n}"]`, pad: PAD[n] || 1.05 };
@@ -62,12 +62,13 @@ function initTour() {
       const scale = Math.min(f.w / (W.w * s.pad), f.h / (W.h * s.pad));
       return { cx: W.w / 2, cy: W.h / 2, z: Math.log(scale) };
     }
-    // Every other stop is the site as a browser shows it: always full width,
-    // scrolled so the section sits in view (the header stop is the top of the page).
-    const k = f.w / W.w, hh = f.h / (2 * k);
     const clampTo = (v, lo, hi) => (lo > hi ? (lo + hi) / 2 : Math.min(hi, Math.max(lo, v)));
-    const cy = s.name === 'intro' || s.name === 'brand' ? hh : r.y + Math.min(r.h, f.h / k) / 2;
-    return { cx: W.w / 2, cy: clampTo(cy, hh, W.h - hh), z: Math.log(k) };
+    // The opening stop is the page as a browser shows it: full width, from the top.
+    if (s.name === 'intro') { const k = f.w / W.w; return { cx: W.w / 2, cy: f.h / (2 * k), z: Math.log(k) }; }
+    // Every other stop zooms in on its part of the page, never past the page edges.
+    const scale = Math.max(f.w / W.w, Math.min(f.w / (r.w * s.pad), f.h / (r.h * s.pad), 2.2));
+    const hw = f.w / (2 * scale), hh = f.h / (2 * scale);
+    return { cx: clampTo(r.x + r.w / 2, hw, W.w - hw), cy: clampTo(r.y + r.h / 2, hh, W.h - hh), z: Math.log(scale) };
   };
 
   const cam = { cx: 0, cy: 0, z: 0 };
