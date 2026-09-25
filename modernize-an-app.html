@@ -28,6 +28,7 @@
   <link rel="stylesheet" href="/src/styles/pages.css" />
   <link rel="stylesheet" href="/src/styles/tour.css" />
   <link rel="stylesheet" href="/src/styles/product-worlds.css" />
+  <link rel="stylesheet" href="/src/styles/solution-worlds.css" />
   <script>document.documentElement.classList.add('js');</script>
 </head>
 <body class="page">
@@ -118,74 +119,62 @@
       <div class="tour-stage">
         <div class="tour-window" aria-hidden="true">
           <div class="tour-viewport">
-          <div class="tw-world w-app" id="tourWorld">
-            <div class="tw-chrome">
-              <span class="tw-dots"><i></i><i></i><i></i></span>
-              <span class="tw-url"><svg viewBox="0 0 16 16"><rect x="3.5" y="7" width="9" height="7" rx="1.5"/><path d="M5.5 7V5a2.5 2.5 0 0 1 5 0v2"/></svg>app.northwind-ops.com<b class="tw-live">Live</b></span>
-              <span class="tw-sample">Sample</span>
-            </div>
-            <div class="app-shell">
-              <aside class="app-side" data-stop="nav">
-                <div class="app-logo"><i></i>Northwind Ops</div>
-                <nav class="app-nav" data-anim="rise" data-delay="0.08"><span class="on">Dashboard</span><span>Orders</span><span>Customers</span><span>Inventory</span><span>Reports</span><span>Approvals</span><span>Settings</span></nav>
-                <div class="app-user"><i>MC</i><div><b>Maya Chen</b><small>Admin</small></div></div>
-              </aside>
-              <main class="app-main">
-                <div class="app-top"><span class="app-search">Search orders, customers…</span><span class="app-btn">+ New order</span></div>
-                <section class="app-kpis-wrap" data-stop="kpis">
-                  <div class="app-kpis">
-                    <div class="kpi"><small>Revenue this month</small><b data-anim="count" data-count="128430" data-prefix="$">$128,430</b><em class="up">+12.4%</em></div>
-                    <div class="kpi"><small>Open orders</small><b data-anim="count" data-count="342">342</b><em class="up">+18</em></div>
-                    <div class="kpi"><small>On-time delivery</small><b data-anim="count" data-count="98.2" data-dec="1" data-suffix="%">98.2%</b><em class="up">+1.1%</em></div>
-                    <div class="kpi"><small>Active customers</small><b data-anim="count" data-count="1284">1,284</b><em class="up">+64</em></div>
-                  </div>
-                  <div class="app-chart"><div class="app-chart-head"><b>Weekly revenue</b><span>Last 12 weeks</span></div>
-                    <div class="bars" data-anim="grow" data-delay="0.12"><i style="height:42%"></i><i style="height:55%"></i><i style="height:48%"></i><i style="height:61%"></i><i style="height:58%"></i><i style="height:66%"></i><i style="height:72%"></i><i style="height:69%"></i><i style="height:78%"></i><i style="height:84%"></i><i style="height:80%"></i><i style="height:92%"></i></div></div>
-                </section>
-                <section class="app-table" data-stop="table">
-                  <div class="app-table-head"><b>Recent orders</b><span>Exported to spreadsheet: never again</span></div>
-                  <div class="tr th"><span>Order</span><span>Customer</span><span>Amount</span><span>Status</span></div>
-                  <div data-anim="rise" data-delay="0.08">
-                    <div class="tr"><span>#4821</span><span>Harbor &amp; Bean</span><span>$1,240</span><span class="pill ok">Shipped</span></div>
-                    <div class="tr"><span>#4820</span><span>Blue Pine Dental</span><span>$860</span><span class="pill wait">Packing</span></div>
-                    <div class="tr"><span>#4819</span><span>Ridge Outfitters</span><span>$3,115</span><span class="pill ok">Shipped</span></div>
-                    <div class="tr"><span>#4818</span><span>Lakeside Studio</span><span>$420</span><span class="pill hold">Awaiting approval</span></div>
-                    <div class="tr"><span>#4817</span><span>Crest Auto</span><span>$2,390</span><span class="pill ok">Delivered</span></div>
-                  </div>
-                </section>
-                <div class="app-row">
-                  <section class="app-card" data-stop="roles">
-                    <b class="app-card-t">Team &amp; access</b>
-                    <div class="role"><i>MC</i><span>Maya Chen</span><span class="pill role">Owner</span></div>
-                    <div class="role"><i>JR</i><span>Jordan Reyes</span><span class="pill role">Manager</span></div>
-                    <div class="role"><i>SK</i><span>Sam Kim</span><span class="pill role">Staff</span></div>
-                    <ul class="checks" data-anim="check" data-delay="0.14"><li>Staff can view orders</li><li>Managers approve refunds</li><li>Only owners see payroll</li></ul>
-                  </section>
-                  <section class="app-card" data-stop="auto">
-                    <b class="app-card-t">Invoice approvals</b>
-                    <ul class="flow" data-anim="check" data-delay="0.1"><li>Invoice #4812 received</li><li>Matched to purchase order</li><li>Within budget</li><li>Approved automatically</li></ul>
-                  </section>
+          <div class="tw-world w-modern" id="tourWorld">
+            <div class="mo-split">
+              <section class="mo-old" data-stop="before">
+                <div class="mo-oldbar">Inventory Manager v2.3 — [Orders]<span>_ □ ✕</span></div>
+                <div class="mo-oldmenu"><span>File</span><span>Edit</span><span>Orders</span><span>Reports</span><span>Help</span></div>
+                <div class="mo-oldgrid">
+                  <div class="mo-oldrow h"><span>ID</span><span>CUST</span><span>AMT</span><span>STAT</span></div>
+                  <div class="mo-oldrow"><span>4821</span><span>HARBOR&amp;BEAN</span><span>1240.00</span><span>SHP</span></div>
+                  <div class="mo-oldrow"><span>4820</span><span>BLUEPINE</span><span>860.00</span><span>PCK</span></div>
+                  <div class="mo-oldrow err"><span>4819</span><span>RIDGE OUTF</span><span>#ERR</span><span>???</span></div>
+                  <div class="mo-oldrow"><span>4818</span><span>LAKESIDE</span><span>420.00</span><span>HLD</span></div>
                 </div>
-                <section class="app-card app-int" data-stop="connect">
-                  <b class="app-card-t">Integrations</b>
-                  <div class="ints" data-anim="rise" data-delay="0.08"><span><i>S</i>Stripe<em>Connected</em></span><span><i>Q</i>QuickBooks<em>Connected</em></span><span><i>G</i>Gmail<em>Connected</em></span><span><i>S</i>Slack<em>Connected</em></span><span><i>S</i>Salesforce<em>Connected</em></span><span><i>S</i>Shopify<em>Connected</em></span></div>
-                </section>
-              </main>
+                <div class="mo-olderr">⚠ Runtime error 1004: Object not found. Contact your administrator.</div>
+                <div class="mo-oldload">Loading… please wait <b>8.4 s</b></div>
+              </section>
+              <section class="mo-new" data-stop="after">
+                <div class="mo-newbar"><span class="mo-logo"><i></i>Inventory</span><span class="mo-search">Search orders…</span><span class="mo-avatar">JR</span></div>
+                <h4>Orders</h4>
+                <div class="mo-cards" data-anim="rise" data-delay="0.08">
+                  <div class="mo-card"><b>#4821</b><span>Harbor &amp; Bean</span><em>$1,240</em><span class="pill ok">Shipped</span></div>
+                  <div class="mo-card"><b>#4820</b><span>Blue Pine Dental</span><em>$860</em><span class="pill wait">Packing</span></div>
+                  <div class="mo-card"><b>#4819</b><span>Ridge Outfitters</span><em>$3,115</em><span class="pill ok">Shipped</span></div>
+                  <div class="mo-card"><b>#4818</b><span>Lakeside Studio</span><em>$420</em><span class="pill hold">On hold</span></div>
+                </div>
+              </section>
+            </div>
+            <div class="mo-row">
+              <section class="mo-panel mo-speed" data-stop="speed">
+                <b class="mo-t">Page load time</b>
+                <div class="mo-vs"><div><small>Before</small><b class="old">8.4 s</b></div><div class="mo-arrow">→</div><div><small>After</small><b class="new" data-anim="count" data-count="0.8" data-dec="1" data-suffix=" s">0.8 s</b></div></div>
+                <div class="mo-meter"><i class="old"></i><i class="new" data-anim="fill" data-delay="0.1" data-dur="0.3"></i></div>
+                <p>10× faster, same data, same workflows.</p>
+              </section>
+              <section class="mo-panel" data-stop="fixes">
+                <b class="mo-t">Clean-up list</b>
+                <ul class="checks big" data-anim="check" data-delay="0.08"><li>Crash on the Orders screen fixed</li><li>Outdated libraries updated</li><li>Sign-in moved to secure accounts</li><li>Automated tests added</li><li>Works on phones and tablets</li></ul>
+              </section>
+              <section class="mo-panel mo-phone-wrap" data-stop="mobile">
+                <div class="mo-phone"><span class="mo-notch"></span><b>Orders</b><div class="mo-mcard">#4821 · Harbor &amp; Bean<em>$1,240</em></div><div class="mo-mcard">#4820 · Blue Pine<em>$860</em></div><div class="mo-mcard">#4819 · Ridge Outfitters<em>$3,115</em></div><span class="mo-mbtn">+ New order</span></div>
+                <p>Now it works on the warehouse floor, too.</p>
+              </section>
             </div>
           </div>
           </div>
-          <div class="tour-toast tour-pop" data-at="auto" data-delay="0.5" aria-hidden="true"><span class="tour-toast-dot"></span><div><b>Invoice #4812 approved</b><span>Automatically, in 3 seconds · no email chain</span></div></div>
+          
         </div>
 
         <div class="tour-captions">
           <p class="scene-eyebrow mono"><a href="launch-a-new-product.html">Solutions</a> / Modernize an existing app</p>
           <ol class="tour-caps">
             <li class="tour-cap tour-intro" data-stop="intro"><h1 class="tour-h1" id="pageTitle">Software you already have, <span>worth keeping.</span></h1><p>Slow, fragile, or written by someone who left years ago. We take it on, make it solid, and hand it back faster than it has been in years.</p><div class="tour-actions"><a class="btn btn-primary" href="schedule.html">Get started</a><span class="tour-hint mono">Scroll to take the tour ↓</span></div></li>
-            <li class="tour-cap" data-stop="nav" data-pad="1.1"><p class="tour-cap-k">Cleaner</p><h3>A modern look people like.</h3><p>A refreshed design and clearer layout, without losing the workflows people rely on.</p></li>
-            <li class="tour-cap" data-stop="kpis" data-pad="1.04"><p class="tour-cap-k">Faster</p><h3>Loads in a blink.</h3><p>We find what’s slowing it down and fix it, so your app feels new again.</p></li>
-            <li class="tour-cap" data-stop="table" data-pad="1.04"><p class="tour-cap-k">Fixed</p><h3>The bugs, finally gone.</h3><p>We review the code, fix what’s broken, and add tests so it stays fixed.</p></li>
-            <li class="tour-cap" data-stop="roles" data-pad="1.1"><p class="tour-cap-k">Safer</p><h3>Up-to-date security.</h3><p>Old dependencies updated, sign-in hardened, and access set by role.</p></li>
-            <li class="tour-cap" data-stop="connect" data-pad="1.06"><p class="tour-cap-k">Connected</p><h3>Works with your newer tools.</h3><p>Integrations with the tools you use today, replacing manual exports.</p></li>
+            <li class="tour-cap" data-stop="before" data-pad="1.08"><p class="tour-cap-k">Before</p><h3>Slow, dated, and breaking.</h3><p>Old screens, cryptic errors, and pages that take seconds to load. Your team works around it every day.</p></li>
+            <li class="tour-cap" data-stop="after" data-pad="1.08"><p class="tour-cap-k">After</p><h3>The same app, rebuilt modern.</h3><p>A clean, fast design with the same data and workflows your team already knows.</p></li>
+            <li class="tour-cap" data-stop="speed" data-pad="1.12"><p class="tour-cap-k">Faster</p><h3>10× quicker pages.</h3><p>We find what slows it down and fix it, so waiting on the app is a thing of the past.</p></li>
+            <li class="tour-cap" data-stop="fixes" data-pad="1.1"><p class="tour-cap-k">Fixed and safer</p><h3>Bugs gone, security current.</h3><p>Crashes fixed, old libraries updated, secure sign-in, and tests so it stays fixed.</p></li>
+            <li class="tour-cap" data-stop="mobile" data-pad="1.12"><p class="tour-cap-k">Anywhere</p><h3>Works on every screen.</h3><p>The modernized app works on phones and tablets, not just the office PC.</p></li>
             <li class="tour-cap" data-stop="site" data-pad="1.04"><p class="tour-cap-k">Relaunch</p><h3>Your app, <span>like new.</span></h3><p>Reviewed, fixed, and modernized by one team, without starting over.</p></li>
           </ol>
           <ul class="tour-dots" aria-hidden="true"><li></li><li></li><li></li><li></li><li></li><li></li><li></li></ul>

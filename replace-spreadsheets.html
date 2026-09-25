@@ -28,6 +28,7 @@
   <link rel="stylesheet" href="/src/styles/pages.css" />
   <link rel="stylesheet" href="/src/styles/tour.css" />
   <link rel="stylesheet" href="/src/styles/product-worlds.css" />
+  <link rel="stylesheet" href="/src/styles/solution-worlds.css" />
   <script>document.documentElement.classList.add('js');</script>
 </head>
 <body class="page">
@@ -118,74 +119,71 @@
       <div class="tour-stage">
         <div class="tour-window" aria-hidden="true">
           <div class="tour-viewport">
-          <div class="tw-world w-app" id="tourWorld">
-            <div class="tw-chrome">
-              <span class="tw-dots"><i></i><i></i><i></i></span>
-              <span class="tw-url"><svg viewBox="0 0 16 16"><rect x="3.5" y="7" width="9" height="7" rx="1.5"/><path d="M5.5 7V5a2.5 2.5 0 0 1 5 0v2"/></svg>app.northwind-ops.com<b class="tw-live">Live</b></span>
-              <span class="tw-sample">Sample</span>
-            </div>
-            <div class="app-shell">
-              <aside class="app-side" data-stop="nav">
-                <div class="app-logo"><i></i>Northwind Ops</div>
-                <nav class="app-nav" data-anim="rise" data-delay="0.08"><span class="on">Dashboard</span><span>Orders</span><span>Customers</span><span>Inventory</span><span>Reports</span><span>Approvals</span><span>Settings</span></nav>
-                <div class="app-user"><i>MC</i><div><b>Maya Chen</b><small>Admin</small></div></div>
-              </aside>
-              <main class="app-main">
-                <div class="app-top"><span class="app-search">Search orders, customers…</span><span class="app-btn">+ New order</span></div>
-                <section class="app-kpis-wrap" data-stop="kpis">
-                  <div class="app-kpis">
-                    <div class="kpi"><small>Revenue this month</small><b data-anim="count" data-count="128430" data-prefix="$">$128,430</b><em class="up">+12.4%</em></div>
-                    <div class="kpi"><small>Open orders</small><b data-anim="count" data-count="342">342</b><em class="up">+18</em></div>
-                    <div class="kpi"><small>On-time delivery</small><b data-anim="count" data-count="98.2" data-dec="1" data-suffix="%">98.2%</b><em class="up">+1.1%</em></div>
-                    <div class="kpi"><small>Active customers</small><b data-anim="count" data-count="1284">1,284</b><em class="up">+64</em></div>
-                  </div>
-                  <div class="app-chart"><div class="app-chart-head"><b>Weekly revenue</b><span>Last 12 weeks</span></div>
-                    <div class="bars" data-anim="grow" data-delay="0.12"><i style="height:42%"></i><i style="height:55%"></i><i style="height:48%"></i><i style="height:61%"></i><i style="height:58%"></i><i style="height:66%"></i><i style="height:72%"></i><i style="height:69%"></i><i style="height:78%"></i><i style="height:84%"></i><i style="height:80%"></i><i style="height:92%"></i></div></div>
-                </section>
-                <section class="app-table" data-stop="table">
-                  <div class="app-table-head"><b>Recent orders</b><span>Exported to spreadsheet: never again</span></div>
-                  <div class="tr th"><span>Order</span><span>Customer</span><span>Amount</span><span>Status</span></div>
-                  <div data-anim="rise" data-delay="0.08">
-                    <div class="tr"><span>#4821</span><span>Harbor &amp; Bean</span><span>$1,240</span><span class="pill ok">Shipped</span></div>
-                    <div class="tr"><span>#4820</span><span>Blue Pine Dental</span><span>$860</span><span class="pill wait">Packing</span></div>
-                    <div class="tr"><span>#4819</span><span>Ridge Outfitters</span><span>$3,115</span><span class="pill ok">Shipped</span></div>
-                    <div class="tr"><span>#4818</span><span>Lakeside Studio</span><span>$420</span><span class="pill hold">Awaiting approval</span></div>
-                    <div class="tr"><span>#4817</span><span>Crest Auto</span><span>$2,390</span><span class="pill ok">Delivered</span></div>
-                  </div>
-                </section>
-                <div class="app-row">
-                  <section class="app-card" data-stop="roles">
-                    <b class="app-card-t">Team &amp; access</b>
-                    <div class="role"><i>MC</i><span>Maya Chen</span><span class="pill role">Owner</span></div>
-                    <div class="role"><i>JR</i><span>Jordan Reyes</span><span class="pill role">Manager</span></div>
-                    <div class="role"><i>SK</i><span>Sam Kim</span><span class="pill role">Staff</span></div>
-                    <ul class="checks" data-anim="check" data-delay="0.14"><li>Staff can view orders</li><li>Managers approve refunds</li><li>Only owners see payroll</li></ul>
-                  </section>
-                  <section class="app-card" data-stop="auto">
-                    <b class="app-card-t">Invoice approvals</b>
-                    <ul class="flow" data-anim="check" data-delay="0.1"><li>Invoice #4812 received</li><li>Matched to purchase order</li><li>Within budget</li><li>Approved automatically</li></ul>
-                  </section>
+          <div class="tw-world w-sheet" id="tourWorld">
+            <section class="sh-xls" data-stop="sheet">
+              <div class="sh-xbar"><span class="sh-xicon">X</span>Jobs_FINAL_v3_REAL (2).xlsx<span class="sh-warn">3 people are editing · conflicts</span></div>
+              <div class="sh-grid">
+                <div class="sh-r h"><span></span><span>A</span><span>B</span><span>C</span><span>D</span><span>E</span></div>
+                <div class="sh-r"><span>1</span><span>Job</span><span>Client</span><span>Crew</span><span>Date</span><span>Price</span></div>
+                <div class="sh-r"><span>2</span><span>Deep clean</span><span>Harbor &amp; Bean</span><span>Crew 2</span><span>5/12</span><span>$340</span></div>
+                <div class="sh-r"><span>3</span><span>Windows</span><span>Blue Pine Dental</span><span class="bad">??</span><span>5/12</span><span class="bad">#REF!</span></div>
+                <div class="sh-r"><span>4</span><span>Carpet</span><span>Ridge Outfitters</span><span>Crew 1</span><span class="bad">5/31/12</span><span>$520</span></div>
+                <div class="sh-r"><span>5</span><span>Deep clean</span><span>harbor and bean</span><span>Crew 2</span><span>5/12</span><span class="bad">#VALUE!</span></div>
+              </div>
+              <div class="sh-tabs"><span>Jobs</span><span>Jobs (old)</span><span>DON'T TOUCH</span><span>Prices 2024</span><span>Sheet7</span></div>
+            </section>
+            <section class="sh-app" data-stop="jobs">
+              <div class="sh-abar"><span class="sh-logo"><i></i>Brightway Jobs</span><span class="sh-week">Week of May 12</span><span class="sh-new">+ New job</span></div>
+              <div class="sh-days">
+                <small>Mon</small><small>Tue</small><small>Wed</small><small>Thu</small><small>Fri</small>
+              </div>
+              <div class="sh-cal" data-anim="rise" data-delay="0.08">
+                <div class="sh-job c1" style="grid-column:1"><b>Deep clean</b><span>Harbor &amp; Bean · Crew 2</span></div>
+                <div class="sh-job c2" style="grid-column:1"><b>Windows</b><span>Blue Pine Dental · Crew 3</span></div>
+                <div class="sh-job c3" style="grid-column:2"><b>Carpet</b><span>Ridge Outfitters · Crew 1</span></div>
+                <div class="sh-job c1" style="grid-column:3"><b>Office clean</b><span>Crest Auto · Crew 2</span></div>
+                <div class="sh-job c2" style="grid-column:4"><b>Move-out</b><span>Lakeside Studio · Crew 1</span></div>
+                <div class="sh-job c3" style="grid-column:5"><b>Deep clean</b><span>Harbor &amp; Bean · Crew 3</span></div>
+              </div>
+            </section>
+            <div class="sh-row">
+              <section class="sh-card sh-field" data-stop="field">
+                <div class="sh-phone"><span class="sh-notch"></span><b>Job done: Deep clean</b><small>Harbor &amp; Bean</small>
+                  <label>Hours<span class="sh-f" data-anim="type" data-fill="3.5"></span></label>
+                  <label>Notes<span class="sh-f" data-anim="type" data-fill="Back room done, needs supplies"></span></label>
+                  <div class="sh-photo">📷 2 photos</div>
+                  <span class="sh-btn" data-anim="press" data-delay="0.36">Submit</span></div>
+                <p>Crews log jobs from their phones. Nothing retyped that evening.</p>
+              </section>
+              <section class="sh-card" data-stop="report">
+                <b class="sh-t">This week</b>
+                <div class="sh-stats"><div><small>Jobs done</small><b data-anim="count" data-count="48">48</b></div><div><small>Revenue</small><b data-anim="count" data-count="16320" data-prefix="$">$16,320</b></div></div>
+                <div class="bars sh-bars" data-anim="grow" data-delay="0.1"><i style="height:60%"></i><i style="height:78%"></i><i style="height:70%"></i><i style="height:92%"></i><i style="height:84%"></i></div>
+                <div class="sh-days small"><small>Mon</small><small>Tue</small><small>Wed</small><small>Thu</small><small>Fri</small></div>
+              </section>
+              <section class="sh-card" data-stop="history">
+                <b class="sh-t">Change history</b>
+                <div class="sh-log" data-anim="rise" data-delay="0.08">
+                  <p><i>MR</i><span><b>Maria</b> changed the price of Carpet · Ridge Outfitters from $480 to $520</span><em>2 min ago</em></p>
+                  <p><i>DJ</i><span><b>Dev</b> moved Windows · Blue Pine to Crew 3</span><em>1 hour ago</em></p>
+                  <p><i>AL</i><span><b>Alex</b> added Move-out · Lakeside Studio</span><em>Yesterday</em></p>
                 </div>
-                <section class="app-card app-int" data-stop="connect">
-                  <b class="app-card-t">Integrations</b>
-                  <div class="ints" data-anim="rise" data-delay="0.08"><span><i>S</i>Stripe<em>Connected</em></span><span><i>Q</i>QuickBooks<em>Connected</em></span><span><i>G</i>Gmail<em>Connected</em></span><span><i>S</i>Slack<em>Connected</em></span><span><i>S</i>Salesforce<em>Connected</em></span><span><i>S</i>Shopify<em>Connected</em></span></div>
-                </section>
-              </main>
+              </section>
             </div>
           </div>
           </div>
-          <div class="tour-toast tour-pop" data-at="auto" data-delay="0.5" aria-hidden="true"><span class="tour-toast-dot"></span><div><b>Invoice #4812 approved</b><span>Automatically, in 3 seconds · no email chain</span></div></div>
+          <div class="tour-toast tour-pop" data-at="field" data-delay="0.46" aria-hidden="true"><span class="tour-toast-dot"></span><div><b>Job marked done</b><span>Deep clean · Harbor &amp; Bean · invoice ready</span></div></div>
         </div>
 
         <div class="tour-captions">
           <p class="scene-eyebrow mono"><a href="launch-a-new-product.html">Solutions</a> / Replace spreadsheets</p>
           <ol class="tour-caps">
             <li class="tour-cap tour-intro" data-stop="intro"><h1 class="tour-h1" id="pageTitle">The spreadsheet got you here. <span>It will not get you further.</span></h1><p>Custom software built around the way you already work, so the thing everyone depends on stops being a file somebody could delete.</p><div class="tour-actions"><a class="btn btn-primary" href="schedule.html">Get started</a><span class="tour-hint mono">Scroll to take the tour ↓</span></div></li>
-            <li class="tour-cap" data-stop="nav" data-pad="1.1"><p class="tour-cap-k">One place</p><h3>Every tab becomes a screen.</h3><p>Orders, customers, and stock in one app instead of twelve tabs.</p></li>
-            <li class="tour-cap" data-stop="kpis" data-pad="1.04"><p class="tour-cap-k">Reports without the rebuild</p><h3>Your weekly numbers, ready.</h3><p>The report you rebuild every Monday updates itself.</p></li>
-            <li class="tour-cap" data-stop="table" data-pad="1.04"><p class="tour-cap-k">Everyone at once</p><h3>No more final-v3-REAL.</h3><p>The whole team works in the same data at the same time, always current.</p></li>
-            <li class="tour-cap" data-stop="roles" data-pad="1.1"><p class="tour-cap-k">Permissions</p><h3>People see what they should.</h3><p>Access by role, and a record of who changed what.</p></li>
-            <li class="tour-cap" data-stop="auto" data-pad="1.1"><p class="tour-cap-k">Rules that hold</p><h3>Steps that run themselves.</h3><p>Checks and approvals happen automatically, so nothing gets missed.</p></li>
+            <li class="tour-cap" data-stop="sheet" data-pad="1.05"><p class="tour-cap-k">Today</p><h3>The file everyone fears.</h3><p>Five tabs, broken formulas, and three people overwriting each other. Sound familiar?</p></li>
+            <li class="tour-cap" data-stop="jobs" data-pad="1.05"><p class="tour-cap-k">Tomorrow</p><h3>Every job in one place.</h3><p>The spreadsheet becomes a real schedule the whole team sees, always up to date.</p></li>
+            <li class="tour-cap" data-stop="field" data-pad="1.12"><p class="tour-cap-k">From the field</p><h3>No more retyping.</h3><p>Crews log work from their phones, and the office sees it instantly.</p></li>
+            <li class="tour-cap" data-stop="report" data-pad="1.12"><p class="tour-cap-k">Reports</p><h3>Your weekly numbers, ready.</h3><p>Jobs and revenue add themselves up, instead of being rebuilt every Monday.</p></li>
+            <li class="tour-cap" data-stop="history" data-pad="1.1"><p class="tour-cap-k">Every change recorded</p><h3>Know who changed what.</h3><p>A clear history of every edit, so a wrong number always has an explanation.</p></li>
             <li class="tour-cap" data-stop="site" data-pad="1.04"><p class="tour-cap-k">Switch over</p><h3>Your spreadsheet, <span>retired.</span></h3><p>Your data is brought across and checked with you before you switch.</p></li>
           </ol>
           <ul class="tour-dots" aria-hidden="true"><li></li><li></li><li></li><li></li><li></li><li></li><li></li></ul>

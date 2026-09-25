@@ -28,6 +28,7 @@
   <link rel="stylesheet" href="/src/styles/pages.css" />
   <link rel="stylesheet" href="/src/styles/tour.css" />
   <link rel="stylesheet" href="/src/styles/product-worlds.css" />
+  <link rel="stylesheet" href="/src/styles/solution-worlds.css" />
   <script>document.documentElement.classList.add('js');</script>
 </head>
 <body class="page">
@@ -118,61 +119,61 @@
       <div class="tour-stage">
         <div class="tour-window" aria-hidden="true">
           <div class="tour-viewport">
-          <div class="tw-world w-cloud" id="tourWorld">
+          <div class="tw-world w-migrate" id="tourWorld">
             <div class="tw-chrome">
               <span class="tw-dots"><i></i><i></i><i></i></span>
-              <span class="tw-url"><svg viewBox="0 0 16 16"><rect x="3.5" y="7" width="9" height="7" rx="1.5"/><path d="M5.5 7V5a2.5 2.5 0 0 1 5 0v2"/></svg>console.yourcompany.cloud<b class="tw-live">Live</b></span>
-              <span class="tw-sample">Sample console</span>
+              <span class="tw-url"><svg viewBox="0 0 16 16"><rect x="3.5" y="7" width="9" height="7" rx="1.5"/><path d="M5.5 7V5a2.5 2.5 0 0 1 5 0v2"/></svg>migration.yourcompany.com<b class="tw-live">Live</b></span>
+              <span class="tw-sample">Sample plan</span>
             </div>
-            <div class="c-top"><span class="c-logo"><i></i>Cloud console</span><span class="c-env">production</span><span class="c-ok">All systems normal</span></div>
-            <section class="c-card c-pipe" data-stop="deploy">
-              <div class="c-head"><b>Deployments</b><span>main · commit 8f2c1a “Add booking page”</span></div>
-              <ol class="c-steps" data-anim="check" data-delay="0.08"><li>Commit</li><li>Build</li><li>Tests (214 passed)</li><li>Security scan</li><li>Deploy</li></ol>
-              <p class="c-note" data-anim="pop" data-delay="0.5">Live in 2m 14s · zero downtime</p>
-            </section>
-            <div class="c-row">
-              <section class="c-card c-mon" data-stop="monitor">
-                <div class="c-head"><b>Monitoring</b><span>last 24 hours</span></div>
-                <div class="c-stats"><div><small>Uptime</small><b data-anim="count" data-count="99.99" data-dec="2" data-suffix="%">99.99%</b></div><div><small>Avg response</small><b data-anim="count" data-count="182" data-suffix=" ms">182 ms</b></div><div><small>Errors</small><b data-anim="count" data-count="0">0</b></div></div>
-                <div class="bars c-bars" data-anim="grow" data-delay="0.12"><i style="height:40%"></i><i style="height:44%"></i><i style="height:38%"></i><i style="height:52%"></i><i style="height:48%"></i><i style="height:60%"></i><i style="height:55%"></i><i style="height:47%"></i><i style="height:42%"></i><i style="height:50%"></i><i style="height:58%"></i><i style="height:62%"></i><i style="height:57%"></i><i style="height:49%"></i><i style="height:45%"></i><i style="height:53%"></i><i style="height:61%"></i><i style="height:66%"></i><i style="height:59%"></i><i style="height:51%"></i></div>
+            <div class="mg-hero" data-stop="map">
+              <div class="mg-box old"><span class="mg-ico">🖥️</span><b>Office server</b><small>Closet, 7 years old</small></div>
+              <div class="mg-path"><span class="mg-dot d1"></span><span class="mg-dot d2"></span><span class="mg-dot d3"></span></div>
+              <div class="mg-box new"><span class="mg-ico">☁️</span><b>Your cloud account</b><small>Backed up, monitored, scalable</small></div>
+            </div>
+            <div class="mg-row">
+              <section class="mg-card" data-stop="plan">
+                <b class="mg-t">Migration plan</b>
+                <ol class="checks big" data-anim="check" data-delay="0.08"><li>Inventory everything on the old server</li><li>Set up the new cloud account</li><li>Copy and verify the data</li><li>Test with your team</li><li>Switch over on Sunday night</li></ol>
               </section>
-              <section class="c-card c-back" data-stop="backups">
-                <div class="c-head"><b>Backups</b><span>nightly · kept 30 days</span></div>
-                <div data-anim="rise" data-delay="0.08">
-                  <div class="c-line"><span>Database · today 2:00 AM</span><span class="pill ok">Verified</span></div>
-                  <div class="c-line"><span>Files · today 2:05 AM</span><span class="pill ok">Verified</span></div>
-                  <div class="c-line"><span>Database · yesterday</span><span class="pill ok">Verified</span></div>
-                  <div class="c-line"><span>Restore drill · Sunday</span><span class="pill ok">Passed</span></div>
+              <section class="mg-card mg-xfer" data-stop="transfer">
+                <b class="mg-t">Copying your data</b>
+                <b class="mg-pct" data-anim="count" data-count="100" data-suffix="%">100%</b>
+                <div class="mg-prog"><i data-anim="fill" data-delay="0.06" data-dur="0.45"></i></div>
+                <div class="mg-files"><span>Database · 180 GB</span><span>Files · 2.2 TB</span><span>Email archive · 40 GB</span></div>
+                <p class="mg-verified" data-anim="pop" data-delay="0.55">✓ Every file checked against the original</p>
+              </section>
+            </div>
+            <div class="mg-row">
+              <section class="mg-card" data-stop="switch">
+                <b class="mg-t">Switch-over night</b>
+                <div class="mg-timeline" data-anim="rise" data-delay="0.08">
+                  <p><em>11:00 PM</em>Final copy started</p><p><em>11:40 PM</em>New servers checked</p><p><em>11:52 PM</em>Traffic moved to the cloud</p><p><em>12:05 AM</em>Everything confirmed working</p>
                 </div>
+                <div class="mg-down">Downtime: <b>0 minutes</b></div>
               </section>
-            </div>
-            <div class="c-row">
-              <section class="c-card" data-stop="secure">
-                <div class="c-head"><b>Security</b><span>checked daily</span></div>
-                <ul class="checks big dark" data-anim="check" data-delay="0.08"><li>TLS on every endpoint</li><li>Two-factor sign-in for all admins</li><li>Secrets in a vault, not in code</li><li>Systems patched this week</li><li>Firewall and least-privilege access</li></ul>
-              </section>
-              <section class="c-card c-cost" data-stop="cost">
-                <div class="c-head"><b>Monthly cost</b><span>right-sized</span></div>
-                <b class="c-big" data-anim="count" data-count="412" data-prefix="$">$412</b><span class="c-down">38% less than last quarter</span>
-                <div class="c-usage"><span>Servers</span><i style="--w:62%"></i><span>Database</span><i style="--w:48%"></i><span>Storage</span><i style="--w:30%"></i></div>
+              <section class="mg-card mg-save" data-stop="savings">
+                <b class="mg-t">After the move</b>
+                <div class="mg-cmp"><div><small>Old server costs</small><b class="old">$1,150/mo</b></div><div><small>Cloud costs</small><b data-anim="count" data-count="640" data-prefix="$" data-suffix="/mo">$640/mo</b></div></div>
+                <div class="mg-ups"><span>✓ Nightly backups</span><span>✓ 24/7 monitoring</span><span>✓ Scales when you grow</span></div>
               </section>
             </div>
           </div>
           </div>
-          <div class="tour-toast tour-pop" data-at="monitor" data-delay="0.45" aria-hidden="true"><span class="tour-toast-dot"></span><div><b>Alert resolved automatically</b><span>Traffic spike handled · extra server added for 12 minutes</span></div></div>
+          <div class="tour-toast tour-pop" data-at="switch" data-delay="0.45" aria-hidden="true"><span class="tour-toast-dot"></span><div><b>Migration complete</b><span>You're running in the cloud · zero downtime</span></div></div>
         </div>
 
         <div class="tour-captions">
           <p class="scene-eyebrow mono"><a href="launch-a-new-product.html">Solutions</a> / Move to the cloud</p>
           <ol class="tour-caps">
             <li class="tour-cap tour-intro" data-stop="intro"><h1 class="tour-h1" id="pageTitle">Off the old server, <span>without the drama.</span></h1><p>Planned, rehearsed, and switched over with as little downtime as we can manage, into cloud accounts with your name on them.</p><div class="tour-actions"><a class="btn btn-primary" href="schedule.html">Get started</a><span class="tour-hint mono">Scroll to take the tour ↓</span></div></li>
-            <li class="tour-cap" data-stop="deploy" data-pad="1.06"><p class="tour-cap-k">Smooth move</p><h3>Moved without the downtime.</h3><p>We plan the migration and switch over with as little disruption as possible.</p></li>
-            <li class="tour-cap" data-stop="monitor" data-pad="1.08"><p class="tour-cap-k">Reliable</p><h3>Fast and always on.</h3><p>Uptime and speed watched around the clock once you’re moved.</p></li>
-            <li class="tour-cap" data-stop="backups" data-pad="1.08"><p class="tour-cap-k">Protected</p><h3>Your data, safe.</h3><p>Automatic, verified backups in accounts you own.</p></li>
-            <li class="tour-cap" data-stop="cost" data-pad="1.1"><p class="tour-cap-k">Right-sized</p><h3>Often a smaller bill.</h3><p>Servers and storage sized to what you actually use.</p></li>
+            <li class="tour-cap" data-stop="map" data-pad="1.06"><p class="tour-cap-k">The move</p><h3>From the closet to the cloud.</h3><p>Your old office server moves into a cloud account you own, backed up and monitored.</p></li>
+            <li class="tour-cap" data-stop="plan" data-pad="1.1"><p class="tour-cap-k">A clear plan</p><h3>Every step agreed first.</h3><p>You know exactly what moves, when, and how it’s tested before anything changes.</p></li>
+            <li class="tour-cap" data-stop="transfer" data-pad="1.1"><p class="tour-cap-k">Safe copy</p><h3>Every file, checked.</h3><p>Your data is copied and verified against the original, so nothing gets lost.</p></li>
+            <li class="tour-cap" data-stop="switch" data-pad="1.1"><p class="tour-cap-k">Switch-over</p><h3>Zero downtime.</h3><p>We switch over overnight, so your team arrives Monday to a faster system.</p></li>
+            <li class="tour-cap" data-stop="savings" data-pad="1.1"><p class="tour-cap-k">After</p><h3>Often a smaller bill.</h3><p>Cloud costs sized to what you use, with backups and monitoring included.</p></li>
             <li class="tour-cap" data-stop="site" data-pad="1.04"><p class="tour-cap-k">Moved</p><h3>In the cloud, <span>for good.</span></h3><p>Migrated, set up, and supported by one team.</p></li>
           </ol>
-          <ul class="tour-dots" aria-hidden="true"><li></li><li></li><li></li><li></li><li></li><li></li></ul>
+          <ul class="tour-dots" aria-hidden="true"><li></li><li></li><li></li><li></li><li></li><li></li><li></li></ul>
         </div>
       </div>
     </section>

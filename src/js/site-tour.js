@@ -13,6 +13,7 @@
      rise   its children rise into place one after another
      grow   its children grow up from the bottom (chart bars)
      pop    it pops in
+     fill   it fills left to right (progress bars; data-dur sets how long)
      type   its text types out (from data-fill)
      count  counts up to data-count (data-prefix / data-suffix / data-dec)
      check  its children get ticked one after another (.done)
@@ -135,6 +136,8 @@ function initTour() {
       tl.fromTo(el.children, { y: 40, opacity: 0 }, { y: 0, opacity: 1, duration: 0.22, stagger: 0.06, ease: 'power3.out', ...IR }, at);
     } else if (kind === 'grow') {
       tl.fromTo(el.children, { scaleY: 0, transformOrigin: '50% 100%' }, { scaleY: 1, duration: 0.3, stagger: 0.03, ease: 'power3.out', ...IR }, at);
+    } else if (kind === 'fill') {
+      tl.fromTo(el, { scaleX: 0, transformOrigin: '0% 50%' }, { scaleX: 1, duration: parseFloat(el.dataset.dur) || 0.4, ease: 'power1.inOut', ...IR }, at);
     } else if (kind === 'pop') {
       tl.fromTo(el, { scale: 0.6, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.14, ease: 'back.out(2.2)' }, at);   // hidden until its moment
     } else if (kind === 'type') {

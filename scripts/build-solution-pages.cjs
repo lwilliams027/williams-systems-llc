@@ -1,9 +1,14 @@
 /* Rebuild the six Solutions pages in the product-page shape: a scroll tour of a
    sample product, "How it works", and the Q&A cards. Each page keeps its own
-   <head>, headline, intro line, FAQ answers and footer. Five pages reuse the
-   product-page samples with their own captions; Ongoing support has its own.
-   Usage: node scripts/build-solution-pages.cjs */
-const { PAGES, chrome, cap, pill, assemble } = require('./build-product-pages.cjs');
+   <head>, headline, intro line, FAQ answers and footer, and each has its own
+   sample product (scripts/solution-worlds.cjs, styles in
+   src/styles/solution-worlds.css and product-worlds.css).
+   Usage: node scripts/build-solution-pages.cjs
+   (Run it on the original generated pages; converted pages are skipped.) */
+const fs = require('fs');
+const path = require('path');
+const { chrome, cap, pill, assemble } = require('./build-product-pages.cjs');
+const W = require('./solution-worlds.cjs');
 
 const support = {
   world: 'w-support',
@@ -50,46 +55,47 @@ const support = {
 };
 
 const S = {
-  'launch-a-new-product': { from: PAGES.saas, caps: [
-    cap('plans', 'Ready to sell', 'Charging from day one.', 'Sign-up, plans, and payments built in, so your first customers can pay.', 1.04),
-    cap('signup', 'Real accounts', 'People can sign up today.', 'Secure sign-up and sign-in from the first release, not bolted on later.', 1.1),
-    cap('onboard', 'First impressions', 'New users get it fast.', 'Onboarding that walks every new user to the moment your product makes sense.', 1.1),
-    cap('metrics', 'Learn as you go', 'See what’s working.', 'Numbers on sign-ups and usage from launch day, so the next version is based on facts.', 1.04),
-    cap('admin', 'Room to grow', 'Built past launch.', 'An admin panel and a solid foundation, so version two is an upgrade, not a rewrite.', 1.08),
-    cap('site', 'Launch', 'Your product, <span>live.</span>', 'From idea to real users, built by one team.', 1.04),
+  'launch-a-new-product': { from: W.launch, caps: [
+    cap('landing', 'Start with interest', 'A waitlist before launch.', 'A landing page that explains the idea and collects sign-ups, so you launch to people already waiting.', 1.05),
+    cap('mvp', 'Focused first version', 'Ship the part that matters.', 'We help you pick the few features that prove the idea, and build those well.', 1.1),
+    cap('launchday', 'Launch day', 'Real users, real numbers.', 'Sign-ups, paying customers, and ratings you can see from the first hour.', 1.1),
+    cap('feedback', 'Learn fast', 'Hear what users want next.', 'Early feedback shapes version two, so you build what people actually ask for.', 1.05),
+    cap('site', 'Launch', 'Your idea, <span>live.</span>', 'From first sketch to real users, built by one team.', 1.04),
   ], meet: 'A quick call about your idea, who it’s for, and what the first version has to do.', design: 'We design the screens with you and agree the smallest version that proves the idea.' },
 
-  'modernize-an-app': { from: PAGES['web-apps'], caps: [
-    cap('nav', 'Cleaner', 'A modern look people like.', 'A refreshed design and clearer layout, without losing the workflows people rely on.', 1.1),
-    cap('kpis', 'Faster', 'Loads in a blink.', 'We find what’s slowing it down and fix it, so your app feels new again.', 1.04),
-    cap('table', 'Fixed', 'The bugs, finally gone.', 'We review the code, fix what’s broken, and add tests so it stays fixed.', 1.04),
-    cap('roles', 'Safer', 'Up-to-date security.', 'Old dependencies updated, sign-in hardened, and access set by role.', 1.1),
-    cap('connect', 'Connected', 'Works with your newer tools.', 'Integrations with the tools you use today, replacing manual exports.', 1.06),
+  'modernize-an-app': { from: W.modern, caps: [
+    cap('before', 'Before', 'Slow, dated, and breaking.', 'Old screens, cryptic errors, and pages that take seconds to load. Your team works around it every day.', 1.08),
+    cap('after', 'After', 'The same app, rebuilt modern.', 'A clean, fast design with the same data and workflows your team already knows.', 1.08),
+    cap('speed', 'Faster', '10× quicker pages.', 'We find what slows it down and fix it, so waiting on the app is a thing of the past.', 1.12),
+    cap('fixes', 'Fixed and safer', 'Bugs gone, security current.', 'Crashes fixed, old libraries updated, secure sign-in, and tests so it stays fixed.', 1.1),
+    cap('mobile', 'Anywhere', 'Works on every screen.', 'The modernized app works on phones and tablets, not just the office PC.', 1.12),
     cap('site', 'Relaunch', 'Your app, <span>like new.</span>', 'Reviewed, fixed, and modernized by one team, without starting over.', 1.04),
   ], meet: 'A quick call about the app you have, what’s broken, and what it needs to do next.', design: 'We review the code and the screens with you and agree what to keep, fix, and refresh.' },
 
-  'replace-spreadsheets': { from: PAGES['web-apps'], caps: [
-    cap('nav', 'One place', 'Every tab becomes a screen.', 'Orders, customers, and stock in one app instead of twelve tabs.', 1.1),
-    cap('kpis', 'Reports without the rebuild', 'Your weekly numbers, ready.', 'The report you rebuild every Monday updates itself.', 1.04),
-    cap('table', 'Everyone at once', 'No more final-v3-REAL.', 'The whole team works in the same data at the same time, always current.', 1.04),
-    cap('roles', 'Permissions', 'People see what they should.', 'Access by role, and a record of who changed what.', 1.1),
-    cap('auto', 'Rules that hold', 'Steps that run themselves.', 'Checks and approvals happen automatically, so nothing gets missed.', 1.1),
+  'replace-spreadsheets': { from: W.sheet, caps: [
+    cap('sheet', 'Today', 'The file everyone fears.', 'Five tabs, broken formulas, and three people overwriting each other. Sound familiar?', 1.05),
+    cap('jobs', 'Tomorrow', 'Every job in one place.', 'The spreadsheet becomes a real schedule the whole team sees, always up to date.', 1.05),
+    cap('field', 'From the field', 'No more retyping.', 'Crews log work from their phones, and the office sees it instantly.', 1.12),
+    cap('report', 'Reports', 'Your weekly numbers, ready.', 'Jobs and revenue add themselves up, instead of being rebuilt every Monday.', 1.12),
+    cap('history', 'Every change recorded', 'Know who changed what.', 'A clear history of every edit, so a wrong number always has an explanation.', 1.1),
     cap('site', 'Switch over', 'Your spreadsheet, <span>retired.</span>', 'Your data is brought across and checked with you before you switch.', 1.04),
   ], meet: 'A quick call where you walk us through the spreadsheet and how your team uses it.', design: 'We turn your tabs and steps into screens, and agree the look with you.' },
 
-  'secure-your-software': { from: PAGES.cloud, caps: [
-    cap('deploy', 'Safe releases', 'Every change is checked.', 'Automatic tests and security scans run before anything goes live.', 1.06),
-    cap('monitor', 'Watched', 'Trouble spotted early.', 'Monitoring and alerts around the clock, so issues are caught before they cost you.', 1.08),
-    cap('backups', 'Recoverable', 'Backups you can count on.', 'Nightly backups, verified and restore-tested, so a bad day is not a disaster.', 1.08),
-    cap('secure', 'Hardened', 'Locked down by default.', 'Encrypted traffic, two-factor sign-in, secrets out of the code, and systems kept patched.', 1.08),
+  'secure-your-software': { from: W.shield, caps: [
+    cap('login', 'Secure sign-in', 'A password isn’t enough.', 'Two-step sign-in keeps accounts safe even when a password leaks.', 1.1),
+    cap('blocked', 'Attacks stopped', 'Blocked before they get in.', 'Password guessing and bots are spotted and shut out automatically.', 1.1),
+    cap('scan', 'Checked', 'No known weak spots.', 'We scan for and fix outdated libraries, weak storage, and unencrypted traffic.', 1.06),
+    cap('access', 'Least access', 'People see only what they need.', 'Access set by role, so staff never stumble into payroll or payments.', 1.1),
+    cap('audit', 'Accountable', 'Every action on record.', 'An audit log shows who did what and when, and flags anything unusual.', 1.1),
     cap('site', 'Secured', 'Software you can <span>trust.</span>', 'Reviewed, hardened, and watched by one team.', 1.04),
   ], meet: 'A quick call about what you run, who has access, and what worries you.', design: 'We review your setup and agree, in plain English, what to fix first.' },
 
-  'move-to-the-cloud': { from: PAGES.cloud, caps: [
-    cap('deploy', 'Smooth move', 'Moved without the downtime.', 'We plan the migration and switch over with as little disruption as possible.', 1.06),
-    cap('monitor', 'Reliable', 'Fast and always on.', 'Uptime and speed watched around the clock once you’re moved.', 1.08),
-    cap('backups', 'Protected', 'Your data, safe.', 'Automatic, verified backups in accounts you own.', 1.08),
-    cap('cost', 'Right-sized', 'Often a smaller bill.', 'Servers and storage sized to what you actually use.', 1.1),
+  'move-to-the-cloud': { from: W.migrate, caps: [
+    cap('map', 'The move', 'From the closet to the cloud.', 'Your old office server moves into a cloud account you own, backed up and monitored.', 1.06),
+    cap('plan', 'A clear plan', 'Every step agreed first.', 'You know exactly what moves, when, and how it’s tested before anything changes.', 1.1),
+    cap('transfer', 'Safe copy', 'Every file, checked.', 'Your data is copied and verified against the original, so nothing gets lost.', 1.1),
+    cap('switch', 'Switch-over', 'Zero downtime.', 'We switch over overnight, so your team arrives Monday to a faster system.', 1.1),
+    cap('savings', 'After', 'Often a smaller bill.', 'Cloud costs sized to what you use, with backups and monitoring included.', 1.1),
     cap('site', 'Moved', 'In the cloud, <span>for good.</span>', 'Migrated, set up, and supported by one team.', 1.04),
   ], meet: 'A quick call about what you run today and where it’s hosted.', design: 'We plan the new setup and the move with you, step by step.' },
 
@@ -103,6 +109,11 @@ const S = {
   ], meet: 'A quick call about your software and what you need help with.', design: 'We agree how you’ll send requests and how quickly you’ll hear back.' },
 };
 
+const LINK = '<link rel="stylesheet" href="/src/styles/product-worlds.css" />';
 for (const [slug, s] of Object.entries(S)) {
   assemble(`${slug}.html`, { world: s.from.world, body: s.from.body, pops: s.from.pops, caps: s.caps, meet: s.meet, design: s.design });
+  const file = path.join(__dirname, '..', `${slug}.html`);
+  let html = fs.readFileSync(file, 'utf8');
+  if (!html.includes('solution-worlds.css')) html = html.replace(LINK, `${LINK}\n  <link rel="stylesheet" href="/src/styles/solution-worlds.css" />`);
+  fs.writeFileSync(file, html);
 }
