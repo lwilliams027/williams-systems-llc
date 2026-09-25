@@ -176,3 +176,42 @@
   .sj-progress { gap: 6px; }
   .sj-progress li:not(.on) { width: 8px; height: 8px; padding: 0; font-size: 0; border-radius: 50%; }
 }
+
+/* ---------- each page's own backdrop, matched to its motion style (data-style) ---------- */
+.sj[data-style] .sj-grid { opacity: 0.5; }
+/* cube: a floor grid running to the horizon */
+.sj[data-style="cube"] .sj-grid { inset: 45% -40% -20%; transform: perspective(500px) rotateX(62deg); transform-origin: 50% 0; background-size: 70px 70px; -webkit-mask-image: linear-gradient(transparent, #000 40%); mask-image: linear-gradient(transparent, #000 40%); }
+/* deck: the felt of a card table, diagonal weave */
+.sj[data-style="deck"] .sj-grid { background-image: repeating-linear-gradient(45deg, rgba(var(--sj-tint), 0.07) 0 2px, transparent 2px 22px), repeating-linear-gradient(-45deg, rgba(var(--sj-tint), 0.07) 0 2px, transparent 2px 22px); }
+/* cloud: slow drifting haze */
+.sj[data-style="cloud"] .sj-grid { background-image: radial-gradient(40% 30% at 20% 30%, rgba(var(--sj-tint), 0.16), transparent 70%), radial-gradient(35% 25% at 75% 70%, rgba(255,255,255,0.06), transparent 70%), radial-gradient(30% 20% at 60% 20%, rgba(var(--sj-tint), 0.1), transparent 70%); background-size: 200% 100%; filter: blur(20px); animation: fj-drift 30s linear infinite alternate; }
+@keyframes fj-drift { to { background-position: 100% 0; } }
+/* scan: CRT scanlines with a sweeping beam */
+.sj[data-style="scan"] .sj-grid { background-image: repeating-linear-gradient(0deg, rgba(var(--sj-tint), 0.08) 0 1px, transparent 1px 4px); }
+.sj[data-style="scan"] .sj-bg::after { content: ''; position: absolute; left: 0; right: 0; height: 30vh; background: linear-gradient(transparent, rgba(var(--sj-tint), 0.12), transparent); animation: fj-sweep 6s linear infinite; }
+@keyframes fj-sweep { from { top: -30vh; } to { top: 100%; } }
+/* launch: stars streaming past */
+.sj[data-style="launch"] .sj-grid { background-image: radial-gradient(1.5px 1.5px at 10% 20%, #fff, transparent), radial-gradient(1px 1px at 30% 70%, #fff, transparent), radial-gradient(1.5px 1.5px at 55% 40%, rgba(var(--sj-tint), 1), transparent), radial-gradient(1px 1px at 80% 10%, #fff, transparent), radial-gradient(1px 1px at 90% 60%, #fff, transparent), radial-gradient(1.5px 1.5px at 70% 85%, rgba(var(--sj-tint), 1), transparent); background-size: 300px 300px; animation: fj-stars 8s linear infinite; }
+@keyframes fj-stars { to { background-position: 0 300px; } }
+/* wipe: a coarse old grid on the left, a fine new one on the right */
+.sj[data-style="wipe"] .sj-grid { background-image: linear-gradient(rgba(255,255,255,0.05) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.05) 1px, transparent 1px); background-size: 90px 90px; -webkit-mask-image: linear-gradient(90deg, #000 45%, transparent 55%); mask-image: linear-gradient(90deg, #000 45%, transparent 55%); }
+.sj[data-style="wipe"] .sj-bg::after { content: ''; position: absolute; inset: 0; background-image: linear-gradient(rgba(var(--sj-tint), 0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(var(--sj-tint), 0.1) 1px, transparent 1px); background-size: 22px 22px; -webkit-mask-image: linear-gradient(90deg, transparent 45%, #000 55%); mask-image: linear-gradient(90deg, transparent 45%, #000 55%); }
+/* fold: spreadsheet cells */
+.sj[data-style="fold"] .sj-grid { background-size: 120px 30px; }
+/* iris: rings around the lock */
+.sj[data-style="iris"] .sj-grid { background-image: repeating-radial-gradient(circle at 70% 50%, rgba(var(--sj-tint), 0.09) 0 1px, transparent 1px 48px); -webkit-mask-image: radial-gradient(circle at 70% 50%, #000, transparent 70%); mask-image: radial-gradient(circle at 70% 50%, #000, transparent 70%); animation: fj-rings 5s ease-in-out infinite; }
+@keyframes fj-rings { 50% { transform: scale(1.06); } }
+/* migrate: lanes of data moving across */
+.sj[data-style="migrate"] .sj-grid { background-image: repeating-linear-gradient(90deg, rgba(var(--sj-tint), 0.2) 0 30px, transparent 30px 70px); background-size: 70px 1px; background-repeat: repeat-x; background-position: 0 25%; animation: fj-lanes 3s linear infinite; }
+.sj[data-style="migrate"] .sj-bg::after { content: ''; position: absolute; inset: 0; background-image: linear-gradient(rgba(var(--sj-tint), 0.12) 1px, transparent 1px); background-size: 100% 18vh; }
+@keyframes fj-lanes { to { background-position: 70px 25%; } }
+/* swing: a calm dotted wall with a heartbeat glow */
+.sj[data-style="swing"] .sj-grid { background-image: radial-gradient(rgba(var(--sj-tint), 0.25) 1.2px, transparent 1.4px); background-size: 26px 26px; animation: fj-breathe 4s ease-in-out infinite; }
+@keyframes fj-breathe { 50% { opacity: 0.25; } }
+/* toss: a tabletop of scattered photo corners */
+.sj[data-style="toss"] .sj-grid { background-image: linear-gradient(rgba(255,255,255,0.04) 2px, transparent 2px), linear-gradient(90deg, rgba(255,255,255,0.04) 2px, transparent 2px); background-size: 160px 120px; transform: rotate(-6deg) scale(1.2); }
+/* focus: soft bokeh */
+.sj[data-style="focus"] .sj-grid { background-image: radial-gradient(circle at 15% 25%, rgba(46,155,255,0.14) 0 40px, transparent 42px), radial-gradient(circle at 80% 30%, rgba(160,107,255,0.14) 0 70px, transparent 72px), radial-gradient(circle at 65% 80%, rgba(46,155,255,0.1) 0 55px, transparent 57px), radial-gradient(circle at 30% 75%, rgba(160,107,255,0.1) 0 30px, transparent 32px); filter: blur(6px); }
+/* letter: airmail edging */
+.sj[data-style="letter"] .sj-grid { opacity: 0.3; background-image: repeating-linear-gradient(-45deg, #2E9BFF 0 18px, transparent 18px 36px, #A06BFF 36px 54px, transparent 54px 72px); -webkit-mask-image: linear-gradient(#000 6px, transparent 6px, transparent calc(100% - 6px), #000 calc(100% - 6px)); mask-image: linear-gradient(#000 6px, transparent 6px, transparent calc(100% - 6px), #000 calc(100% - 6px)); }
+@media (prefers-reduced-motion: reduce) { .sj[data-style] .sj-grid, .sj[data-style] .sj-bg::after { animation: none; } }

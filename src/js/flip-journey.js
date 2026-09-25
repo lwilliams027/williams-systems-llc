@@ -34,6 +34,101 @@ const fmt = (el, n) => {
 };
 const LETTERS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
 
+const FLIP = {
+  y: [{ rotateY: -90 }, { rotateY: 90 }], '-y': [{ rotateY: 90 }, { rotateY: -90 }],
+  x: [{ rotateX: -90 }, { rotateX: 90 }], '-x': [{ rotateX: 90 }, { rotateX: -90 }],
+  zoom: [{ scale: 0.7 }, { scale: 1.35 }],
+};
+const REST = { x: 0, y: 0, rotateX: 0, rotateY: 0, rotateZ: 0, scale: 1 };
+const COPY_REST = { x: 0, y: 0, rotateX: 0, rotateZ: 0, skewX: 0, scale: 1 };
+const VIS_REST = { x: 0, y: 0, z: 0, rotateX: 0, rotateY: 0, rotateZ: 0, scale: 1, scaleY: 1 };
+
+/* Every page has its own motion language (<section data-style="…">): how one
+   chapter hands over to the next, how the words come in, and how the picture
+   arrives. "flip" is the home page's, and reads data-flip on each scene. */
+const STYLES = {
+  flip: { flip: true, copy: { y: 40 } },
+  // Web apps: the chapters are faces of a turning cube; pieces swing in in 3D
+  cube: {
+    origin: () => `50% 50% ${Math.round(-0.45 * window.innerWidth)}px`, from: { rotateY: 90 }, out: { rotateY: -90 }, dur: 0.45, ease: 'power2.inOut', outAt: 0, outDur: 0.45, outEase: 'power2.inOut', keepOut: true,
+    copy: { x: -60 }, visual: { rotateY: -40, rotateX: 14, z: -400 }, visDur: 0.5,
+  },
+  // SaaS: a deck of cards dealt from the right; the old card sinks back
+  deck: {
+    from: { x: '105%', rotateZ: 7 }, out: { scale: 0.82, y: -30 }, ease: 'power4.out', dur: 0.45,
+    copy: { y: 24, rotateX: -60 }, visual: { x: 160, rotateZ: 9 }, visEase: 'back.out(1.3)',
+  },
+  // Cloud: chapters float up through haze
+  cloud: {
+    from: { y: '70%', scale: 0.92, filter: 'blur(18px)' }, out: { y: '-55%', filter: 'blur(18px)' }, rest: { filter: 'blur(0px)' }, ease: 'sine.out', dur: 0.5, outDur: 0.4,
+    copy: { y: 30, filter: 'blur(10px)' }, copyOut: { y: -20, filter: 'blur(10px)' },
+    visual: { y: 90, filter: 'blur(12px)' }, visRest: { filter: 'blur(0px)' }, visEase: 'sine.out', visDur: 0.55,
+  },
+  // Personalized AI: a scan line sweeps each chapter in; pictures resolve in digital steps
+  scan: {
+    from: { clipPath: 'inset(0% 0% 100% 0%)' }, out: { clipPath: 'inset(100% 0% 0% 0%)' }, rest: { clipPath: 'inset(0% 0% 0% 0%)' },
+    ease: 'power2.inOut', dur: 0.45, outAt: 0, outDur: 0.45, outEase: 'power2.inOut', keepOut: true,
+    copy: { x: -30, skewX: -18 }, copyOut: { x: 30, skewX: 18 },
+    visual: { clipPath: 'inset(0% 100% 0% 0%)' }, visRest: { clipPath: 'inset(0% 0% 0% 0%)' }, visEase: 'steps(9)', visDur: 0.45,
+  },
+  // Launch a new product: chapters blast off upward; pictures sprout up and bounce
+  launch: {
+    from: { y: '100%', scale: 0.8 }, out: { y: '-100%', scale: 1.1 }, ease: 'back.out(1.3)', dur: 0.45, outEase: 'power3.in',
+    copy: { y: 60, scale: 0.9 }, copyEase: 'back.out(1.8)',
+    visual: { scale: 0, transformOrigin: '50% 100%' }, visEase: 'elastic.out(1, 0.55)', visDur: 0.6,
+  },
+  // Modernize an app: a before/after wipe; old chapters fade to grey, pictures sharpen into colour
+  wipe: {
+    from: { clipPath: 'inset(0% 0% 0% 100%)' }, out: { x: '-8%', filter: 'grayscale(1) brightness(0.5)' }, rest: { clipPath: 'inset(0% 0% 0% 0%)', filter: 'grayscale(0) brightness(1)' },
+    ease: 'power3.inOut', dur: 0.45, outAt: 0, outDur: 0.45, keepOut: true,
+    copy: { x: 50 }, copyOut: { x: -50 },
+    visual: { filter: 'grayscale(1) blur(6px)', scale: 0.94 }, visRest: { filter: 'grayscale(0) blur(0px)' }, visDur: 0.55,
+  },
+  // Replace spreadsheets: sheets fold down from the top like a pad of paper
+  fold: {
+    origin: '50% 0%', from: { rotateX: -100 }, out: { y: '-25%', rotateX: 30 }, ease: 'power3.out', dur: 0.45,
+    copy: { y: -24 }, copyOut: { y: 24 },
+    visual: { scaleY: 0, transformOrigin: '50% 0%' }, visEase: 'power2.out',
+  },
+  // Secure your software: an iris opens on each chapter; pictures lock in with a jolt
+  iris: {
+    from: { clipPath: 'circle(0% at 50% 50%)' }, out: { scale: 0.92 }, rest: { clipPath: 'circle(100% at 50% 50%)' }, ease: 'power2.inOut', dur: 0.5,
+    copy: { scale: 1.15 },
+    visual: { scale: 1.25 }, visEase: 'power4.in', visDur: 0.3,
+    after: (A, el, at) => A.to(el, { keyframes: { x: [0, -10, 9, -6, 4, 0] }, duration: 0.2, ease: 'none' }, at),
+  },
+  // Move to the cloud: chapters are carried across, the old one moving out as the new moves in
+  migrate: {
+    from: { x: '100%' }, out: { x: '-100%' }, ease: 'power2.inOut', dur: 0.5, outAt: 0, outDur: 0.5, outEase: 'power2.inOut', keepOut: true,
+    copy: { x: 80 }, copyOut: { x: -80 },
+    visual: { x: 240, rotateZ: -4 }, visEase: 'power3.out', visDur: 0.5,
+  },
+  // Ongoing support: chapters swing open like a door; pictures hang and settle
+  swing: {
+    origin: '0% 50%', from: { rotateY: -100 }, out: { rotateY: 80, x: '10%' }, ease: 'power3.out', dur: 0.5,
+    copy: { rotateX: -90, transformOrigin: '50% 0%' },
+    visual: { rotateZ: -14, transformOrigin: '50% -20%' }, visEase: 'elastic.out(1, 0.45)', visDur: 0.7,
+  },
+  // Client stories: chapters are photos tossed onto a table
+  toss: {
+    from: { y: '-110%', rotateZ: -12, scale: 1.08 }, out: { x: '70%', rotateZ: 16 }, ease: 'bounce.out', dur: 0.55,
+    copy: { y: 20, rotateZ: -3 },
+    visual: { rotateZ: 12, scale: 0.8 }, visEase: 'back.out(1.6)',
+  },
+  // FAQ: a focus pull, each chapter racking from blur to sharp
+  focus: {
+    from: { scale: 1.25, filter: 'blur(28px)' }, out: { scale: 0.8, filter: 'blur(24px)' }, rest: { filter: 'blur(0px)' }, ease: 'power2.out', dur: 0.45,
+    copy: { filter: 'blur(12px)' }, copyOut: { filter: 'blur(12px)' },
+    visual: { scale: 0.85, filter: 'blur(14px)' }, visRest: { filter: 'blur(0px)' },
+  },
+  // Contact: chapters drop in like letters through a slot
+  letter: {
+    origin: '50% 0%', from: { y: '-100%', rotateX: 35 }, out: { y: '45%', scale: 0.9 }, ease: 'power3.out', dur: 0.45,
+    copy: { y: -30 },
+    visual: { y: -80 }, visEase: 'bounce.out', visDur: 0.55,
+  },
+};
+
 /** Product pieces are drawn at their real design size and scaled to fit the chapter. */
 function fitAll() {
   document.querySelectorAll('.fj-fit').forEach((box) => {
@@ -74,9 +169,12 @@ document.querySelectorAll('[data-journey]').forEach((section, idx) => {
   }
 
   /* ---------- starting state ---------- */
-  gsap.set(scenes, { autoAlpha: 0, transformPerspective: 1600, transformOrigin: '50% 50%' });
+  const S = STYLES[section.dataset.style] || STYLES.flip;
+  gsap.set(scenes, { autoAlpha: 0, transformPerspective: 1600, transformOrigin: S.origin || '50% 50%' });
+  if (S.rest) gsap.set(scenes, S.rest);
   gsap.set(scenes[0], { autoAlpha: 1 });
-  gsap.set($$('.sj-copy > *'), { autoAlpha: 0, y: 40 });
+  gsap.set($$('.sj-copy > *'), { autoAlpha: 0, ...S.copy });
+  const copyRest = { ...COPY_REST, ...(S.copy.filter ? { filter: 'blur(0px)' } : {}) };
 
   if (steps[0]) steps[0].classList.add('on');       // the first chapter is showing from the start
   const SCENE = 1.8;                               // timeline units per chapter
@@ -85,28 +183,32 @@ document.querySelectorAll('[data-journey]').forEach((section, idx) => {
   // ...as soon as the section is on screen (immediately, when it's at the top of the page)
   ScrollTrigger.create({ trigger: section, start: 'top 70%', once: true, onEnter: () => gsap.delayedCall(0.3, () => intro.play()) });
   const mark = (i, at) => tl.call(() => steps.forEach((s, k) => { s.classList.toggle('on', k === i); s.classList.toggle('done', k < i); }), null, at);
-  const FLIP = {
-    y: [{ rotateY: -90 }, { rotateY: 90 }], '-y': [{ rotateY: 90 }, { rotateY: -90 }],
-    x: [{ rotateX: -90 }, { rotateX: 90 }], '-x': [{ rotateX: 90 }, { rotateX: -90 }],
-    zoom: [{ scale: 0.7 }, { scale: 1.35 }],
-  };
 
   scenes.forEach((scene, i) => {
     const T = i * SCENE;
-    const [inFrom, outTo] = FLIP[scene.dataset.flip || 'y'] || FLIP.y;
+    // the page's style decides how chapters hand over; the plain flip reads each scene's data-flip
+    const [inFrom, outTo] = S.flip ? (FLIP[scene.dataset.flip || 'y'] || FLIP.y) : [S.from, S.out];
     if (i > 0) {
       const prev = scenes[i - 1];
-      tl.to($$('.sj-copy > *', prev), { autoAlpha: 0, y: -30, duration: 0.2, stagger: 0.03, ease: 'power2.in' }, T - 0.45)
-        .to(prev, { ...outTo, autoAlpha: 0, duration: 0.35, ease: 'power2.in' }, T - 0.35)
-        // visible only from its own moment (a set reverts when scrolling back); the flip pose is prepared in advance
+      const outAt = S.outAt ?? -0.35;
+      tl.to($$('.sj-copy > *', prev), { autoAlpha: 0, duration: 0.2, stagger: 0.03, ease: 'power2.in', ...(S.copyOut || { y: -30 }) }, T - 0.45)
+        .to(prev, { ...outTo, autoAlpha: S.keepOut ? 1 : 0, duration: S.outDur || 0.35, ease: S.outEase || 'power2.in' }, T + outAt)
+        // visible only from its own moment (a set reverts when scrolling back); the entry pose is prepared in advance
         .set(scene, { autoAlpha: 1 }, T)
-        .fromTo(scene, { rotateX: 0, rotateY: 0, scale: 1, ...inFrom }, { rotateX: 0, rotateY: 0, scale: 1, duration: 0.4, ease: 'power3.out' }, T);
+        .fromTo(scene, { ...REST, ...S.rest, ...inFrom }, { ...REST, ...S.rest, duration: S.dur || 0.4, ease: S.ease || 'power3.out' }, T);
+      if (S.keepOut) tl.set(prev, { autoAlpha: 0 }, T + outAt + (S.outDur || 0.35));
     }
     mark(i, T + 0.001);
     // The first chapter plays by itself when the page loads; the rest are scrubbed by scroll.
     const A = i === 0 ? intro : tl;
     const B = i === 0 ? 0 : T;
-    A.to($$('.sj-copy > *', scene), { autoAlpha: 1, y: 0, duration: 0.3, stagger: 0.07, ease: 'power3.out' }, B + 0.12);
+    A.to($$('.sj-copy > *', scene), { ...copyRest, autoAlpha: 1, duration: 0.3, stagger: 0.07, ease: S.copyEase || 'power3.out' }, B + 0.12);
+    // the chapter's picture arrives in the page's own way (unless it animates itself)
+    const vis = scene.querySelector('.sj-visual:not([data-sj])');
+    if (vis && S.visual) {
+      A.fromTo(vis, { autoAlpha: 0, ...S.visual }, { ...VIS_REST, ...S.visRest, autoAlpha: 1, duration: S.visDur || 0.4, ease: S.visEase || 'power3.out' }, B + 0.15);
+      if (S.after) S.after(A, vis, B + 0.15 + (S.visDur || 0.4));
+    }
 
     // the animations inside this scene
     $$('[data-sj]', scene).forEach((el) => {
