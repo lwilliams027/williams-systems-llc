@@ -1742,3 +1742,13 @@ fieldset.field .field-label { margin-bottom: 8px; }
 .mnav-actions .mnav-contact { grid-column: 1 / -1; padding-block: 15px; font-size: 1.05rem; }
 .mobile-nav .mnav-actions .btn { margin-top: 0; }
 .mobile-nav a.mnav-login { grid-column: 1 / -1; justify-self: center; margin-top: 6px; padding: 6px 10px; border: 0; color: var(--text-3); font-family: inherit; font-size: 0.9rem; font-weight: 500; }
+
+/* ---------- Phone menu takes over the screen (short: three folding headings + contact) ---------- */
+@media (max-width: 899.98px) {
+  /* the header has a backdrop blur, so size the menu to the screen explicitly */
+  .mobile-nav { position: fixed; top: var(--header-h); left: 0; right: 0; max-height: none; height: calc(100vh - var(--header-h)); height: calc(100dvh - var(--header-h));
+    display: flex; flex-direction: column; padding: 12px var(--gutter) calc(24px + env(safe-area-inset-bottom)); background: var(--ink); border-bottom: 0; z-index: 90; overflow-y: auto; }
+  .mnav-toggle { padding: 22px 0; font-size: 1.6rem; }
+  .mnav-actions { margin-top: auto; padding-top: 24px; }
+  body.menu-open { overflow: hidden; }
+}

@@ -430,9 +430,11 @@ function initMobileNav() {
   if (!btn || !nav) return;
 
   // Keep the menu short: each group (Products, Solutions, About) folds away behind
-  // its heading, and only the group holding this page starts open.
+  // its heading, all closed to start; the current page is marked when you open its group.
   $$('.mnav-group', nav).forEach((group) => {
     const head = $('.mnav-head', group);
+    // the big Contact us button below covers this one
+    $$('a[href="contact.html"]', group).forEach((a) => a.remove());
     const items = $$('a', group);
     const toggle = document.createElement('button');
     toggle.type = 'button';
@@ -443,10 +445,8 @@ function initMobileNav() {
     items.forEach((a) => list.appendChild(a));
     head.replaceWith(toggle);
     group.appendChild(list);
-    const here = items.some((a) => location.pathname.endsWith(a.getAttribute('href')));
     items.forEach((a) => { if (location.pathname.endsWith(a.getAttribute('href'))) { a.classList.add('here'); a.setAttribute('aria-current', 'page'); } });
-    group.classList.toggle('open', here);
-    toggle.setAttribute('aria-expanded', String(here));
+    toggle.setAttribute('aria-expanded', 'false');
     toggle.addEventListener('click', () => {
       const open = !group.classList.contains('open');
       // one group open at a time
