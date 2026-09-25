@@ -549,3 +549,24 @@ function setYear() {
 
 /* Scroll animations for About, Schedule and the product pages. */
 (document.fonts ? document.fonts.ready : Promise.resolve()).then(() => initPageMotion({ reduced: REDUCED }));
+
+/* Q&A cards: answers slide open and closed instead of snapping. */
+(function initQA() {
+  const items = [...document.querySelectorAll('.qa-item')];
+  if (!items.length) return;
+  const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  items.forEach((item) => {
+    const body = item.querySelector('.qa-a');
+    item.querySelector('summary').addEventListener('click', (e) => {
+      if (reduce) return;
+      e.preventDefault();
+      if (item.open) {
+        gsap.to(body, { height: 0, opacity: 0, duration: 0.35, ease: 'power2.inOut', onComplete: () => { item.open = false; gsap.set(body, { clearProps: 'height,opacity' }); } });
+      } else {
+        item.open = true;
+        gsap.fromTo(body, { height: 0, opacity: 0 }, { height: 'auto', opacity: 1, duration: 0.45, ease: 'power3.out', clearProps: 'height' });
+        gsap.fromTo(body.firstElementChild, { y: 12 }, { y: 0, duration: 0.45, ease: 'power3.out' });
+      }
+    });
+  });
+})();
