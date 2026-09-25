@@ -2,7 +2,7 @@
    SaaS page: follow one customer through the business
    (markup: scripts/journeys/saas.html, motion: src/js/saas-journey.js)
    ===================================================================== */
-.sa-stage { display: grid; grid-template-columns: 0.72fr 1.28fr; align-items: center; gap: clamp(24px, 4vw, 64px);
+.sa-stage { display: grid; grid-template-columns: minmax(0, 0.72fr) minmax(0, 1.28fr); align-items: center; gap: clamp(24px, 4vw, 64px);
   padding: calc(var(--header-h) + 24px) max(var(--gutter), calc((100vw - var(--container)) / 2)) 90px; }
 .sa-bgrid { position: absolute; inset: 0; background-image: linear-gradient(rgba(16,185,129,0.07) 1px, transparent 1px), linear-gradient(90deg, rgba(16,185,129,0.07) 1px, transparent 1px); background-size: 80px 80px;
   -webkit-mask-image: radial-gradient(ellipse at 65% 55%, #000 15%, transparent 70%); mask-image: radial-gradient(ellipse at 65% 55%, #000 15%, transparent 70%); }

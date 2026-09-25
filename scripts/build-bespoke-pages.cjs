@@ -11,6 +11,7 @@ const PAGES = {
   'web-apps': { id: 'webapp', name: 'webapp-journey' },
   'saas': { id: 'saasJourney', name: 'saas-journey' },
   'cloud': { id: 'cloudJourney', name: 'cloud-journey' },
+  'personalized-ai': { id: 'aiJourney', name: 'ai-journey' },
 };
 
 const only = process.argv.slice(2);

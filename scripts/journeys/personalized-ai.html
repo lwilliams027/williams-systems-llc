@@ -1,0 +1,135 @@
+    <!-- ============ Personalized AI: meet the assistant ============
+         A glowing orb in the middle is the assistant (for a sample business,
+         Lakeside Studio). Each chapter, things drift in around it: documents it
+         learns from, a customer it answers, actions it takes, the tools it's
+         plugged into, the places it works, and the limits it keeps.
+         Animated by src/js/ai-journey.js; styles in src/styles/ai-journey.css. -->
+    <section class="sj pa" id="aiJourney" aria-labelledby="pageTitle">
+      <div class="sj-stage pa-stage">
+        <div class="sj-bg" aria-hidden="true"><i class="pa-stars"></i><i class="sj-glow"></i></div>
+
+        <div class="pa-copy">
+          <div class="pa-chap" data-label="Overview">
+            <p class="sj-k mono"><a href="./#services">Products</a> / Personalized AI</p>
+            <h1 class="sj-h" id="pageTitle">AI built <span>just for you.</span></h1>
+            <p class="sj-p">Personalized AI assistants built around you and your business. They know your documents, your products, and the way you work, and they plug into the tools you already use.</p>
+            <div class="sj-cta"><a class="btn btn-primary" href="contact.html#book">Get started</a><span class="tour-hint mono">Scroll to meet your assistant ↓</span></div>
+          </div>
+          <div class="pa-chap" data-label="Knows your business">
+            <p class="sj-k mono">Knows your business</p>
+            <h2 class="sj-h">Trained on <span>what you know.</span></h2>
+            <p class="sj-p">Your price lists, policies, products, and past emails, so its answers are yours, not generic guesses.</p>
+          </div>
+          <div class="pa-chap" data-label="Sounds like you">
+            <p class="sj-k mono">Sounds like you</p>
+            <h2 class="sj-h">Answers in <span>your voice.</span></h2>
+            <p class="sj-p">It answers your team and your customers in your tone, and shows where each answer came from.</p>
+          </div>
+          <div class="pa-chap" data-label="Takes action">
+            <p class="sj-k mono">Takes action</p>
+            <h2 class="sj-h">Does the work, <span>not just chat.</span></h2>
+            <p class="sj-p">It drafts the email, books the meeting, and updates your records when you say so.</p>
+          </div>
+          <div class="pa-chap" data-label="Connected">
+            <p class="sj-k mono">Connected to your tools</p>
+            <h2 class="sj-h">Plugged into <span>your business.</span></h2>
+            <p class="sj-p">Email, calendar, CRM, accounting, and your own software, connected so it can act.</p>
+          </div>
+          <div class="pa-chap" data-label="Where you work">
+            <p class="sj-k mono">Where you already work</p>
+            <h2 class="sj-h">Right <span>where you are.</span></h2>
+            <p class="sj-p">On your website, in Slack or Teams, over text, or inside your own app.</p>
+          </div>
+          <div class="pa-chap" data-label="Clear limits">
+            <p class="sj-k mono">Clear limits</p>
+            <h2 class="sj-h">You decide <span>what it sees.</span></h2>
+            <p class="sj-p">It only reads the documents and tools you approve, and we set clear limits on what it can do.</p>
+          </div>
+          <div class="pa-chap" data-label="Launch">
+            <p class="sj-k mono">Launch</p>
+            <h2 class="sj-h">Your AI, <span>built for you.</span></h2>
+            <p class="sj-p">Designed, built, and tuned by one team, around how you work.</p>
+            <div class="sj-cta"><a class="btn btn-primary" href="contact.html#book">Book a free call</a><a class="btn btn-ghost" href="contact.html#message">Send a message</a></div>
+          </div>
+        </div>
+
+        <div class="pa-side" aria-hidden="true">
+          <div class="pa-fit">
+            <!-- drawn at 720 × 520 and scaled to fit; the orb sits at the centre (360, 260) -->
+            <div class="pa-scene">
+              <svg class="pa-lines" viewBox="0 0 720 520">
+                <circle class="pa-know" cx="360" cy="260" r="104"/>
+                <g class="pa-spokes"><path d="M360 260 L360 70"/><path d="M360 260 L525 165"/><path d="M360 260 L525 355"/><path d="M360 260 L360 450"/><path d="M360 260 L195 355"/><path d="M360 260 L195 165"/></g>
+                <g class="pa-reach"><path d="M360 260 L150 110"/><path d="M360 260 L570 110"/><path d="M360 260 L150 410"/><path d="M360 260 L570 410"/></g>
+                <circle class="pa-dome" cx="360" cy="260" r="170"/>
+              </svg>
+
+              <div class="pa-orb"><i class="pa-ring"></i><i class="pa-core"></i></div>
+              <div class="pa-motes"></div>
+              <p class="pa-hello">Hi! I’m Lakeside Studio’s assistant.</p>
+
+              <!-- 2 · knows your business -->
+              <div class="pa-g" data-c="1">
+                <div class="pa-doc" style="left:30px;top:40px"><b>📄</b><span>Price list 2026<small>PDF · 4 pages</small></span></div>
+                <div class="pa-doc" style="left:530px;top:40px"><b>📘</b><span>Return policy<small>Doc · updated May</small></span></div>
+                <div class="pa-doc" style="left:30px;top:410px"><b>🛍</b><span>Product catalog<small>318 items</small></span></div>
+                <div class="pa-doc" style="left:530px;top:410px"><b>✉</b><span>Past emails<small>1,240 threads</small></span></div>
+                <span class="pa-chip pa-knows">Knows <b class="pa-n">0</b> documents</span>
+              </div>
+
+              <!-- 3 · sounds like you -->
+              <div class="pa-g" data-c="2">
+                <div class="pa-bub them" style="left:24px;top:30px">Hi! Can I still return a bag I bought 5 weeks ago?</div>
+                <div class="pa-bub me" style="left:330px;top:370px"><span class="pa-typed" data-text="Hi Sam! Returns are 30 days, but for a bag in new condition we can do store credit. Want me to set that up?"></span></div>
+                <span class="pa-cite" style="left:330px;top:478px">📘 Return policy · section 2</span>
+                <span class="pa-chip pa-tone" style="left:470px;top:150px">Tone: warm, friendly</span>
+              </div>
+
+              <!-- 4 · takes action -->
+              <div class="pa-g" data-c="3">
+                <div class="pa-bub cmd" style="left:170px;top:24px">Book a call with Sam on Tuesday and send him a reply.</div>
+                <div class="pa-act" style="left:24px;top:360px"><b>✉</b><span>Reply drafted<small>Ready for you to send</small></span><i>✓</i></div>
+                <div class="pa-act" style="left:260px;top:420px"><b>📅</b><span>Call booked<small>Tue 10:00 AM · 20 min</small></span><i>✓</i></div>
+                <div class="pa-act" style="left:496px;top:360px"><b>🗂</b><span>CRM updated<small>Sam · return request</small></span><i>✓</i></div>
+              </div>
+
+              <!-- 5 · connected -->
+              <div class="pa-g" data-c="4">
+                <span class="pa-tool" style="left:305px;top:48px"><b style="background:#EA4335">G</b>Gmail</span>
+                <span class="pa-tool" style="left:470px;top:143px"><b style="background:#1A73E8">31</b>Calendar</span>
+                <span class="pa-tool" style="left:470px;top:333px"><b style="background:#FF7A59">H</b>HubSpot</span>
+                <span class="pa-tool" style="left:300px;top:428px"><b style="background:#2CA01C">Q</b>QuickBooks</span>
+                <span class="pa-tool" style="left:145px;top:333px"><b style="background:#4A154B">S</b>Slack</span>
+                <span class="pa-tool" style="left:140px;top:143px"><b style="background:#6366F1">▦</b>Your app</span>
+              </div>
+
+              <!-- 6 · where you already work -->
+              <div class="pa-g" data-c="5">
+                <div class="pa-surf" style="left:20px;top:30px"><small>🌐 Your website</small><p class="pa-mini">Returns are free within 30 days 🙂</p></div>
+                <div class="pa-surf" style="left:480px;top:30px"><small># Slack</small><p class="pa-mini">Returns are free within 30 days 🙂</p></div>
+                <div class="pa-surf" style="left:20px;top:370px"><small>💬 Text message</small><p class="pa-mini">Returns are free within 30 days 🙂</p></div>
+                <div class="pa-surf" style="left:480px;top:370px"><small>▦ Teams</small><p class="pa-mini">Returns are free within 30 days 🙂</p></div>
+              </div>
+
+              <!-- 7 · clear limits -->
+              <div class="pa-g" data-c="6">
+                <span class="pa-ok" style="left:215px;top:150px">✓ Price list</span>
+                <span class="pa-ok" style="left:420px;top:150px">✓ Policies</span>
+                <span class="pa-ok" style="left:305px;top:372px">✓ Catalog</span>
+                <span class="pa-no" style="left:560px;top:24px">🔒 Payroll.xlsx · no access</span>
+                <i class="pa-probe"></i>
+                <div class="pa-rules"><span>Sending email: <b>asks you first</b></span><span>Deleting anything: <b>never</b></span></div>
+              </div>
+
+              <!-- 8 · launch -->
+              <div class="pa-g" data-c="7">
+                <div class="pa-ask"><span class="pa-typed" data-text="Ask Lakeside’s assistant anything…"></span><b>↑</b></div>
+                <span class="pa-online"><i></i>Online</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <ol class="sj-progress" aria-hidden="true"></ol>
+      </div>
+    </section>

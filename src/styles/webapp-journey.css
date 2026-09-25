@@ -2,7 +2,7 @@
    Web apps page: the whole journey happens inside one app window
    (markup: scripts/journeys/web-apps.html, motion: src/js/webapp-journey.js)
    ===================================================================== */
-.wa-stage { display: grid; grid-template-columns: 0.72fr 1.28fr; align-items: center; gap: clamp(24px, 4vw, 64px);
+.wa-stage { display: grid; grid-template-columns: minmax(0, 0.72fr) minmax(0, 1.28fr); align-items: center; gap: clamp(24px, 4vw, 64px);
   padding: calc(var(--header-h) + 24px) max(var(--gutter), calc((100vw - var(--container)) / 2)) 90px; }
 .wa-dots { position: absolute; inset: 0; background-image: radial-gradient(rgba(129,140,248,0.22) 1px, transparent 1.3px); background-size: 28px 28px;
   -webkit-mask-image: radial-gradient(ellipse at 65% 50%, #000 15%, transparent 70%); mask-image: radial-gradient(ellipse at 65% 50%, #000 15%, transparent 70%); }

@@ -2,7 +2,7 @@
    Cloud page: a live map of your infrastructure
    (markup: scripts/journeys/cloud.html, motion: src/js/cloud-journey.js)
    ===================================================================== */
-.cl-stage { display: grid; grid-template-columns: 0.72fr 1.28fr; align-items: center; gap: clamp(24px, 4vw, 64px);
+.cl-stage { display: grid; grid-template-columns: minmax(0, 0.72fr) minmax(0, 1.28fr); align-items: center; gap: clamp(24px, 4vw, 64px);
   padding: calc(var(--header-h) + 24px) max(var(--gutter), calc((100vw - var(--container)) / 2)) 90px; }
 .cl-sky { position: absolute; inset: 0; background: radial-gradient(40% 30% at 70% 40%, rgba(56,189,248,0.1), transparent 70%), radial-gradient(30% 25% at 85% 75%, rgba(99,102,241,0.08), transparent 70%); }
 .cl .sj-glow { background: radial-gradient(closest-side, rgba(56,189,248,0.22), rgba(46,155,255,0.08), transparent); }
