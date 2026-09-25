@@ -203,7 +203,7 @@ const SOLUTIONS = [
     metaTitle: 'Ongoing Software Support | Williams Systems LLC',
     headline: ['Launch day is the start,', 'not the finish.'],
     lede: 'The same team that built it keeps it running, keeps it current, and keeps adding to it, on a monthly plan sized to what you actually need.',
-    description: 'Ongoing support from the team that built your software: monitoring, updates, fixes, and new features on a monthly plan, with no handover to a stranger.',
+    description: 'Ongoing support from the team that built your software: monitoring, updates, fixes, and new features on a monthly plan or paid per job, with no handover to a stranger.',
     getEyebrow: 'What you get',
     getTitle: 'Someone who already knows your software.',
     features: [

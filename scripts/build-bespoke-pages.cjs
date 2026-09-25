@@ -19,6 +19,7 @@ const PAGES = {
   'replace-spreadsheets': { id: 'sheetsJourney', name: 'sheets-journey' },
   'secure-your-software': { id: 'secureJourney', name: 'secure-journey' },
   'move-to-the-cloud': { id: 'migrateJourney', name: 'migrate-journey' },
+  'ongoing-support': { id: 'supportJourney', name: 'support-journey' },
 };
 
 const only = process.argv.slice(2);
@@ -37,6 +38,8 @@ for (const [page, { id, name }] of Object.entries(PAGES)) {
   html = html.slice(0, start) + journey + html.slice(end);
 
   html = html.replace('\n  <link rel="stylesheet" href="/src/styles/flip-journey.css" />', '');
+  // the old tours' sample-product styles: not used by these journeys, and their class names collide
+  html = html.replace('\n  <link rel="stylesheet" href="/src/styles/product-worlds.css" />', '');
   // the shared journey styles (chapter type, progress pills), after the page's last stylesheet
   if (!html.includes('href="/src/styles/story-journey.css"')) {
     const eol = html.indexOf('\n', html.lastIndexOf('<link rel="stylesheet" href="/src/styles/'));

@@ -39,7 +39,7 @@ Every job is priced either as a one-time cost for the work or as a monthly plan,
 - [Replace spreadsheets](https://lwilliams027.github.io/williams-systems-llc/replace-spreadsheets.html): Turn the spreadsheet your business runs on into real software: shaped around your process, safe from accidents, and usable by the whole team at once.
 - [Secure your software](https://lwilliams027.github.io/williams-systems-llc/secure-your-software.html): Security work on the software you run: authentication, permissions, secrets, dependencies, and hardening, reviewed and fixed by the team that builds it.
 - [Move to the cloud](https://lwilliams027.github.io/williams-systems-llc/move-to-the-cloud.html): Migrate from an old server or host into reliable cloud infrastructure, with a planned cutover, tested backups, and a bill that makes sense.
-- [Ongoing support](https://lwilliams027.github.io/williams-systems-llc/ongoing-support.html): Ongoing support from the team that built your software: monitoring, updates, fixes, and new features on a monthly plan, with no handover to a stranger.
+- [Ongoing support](https://lwilliams027.github.io/williams-systems-llc/ongoing-support.html): Ongoing support from the team that built your software: monitoring, updates, fixes, and new features on a monthly plan or paid per job, with no handover to a stranger.
 
 ## Questions and answers
 - [FAQ](https://lwilliams027.github.io/williams-systems-llc/faq.html): 56 answers about cost, timelines, ownership, support, and every product
