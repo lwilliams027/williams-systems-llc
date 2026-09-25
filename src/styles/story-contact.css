@@ -74,3 +74,23 @@
 .as-panel .as-form::before { display: none; }
 @media (max-width: 899.98px) { .as-text-phone { margin-top: 20px; } }
 @media (max-width: 480px) { .as-tabs { display: flex; } .as-tab { flex: 1; padding: 12px 10px; } }
+
+/* ---------- working text box in the phone ---------- */
+.as-text-phone .as-tp-thread { min-height: 240px; max-height: 300px; overflow-y: auto; }
+.as-text-phone .as-tp-thread p { animation-delay: 0.3s; }
+.as-text-phone .as-tp-thread p:not(:first-child) { animation-delay: 0s; }
+.as-tp-bar { padding: 6px 6px 6px 16px; gap: 8px; }
+.as-tp-bar input { flex: 1; min-width: 0; border: 0; background: transparent; color: var(--text); font: inherit; font-size: 0.95rem; outline: none; }
+.as-tp-bar input::placeholder { color: var(--text-3); }
+.as-tp-bar button { display: grid; place-items: center; flex: none; width: 38px; height: 38px; border: 0; border-radius: 50%; background: var(--grad); color: #fff; cursor: pointer; transition: transform 0.2s; }
+.as-tp-bar button:hover { transform: scale(1.08); }
+.as-tp-bar button svg { width: 18px; height: 18px; }
+.as-text-phone:focus-within { box-shadow: 0 0 0 8px #1C1F2B, 0 40px 90px rgba(0,0,0,0.5), 0 0 90px rgba(123,134,255,0.35); }
+
+/* ---------- softer edge where the hero glow meets the page ---------- */
+.as-hero { overflow: visible; }
+.as-orbs { position: absolute; inset: 0 0 -30vh 0; overflow: hidden; pointer-events: none;
+  -webkit-mask-image: linear-gradient(180deg, #000 0%, #000 45%, transparent 100%);
+          mask-image: linear-gradient(180deg, #000 0%, #000 45%, transparent 100%); }
+.as-hero + section, .as-hero + .pg-section { position: relative; }
+.sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }

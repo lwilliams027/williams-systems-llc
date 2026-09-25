@@ -45,3 +45,43 @@ if (tabs.length) {
   window.addEventListener('hashchange', fromHash);
   if (location.hash) setTimeout(fromHash, 300);
 }
+
+/* The phone in the hero is a real text box. On a phone, sending opens the
+   texting app to our number with the message filled in. On a computer (which
+   can't send texts), the words move into the "Send a message" form instead. */
+const phone = document.getElementById('textPhone');
+if (phone) {
+  const input = phone.querySelector('input');
+  const thread = phone.querySelector('.as-tp-thread');
+  const tel = phone.dataset.tel;
+  const canText = window.matchMedia('(pointer: coarse)').matches || /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+  const bubble = (cls, text) => {
+    const p = document.createElement('p');
+    p.className = cls;
+    p.textContent = text;
+    thread.append(p);
+    thread.scrollTop = thread.scrollHeight;
+  };
+  phone.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const text = input.value.trim();
+    if (!text) { input.focus(); return; }
+    bubble('out', text);
+    input.value = '';
+    if (canText) {
+      setTimeout(() => bubble('in', 'Opening your texting app, just hit send there. We reply within 24 hours.'), 500);
+      // iPhones use "&body=", Android "?body="; "?&body=" works on both
+      setTimeout(() => { window.location.href = `sms:${tel}?&body=${encodeURIComponent(text)}`; }, 900);
+    } else {
+      setTimeout(() => bubble('in', `Texting works from a phone, at ${tel.replace(/^\+1(\d{3})(\d{3})(\d{4})$/, '($1) $2-$3')}. I've put your message in the form below so you can send it from here.`), 500);
+      setTimeout(() => {
+        const msg = document.querySelector('#contactForm textarea[name="message"]');
+        if (msg) msg.value = text;
+        const tab = document.getElementById('tabMessage');
+        if (tab) tab.click();
+        document.querySelector('.as-reach')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        setTimeout(() => document.querySelector('#contactForm input[name="name"]')?.focus({ preventScroll: true }), 700);
+      }, 1600);
+    }
+  });
+}

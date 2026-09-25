@@ -1,66 +1,98 @@
-    <!-- ============ Our story tour ============
-         Landon's path as a desk of screens the camera visits in order.
-         Included by scripts/build-about-section.cjs. -->
-    <section class="tour" id="tour" aria-labelledby="storyTitle">
-      <div class="tour-stage">
-        <div class="tour-window" aria-hidden="true">
-          <div class="tour-viewport">
-          <div class="tw-world w-story" id="tourWorld">
-            <div class="st-grid">
-              <section class="st-card st-retro" data-stop="ten">
-                <div class="st-crt"><div class="st-screen"><p class="st-code" data-anim="type" data-fill='10 PRINT "HELLO, WORLD"'></p><p class="st-code" data-anim="type" data-fill="20 GOTO 10"></p><p class="st-code dim" data-anim="type" data-fill="RUN"></p><p class="st-hello" data-anim="pop" data-delay="0.42">HELLO, WORLD<br />HELLO, WORLD<br />HELLO, WORLD</p></div></div>
-                <span class="st-label">Age 10</span>
-              </section>
-              <section class="st-card st-learn" data-stop="learn">
-                <b class="st-t">~/projects</b>
-                <div class="st-files" data-anim="rise" data-delay="0.06"><span><i></i>my-first-website</span><span><i></i>calculator-app</span><span><i></i>platformer-game</span><span><i></i>weather-dashboard</span><span><i></i>chat-app</span></div>
-                <p class="st-note">Learned by building, one project at a time.</p>
-                <span class="st-label">Self-taught</span>
-              </section>
-              <section class="st-card st-free" data-stop="freelance">
-                <b class="st-t">Client projects</b>
-                <div class="st-jobs" data-anim="rise" data-delay="0.06">
-                  <div><b>Business website</b><em>Launched</em></div>
-                  <div><b>Booking system</b><em>Launched</em></div>
-                  <div><b>Online store</b><em>Launched</em></div>
-                  <div><b>Custom dashboard</b><em class="wip">In progress</em></div>
-                </div>
-                <span class="st-label">Freelance</span>
-              </section>
-            </div>
-            <div class="st-grid two">
-              <section class="st-card st-med" data-stop="medical">
-                <div class="st-med-top"><i></i><b>Clinic scheduling</b><span>Secure</span></div>
-                <div class="st-appts" data-anim="rise" data-delay="0.06">
-                  <p><em>9:00</em>Consultation<span>Confirmed</span></p>
-                  <p><em>10:30</em>Follow-up visit<span>Confirmed</span></p>
-                  <p><em>1:15</em>New patient intake<span>Checked in</span></p>
-                </div>
-                <ul class="checks" data-anim="check" data-delay="0.3"><li>Every detail checked</li><li>Access by role</li><li>Tested before release</li></ul>
-                <span class="st-label">Medical companies</span>
-              </section>
-              <section class="st-card st-today" data-stop="today">
-                <div class="st-site"><div class="st-site-top"><span class="st-logo"><i></i>WILLIAMS <small>SYSTEMS LLC</small></span></div>
-                  <b class="st-headline">Custom software,<br /><span>built for you.</span></b></div>
-                <div class="st-map"><span class="st-pin">Michigan</span><i class="d1"></i><i class="d2"></i><i class="d3"></i><i class="d4"></i><i class="d5"></i></div>
-                <span class="st-label">Today</span>
-              </section>
+    <!-- ============ Our story ============
+         A pinned, scroll-scrubbed sequence in the home page's style: full-screen
+         chapters that flip in 3D from one to the next (src/js/story-journey.js).
+         Included by scripts/build-about-section.cjs, which drops the home page logo mark into the Today chapter. -->
+    <section class="sj" id="story" aria-labelledby="storyTitle">
+      <div class="sj-stage">
+        <div class="sj-bg" aria-hidden="true"><i class="sj-grid"></i><i class="sj-glow"></i></div>
+
+        <!-- 1 · Age 10 -->
+        <div class="sj-scene sj-s1" data-scene>
+          <div class="sj-copy">
+            <p class="sj-k mono">Our story · Age 10</p>
+            <h2 class="sj-h" id="storyTitle">It started with <span>a ten-year-old.</span></h2>
+            <p class="sj-p">Landon Williams wrote his first lines of code at ten, and the moment something he typed came to life on screen, he was hooked.</p>
+          </div>
+          <div class="sj-visual" aria-hidden="true">
+            <div class="sj-crt">
+              <div class="sj-crt-screen">
+                <p class="sj-line" data-text='10 PRINT "HELLO, WORLD"'></p>
+                <p class="sj-line" data-text="20 GOTO 10"></p>
+                <p class="sj-line" data-text="RUN"></p>
+                <p class="sj-hello">HELLO, WORLD<br />HELLO, WORLD<br />HELLO, WORLD<br />HELLO, WORLD</p>
+                <i class="sj-cursor"></i>
+                <i class="sj-flood"></i>
+              </div>
+              <i class="sj-crt-base"></i>
             </div>
           </div>
+        </div>
+
+        <!-- 2 · Self-taught -->
+        <div class="sj-scene sj-s2" data-scene>
+          <div class="sj-copy">
+            <p class="sj-k mono">Self-taught</p>
+            <h2 class="sj-h">Learning by <span>building.</span></h2>
+            <p class="sj-p">Every skill picked up the practical way: by building real projects and seeing them through.</p>
+          </div>
+          <div class="sj-visual sj-tiles" aria-hidden="true">
+            <div class="sj-tile"><div class="sj-tile-in"><div class="sj-face back"></div><div class="sj-face front"><b>&lt;/&gt;</b><span>First website</span></div></div></div>
+            <div class="sj-tile"><div class="sj-tile-in"><div class="sj-face back"></div><div class="sj-face front"><b>÷</b><span>Calculator app</span></div></div></div>
+            <div class="sj-tile"><div class="sj-tile-in"><div class="sj-face back"></div><div class="sj-face front"><b>▲</b><span>Platform game</span></div></div></div>
+            <div class="sj-tile"><div class="sj-tile-in"><div class="sj-face back"></div><div class="sj-face front"><b>☀</b><span>Weather dashboard</span></div></div></div>
+            <div class="sj-tile"><div class="sj-tile-in"><div class="sj-face back"></div><div class="sj-face front"><b>✉</b><span>Chat app</span></div></div></div>
+            <div class="sj-tile"><div class="sj-tile-in"><div class="sj-face back"></div><div class="sj-face front"><b>∞</b><span>And many more</span></div></div></div>
           </div>
         </div>
-        <div class="tour-captions">
-          <p class="scene-eyebrow mono">Our story</p>
-          <ol class="tour-caps">
-            <li class="tour-cap tour-intro" data-stop="intro"><h2 class="tour-h1" id="storyTitle">It started with <span>a ten-year-old.</span></h2><p>Landon Williams has been building since he was ten. Scroll through how that became Williams Systems LLC.</p><div class="tour-actions"><span class="tour-hint mono">Keep scrolling ↓</span></div></li>
-            <li class="tour-cap" data-stop="ten" data-pad="1.1"><p class="tour-cap-k">Age 10</p><h3>First lines of code.</h3><p>A computer, a curious kid, and the moment something he typed came to life on screen.</p></li>
-            <li class="tour-cap" data-stop="learn" data-pad="1.1"><p class="tour-cap-k">Self-taught</p><h3>Learning by building.</h3><p>Every skill picked up the practical way: by building real projects and seeing them through.</p></li>
-            <li class="tour-cap" data-stop="freelance" data-pad="1.1"><p class="tour-cap-k">Freelance</p><h3>Building for clients.</h3><p>Websites and apps for businesses, one client at a time, learning what people actually need from their software.</p></li>
-            <li class="tour-cap" data-stop="medical" data-pad="1.08"><p class="tour-cap-k">Medical companies</p><h3>Where details matter.</h3><p>Development work for medical companies, where getting every detail right isn’t optional.</p></li>
-            <li class="tour-cap" data-stop="today" data-pad="1.08"><p class="tour-cap-k">Today</p><h3>Williams Systems LLC.</h3><p>Built on a love of building and a simple idea: help people bring their dreams to life, at a price that makes sense. Based in Michigan, working worldwide.</p></li>
-            <li class="tour-cap" data-stop="site" data-pad="1.04"><p class="tour-cap-k">Your turn</p><h3>What will we <span>build together?</span></h3><p>You work directly with Landon, from the first call to long after launch.</p><a class="btn btn-primary" href="contact.html#book">Book a free call</a></li>
-          </ol>
-          <ul class="tour-dots" aria-hidden="true"><li></li><li></li><li></li><li></li><li></li><li></li><li></li></ul>
+
+        <!-- 3 · Freelance: a split-flap board -->
+        <div class="sj-scene sj-s3" data-scene>
+          <div class="sj-copy">
+            <p class="sj-k mono">Freelance</p>
+            <h2 class="sj-h">Building for <span>clients.</span></h2>
+            <p class="sj-p">Websites and apps for businesses, one client at a time, learning what people actually need from their software.</p>
+          </div>
+          <div class="sj-visual sj-board" aria-hidden="true">
+            <div class="sj-board-head"><span>Project</span><span>Status</span></div>
+            <div class="sj-row"><span class="sj-flap" data-text="BUSINESS WEBSITE"></span><span class="sj-flap st" data-text="LAUNCHED"></span></div>
+            <div class="sj-row"><span class="sj-flap" data-text="BOOKING SYSTEM"></span><span class="sj-flap st" data-text="LAUNCHED"></span></div>
+            <div class="sj-row"><span class="sj-flap" data-text="ONLINE STORE"></span><span class="sj-flap st" data-text="LAUNCHED"></span></div>
+            <div class="sj-row"><span class="sj-flap" data-text="CUSTOM DASHBOARD"></span><span class="sj-flap st" data-text="LAUNCHED"></span></div>
+          </div>
         </div>
+
+        <!-- 4 · Medical companies -->
+        <div class="sj-scene sj-s4" data-scene>
+          <div class="sj-copy">
+            <p class="sj-k mono">Medical companies</p>
+            <h2 class="sj-h">Where details <span>matter.</span></h2>
+            <p class="sj-p">Development work for medical companies, where getting every detail right isn’t optional.</p>
+            <ul class="sj-chips"><li>Every detail checked</li><li>Access by role</li><li>Tested before release</li></ul>
+          </div>
+          <div class="sj-visual sj-ecg" aria-hidden="true">
+            <svg viewBox="0 0 600 220" preserveAspectRatio="none"><defs><linearGradient id="sjEcg" x1="0" x2="1"><stop offset="0" stop-color="#2E9BFF"/><stop offset="1" stop-color="#A06BFF"/></linearGradient></defs>
+              <path class="sj-ecg-grid" d="M0 55H600M0 110H600M0 165H600M100 0V220M200 0V220M300 0V220M400 0V220M500 0V220"/>
+              <path class="sj-ecg-line" d="M0 120H90l18-10 14 10h40l12-70 16 140 14-70h52l20-18 18 18h70l12-70 16 140 14-70h52l20-18 18 18H600"/></svg>
+            <div class="sj-bpm"><b>72</b><span>BPM</span></div>
+          </div>
+        </div>
+
+        <!-- 5 · Today -->
+        <div class="sj-scene sj-s5" data-scene>
+          <div class="sj-copy">
+            <p class="sj-k mono">Today</p>
+            <h2 class="sj-h sj-name" data-text="WILLIAMS SYSTEMS LLC">WILLIAMS SYSTEMS LLC</h2>
+            <p class="sj-p">Built on a love of building and a simple idea: help people bring their dreams to life, at a price that makes sense. Based in Michigan, working worldwide.</p>
+            <div class="sj-cta"><a class="btn btn-primary" href="contact.html#book">Book a free call</a><span class="mono">What will we build together?</span></div>
+          </div>
+          <div class="sj-visual sj-today" aria-hidden="true">
+            <div class="sj-orbit o1"></div><div class="sj-orbit o2"></div><div class="sj-orbit o3"></div>
+            <div class="sj-mark-wrap"><!--MARK--></div>
+            <span class="sj-pin">Michigan</span>
+            <i class="sj-dot d1"></i><i class="sj-dot d2"></i><i class="sj-dot d3"></i><i class="sj-dot d4"></i><i class="sj-dot d5"></i><i class="sj-dot d6"></i>
+          </div>
+        </div>
+
+        <ol class="sj-progress" aria-hidden="true"><li>Age 10</li><li>Self-taught</li><li>Freelance</li><li>Medical</li><li>Today</li></ol>
       </div>
     </section>

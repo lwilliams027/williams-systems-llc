@@ -89,7 +89,9 @@ let TOUR = '';
     ['Affordable', 'Real, custom software at a price that makes sense for your business, agreed up front.'],
     ['Looked after', 'After launch, a monthly support plan or pay per job, whichever suits you.'],
   ];
-  const STORY_TOUR = fs.readFileSync(path.join(__dirname, 'story-tour.html'), 'utf8').trimEnd();
+  const STORY_TOUR = fs.readFileSync(path.join(__dirname, 'story-tour.html'), 'utf8').trimEnd()
+    // the logo mark from the home page, drawn in the Today chapter
+    .replace('<!--MARK-->', read('index.html').match(/<svg class="faller-mark"[\s\S]*?<\/svg>/)[0].replace('class="faller-mark"', 'class="sj-mark" aria-hidden="true"'));
   const main = `  <main id="main" class="as-page about-page">
     <section class="as-hero">
       <div class="as-orbs" aria-hidden="true"><i></i><i></i><i></i></div>
@@ -143,7 +145,7 @@ ${cta('Have an idea? <span>Let’s build it.</span>', 'Tell us what you have in 
   makePage('about.html', {
     title: 'About Williams Systems LLC | Founded by Landon Williams',
     desc: 'Williams Systems LLC is a Michigan software company founded by Landon Williams, building websites, apps, SaaS, and personalized AI for clients worldwide at a price that makes sense.',
-    crumb: 'About', main, css: ['/src/styles/tour.css', '/src/styles/product-worlds.css', '/src/styles/about.css', '/src/styles/about-section.css', '/src/styles/story-contact.css'], js: ['/src/js/site-tour.js'],
+    crumb: 'About', main, css: ['/src/styles/about.css', '/src/styles/about-section.css', '/src/styles/story-contact.css', '/src/styles/story-journey.css'], js: ['/src/js/story-journey.js'],
     ld: [ORG, { '@type': 'AboutPage', '@id': BASE + 'about.html#page', url: BASE + 'about.html', name: 'About Williams Systems LLC', about: { '@id': BASE + '#org' } },
       { '@type': 'Person', name: 'Landon Williams', jobTitle: 'Founder', worksFor: { '@id': BASE + '#org' }, homeLocation: { '@type': 'Place', name: 'Michigan, US' } }],
   });
@@ -264,17 +266,20 @@ ${cta('Want to be <span>the next story?</span>', 'Tell us what you want to build
             <div class="pg-actions"><a class="btn btn-primary" href="tel:${TEL}">Call ${PHONE}</a><a class="btn btn-ghost" href="sms:${TEL}">Send a text</a></div>
             <ul class="as-facts"><li><b>24 hours</b><span>We reply within a day</span></li><li><b>Free</b><span>Discovery call</span></li><li><b>Michigan</b><span>Working worldwide</span></li></ul>
           </div>
-          <div class="as-text-phone" aria-hidden="true">
-            <div class="as-tp-top"><span class="as-tp-av">LW</span><div><b>Williams Systems LLC</b><small>Usually replies within 24 hours</small></div></div>
-            <div class="as-tp-thread">
-              <p class="in">Hi! I have an idea for an app. Can we talk?</p>
-              <p class="out">Absolutely! Tell me a bit about it, and let’s set up a free call.</p>
-              <p class="in">Tomorrow afternoon work?</p>
-              <p class="out">Perfect. I’ll send you a time. 👍</p>
+          <!-- A working text box: on a phone it opens the texting app to our number with
+               the message filled in; on a computer it hands the words to the message form. -->
+          <form class="as-text-phone" id="textPhone" data-tel="${TEL}" aria-label="Text Williams Systems LLC">
+            <div class="as-tp-top"><span class="as-tp-av" aria-hidden="true">LW</span><div><b>Williams Systems LLC</b><small>${PHONE} · replies within 24 hours</small></div></div>
+            <div class="as-tp-thread" aria-live="polite">
+              <p class="in">Hi! 👋 Text us about your project, a question, or a good time for a call.</p>
             </div>
-            <div class="as-tp-bar"><span>Text message</span><i></i></div>
-            <small class="as-tp-note">Example conversation</small>
-          </div>
+            <div class="as-tp-bar">
+              <label class="sr-only" for="textBody">Your text message</label>
+              <input id="textBody" type="text" autocomplete="off" placeholder="Type your message…" maxlength="600" />
+              <button type="submit" aria-label="Send text"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12l16-8-6 16-3-7z" fill="currentColor"/></svg></button>
+            </div>
+            <small class="as-tp-note">Texts go straight to Landon</small>
+          </form>
         </div>
       </div>
     </section>
