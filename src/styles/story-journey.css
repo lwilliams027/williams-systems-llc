@@ -137,3 +137,6 @@
   section.sj .tour-hint { display: none; }
   section.sj .sj-progress { bottom: 14px; }
 }
+
+/* phones: no chapter pills (swiping and scrolling move between chapters) */
+@media (max-width: 899.98px) { section.sj .sj-progress { display: none; } }

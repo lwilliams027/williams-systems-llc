@@ -429,7 +429,41 @@ function initMobileNav() {
   const nav = $('#mobileNav');
   if (!btn || !nav) return;
 
-  const links = $$('a', nav);
+  // Keep the menu short: each group (Products, Solutions, About) folds away behind
+  // its heading, and only the group holding this page starts open.
+  $$('.mnav-group', nav).forEach((group) => {
+    const head = $('.mnav-head', group);
+    const items = $$('a', group);
+    const toggle = document.createElement('button');
+    toggle.type = 'button';
+    toggle.className = 'mnav-toggle';
+    toggle.textContent = head.textContent;
+    const list = document.createElement('div');
+    list.className = 'mnav-links';
+    items.forEach((a) => list.appendChild(a));
+    head.replaceWith(toggle);
+    group.appendChild(list);
+    const here = items.some((a) => location.pathname.endsWith(a.getAttribute('href')));
+    items.forEach((a) => { if (location.pathname.endsWith(a.getAttribute('href'))) { a.classList.add('here'); a.setAttribute('aria-current', 'page'); } });
+    group.classList.toggle('open', here);
+    toggle.setAttribute('aria-expanded', String(here));
+    toggle.addEventListener('click', () => {
+      const open = !group.classList.contains('open');
+      // one group open at a time
+      $$('.mnav-group', nav).forEach((g) => { g.classList.remove('open'); $('.mnav-toggle', g)?.setAttribute('aria-expanded', 'false'); });
+      group.classList.toggle('open', open);
+      toggle.setAttribute('aria-expanded', String(open));
+    });
+  });
+  // One clear way to reach us, with text and call a thumb away; login is a small link.
+  const actions = $('.mnav-actions', nav);
+  if (actions) {
+    actions.innerHTML = '<a href="contact.html" class="btn btn-primary mnav-contact">Contact us</a>'
+      + '<a href="sms:+19472674788" class="btn btn-ghost">Text us</a><a href="tel:+19472674788" class="btn btn-ghost">Call</a>'
+      + '<a href="admin.html" class="mnav-login">Client login</a>';
+  }
+
+  const links = $$('.mnav-toggle, .mnav-actions > *', nav);
   const tl = gsap.timeline({ paused: true, defaults: { ease: 'power3.out' } })
     .to(nav, { autoAlpha: 1, duration: 0.25 })
     .from(links, { y: 14, autoAlpha: 0, duration: 0.4, stagger: 0.05 }, '<');

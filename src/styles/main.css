@@ -1727,3 +1727,18 @@ fieldset.field .field-label { margin-bottom: 8px; }
 /* Footer phone number, under the email in "Contact us" */
 .sf-phone { display: inline-block; margin-top: 6px; font-family: var(--font-display); font-weight: 600; font-size: clamp(1.1rem, 1.8vw, 1.4rem); color: var(--text); }
 .sf-phone:hover { color: var(--accent-fg); }
+
+/* ---------- Phone menu: folding groups and one clear way to contact us ---------- */
+.mobile-nav { padding-bottom: 20px; }
+.mnav-group { padding-top: 0; border-bottom: 1px solid var(--line-solid); }
+.mnav-toggle { width: 100%; display: flex; justify-content: space-between; align-items: center; padding: 18px 0; background: none; border: 0; color: var(--text); font-family: var(--font-display); font-size: 1.3rem; font-weight: 600; text-align: left; cursor: pointer; }
+.mnav-toggle::after { content: ''; width: 10px; height: 10px; margin-right: 4px; border-right: 2px solid var(--text-2); border-bottom: 2px solid var(--text-2); transform: rotate(45deg) translateY(-3px); transition: transform 0.25s var(--ease-out); }
+.mnav-group.open .mnav-toggle::after { transform: rotate(-135deg) translateY(-3px); }
+.mnav-links { display: none; padding: 0 0 12px 2px; }
+.mnav-group.open .mnav-links { display: block; }
+.mobile-nav .mnav-links a:not(.btn) { padding: 9px 0; border: 0; font-family: var(--font-body, 'Inter'), sans-serif; font-size: 1rem; font-weight: 500; color: var(--text-2); }
+.mobile-nav .mnav-links a[aria-current="page"], .mobile-nav .mnav-links a.here { color: var(--text); }
+.mnav-actions { grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 20px; }
+.mnav-actions .mnav-contact { grid-column: 1 / -1; padding-block: 15px; font-size: 1.05rem; }
+.mobile-nav .mnav-actions .btn { margin-top: 0; }
+.mobile-nav a.mnav-login { grid-column: 1 / -1; justify-self: center; margin-top: 6px; padding: 6px 10px; border: 0; color: var(--text-3); font-family: inherit; font-size: 0.9rem; font-weight: 500; }

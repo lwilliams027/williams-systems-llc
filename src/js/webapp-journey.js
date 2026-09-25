@@ -234,17 +234,18 @@ function init() {
   {
     const T = 4 * SCENE, v = view('team');
     const card = $('.wa-signin', v), fields = $$('.wa-typed', card), btn = $('.wa-btn', card);
-    tl.from(card, { scale: 0.85, y: 30, autoAlpha: 0, duration: 0.3, ease: 'back.out(1.5)' }, T + 0.2);
-    type(tl, fields[0], T + 0.4, 0.25);
-    type(tl, fields[1], T + 0.65, 0.15);
-    moveTo(tl, spot(btn), T + 0.55, 0.25);
-    click(tl, T + 0.82, spot(btn));
-    tl.from($$('.wa-2fa i', card), { autoAlpha: 0, y: 8, duration: 0.08, stagger: 0.035 }, T + 0.86)
-      .to($('.wa-modal', v), { autoAlpha: 0, duration: 0.15 }, T + 1.12);
+    tl.from(card, { scale: 0.85, y: 30, autoAlpha: 0, duration: 0.3, ease: 'back.out(1.5)' }, T + 0.15);
+    type(tl, fields[0], T + 0.35, 0.22);
+    type(tl, fields[1], T + 0.58, 0.12);
+    moveTo(tl, spot(btn), T + 0.5, 0.2);
+    click(tl, T + 0.72, spot(btn));
+    // the sign-in is fully gone well before the chapter settles, so it never sits over the roles
+    tl.from($$('.wa-2fa i', card), { autoAlpha: 0, y: 8, duration: 0.07, stagger: 0.03 }, T + 0.75)
+      .to($('.wa-modal', v), { autoAlpha: 0, duration: 0.12 }, T + 0.96);
     const flip = $('.wa-roles [data-flip]', v);
-    moveTo(tl, spot(flip), T + 1.1, 0.15);
-    click(tl, T + 1.27, spot(flip));
-    cls(tl, flip, 'on', T + 1.28);
+    moveTo(tl, spot(flip), T + 1.0, 0.12);
+    click(tl, T + 1.14, spot(flip));
+    cls(tl, flip, 'on', T + 1.15);
   }
 
   /* ---------- 6 · automation: the invoice runs the workflow ---------- */
