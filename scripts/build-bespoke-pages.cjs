@@ -15,6 +15,7 @@ const PAGES = {
   'websites': { id: 'websiteJourney', name: 'websites-journey' },
   'mobile-apps': { id: 'mobileJourney', name: 'mobile-journey' },
   'launch-a-new-product': { id: 'launchJourney', name: 'launch-journey' },
+  'modernize-an-app': { id: 'modernizeJourney', name: 'modernize-journey' },
 };
 
 const only = process.argv.slice(2);

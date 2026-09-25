@@ -1,0 +1,116 @@
+    <!-- ============ Modernize an app: a before/after renovation ============
+         One app window (a fictional "Inventory Manager") with its old version and its
+         rebuilt version stacked, and a before/after slider between them. The slider
+         shows the old app at its worst, then sweeps across to the new one; after that
+         it gets faster, the bugs are fixed, it goes onto a tablet and a phone, and it
+         relaunches. Animated by src/js/modernize-journey.js; styles in src/styles/modernize-journey.css. -->
+    <section class="sj md" id="modernizeJourney" aria-labelledby="pageTitle">
+      <div class="sj-stage md-stage">
+        <div class="sj-bg" aria-hidden="true"><i class="md-blueprint"></i><i class="sj-glow"></i></div>
+
+        <div class="md-copy">
+          <div class="md-chap" data-label="Overview">
+            <p class="sj-k mono"><a href="launch-a-new-product.html">Solutions</a> / Modernize an existing app</p>
+            <h1 class="sj-h" id="pageTitle">Software you already have, <span>worth keeping.</span></h1>
+            <p class="sj-p">Slow, fragile, or written by someone who left years ago. We take it on, make it solid, and hand it back faster than it has been in years.</p>
+            <div class="sj-cta"><a class="btn btn-primary" href="contact.html#book">Get started</a><span class="tour-hint mono">Scroll to renovate it ↓</span></div>
+          </div>
+          <div class="md-chap" data-label="Before">
+            <p class="sj-k mono">Before</p>
+            <h2 class="sj-h">Slow, dated, <span>and breaking.</span></h2>
+            <p class="sj-p">Old screens, cryptic errors, and pages that take seconds to load. Your team works around it every day.</p>
+          </div>
+          <div class="md-chap" data-label="After">
+            <p class="sj-k mono">After</p>
+            <h2 class="sj-h">The same app, <span>rebuilt modern.</span></h2>
+            <p class="sj-p">A clean, fast design with the same data and workflows your team already knows.</p>
+          </div>
+          <div class="md-chap" data-label="Faster">
+            <p class="sj-k mono">Faster</p>
+            <h2 class="sj-h">10× quicker <span>pages.</span></h2>
+            <p class="sj-p">We find what slows it down and fix it, so waiting on the app is a thing of the past.</p>
+          </div>
+          <div class="md-chap" data-label="Fixed and safer">
+            <p class="sj-k mono">Fixed and safer</p>
+            <h2 class="sj-h">Bugs gone, <span>security current.</span></h2>
+            <p class="sj-p">Crashes fixed, old libraries updated, secure sign-in, and tests so it stays fixed.</p>
+          </div>
+          <div class="md-chap" data-label="Anywhere">
+            <p class="sj-k mono">Anywhere</p>
+            <h2 class="sj-h">Works on <span>every screen.</span></h2>
+            <p class="sj-p">The modernized app works on phones and tablets, not just the office PC.</p>
+          </div>
+          <div class="md-chap" data-label="Relaunch">
+            <p class="sj-k mono">Relaunch</p>
+            <h2 class="sj-h">Your app, <span>like new.</span></h2>
+            <p class="sj-p">Reviewed, fixed, and modernized by one team, without starting over.</p>
+            <div class="sj-cta"><a class="btn btn-primary" href="contact.html#book">Book a free call</a><a class="btn btn-ghost" href="contact.html#message">Send a message</a></div>
+          </div>
+        </div>
+
+        <div class="md-side" aria-hidden="true">
+          <div class="md-fit">
+            <!-- drawn at 780 × 520 and scaled to fit -->
+            <div class="md-scene">
+              <div class="md-win">
+                <!-- the old app -->
+                <div class="md-old">
+                  <div class="md-title"><span>Inventory Manager v2.3 - [Orders]</span><i>_</i><i>□</i><i>×</i></div>
+                  <div class="md-menu"><span>File</span><span>Edit</span><span>View</span><span>Reports</span><span>Help</span></div>
+                  <div class="md-tools"><b>New</b><b>Open</b><b>Save</b><b>Print</b><b>Refresh</b></div>
+                  <table class="md-grid">
+                    <tr><th>ID</th><th>CUSTOMER</th><th>AMT</th><th>STAT</th></tr>
+                    <tr><td>4821</td><td>HARBOR&amp;BEAN</td><td>1240.00</td><td>SHP</td></tr>
+                    <tr><td>4820</td><td>BLUEPINE DNTL</td><td>880.00</td><td>PCK</td></tr>
+                    <tr class="err"><td>4819</td><td>RIDGE OUTFTR</td><td>#ERR</td><td>???</td></tr>
+                    <tr><td>4818</td><td>LAKESIDE STU</td><td>420.00</td><td>HLD</td></tr>
+                  </table>
+                  <div class="md-statusbar"><span class="md-slow">Loading... please wait</span><span class="md-crawl"><i></i></span><span class="md-secs">8.4 s</span></div>
+                  <div class="md-err"><div class="md-err-t">Inventory Manager</div><p><b>⛔</b>Run-time error '91':<br />Object variable not set</p><span>OK</span></div>
+                  <i class="md-hourglass">⌛</i>
+                </div>
+                <!-- the rebuilt app -->
+                <div class="md-new">
+                  <aside class="md-side-nav"><b class="md-logo">▣ Inventory</b><span class="on">Orders</span><span>Products</span><span>Customers</span><span>Reports</span></aside>
+                  <main class="md-main">
+                    <div class="md-top"><h4>Orders</h4><span class="md-search">⌕ Search orders</span><span class="md-new-btn">+ New order</span></div>
+                    <div class="md-row head"><span>Order</span><span>Customer</span><span>Total</span><span>Status</span></div>
+                    <div class="md-row"><span>#4821</span><span>Harbor &amp; Bean</span><span>$1,240</span><em class="ok">Shipped</em></div>
+                    <div class="md-row"><span>#4820</span><span>Blue Pine Dental</span><span>$880</span><em class="wait">Packing</em></div>
+                    <div class="md-row"><span>#4819</span><span>Ridge Outfitters</span><span>$3,115</span><em class="ok">Shipped</em></div>
+                    <div class="md-row"><span>#4818</span><span>Lakeside Studio</span><span>$420</span><em class="hold">On hold</em></div>
+                    <div class="md-same"><span>✓ Same data</span><span>✓ Same workflow</span><span>✓ New design</span></div>
+                  </main>
+                </div>
+                <!-- the before/after slider -->
+                <div class="md-handle"><i></i><b>‹ ›</b><span class="l">Before</span><span class="r">After</span></div>
+                <!-- bugs to fix -->
+                <i class="md-bug" style="left:120px;top:150px">🐞</i>
+                <i class="md-bug" style="left:420px;top:120px">🐞</i>
+                <i class="md-bug" style="left:600px;top:250px">🐞</i>
+                <i class="md-bug" style="left:300px;top:320px">🐞</i>
+              </div>
+
+              <!-- 4 · the speed race -->
+              <div class="md-race">
+                <div class="md-lane"><small>Before</small><span class="md-track"><i class="old"></i></span><b class="md-t old">0.0 s</b></div>
+                <div class="md-lane"><small>After</small><span class="md-track"><i class="new"></i></span><b class="md-t new">0.0 s</b></div>
+                <p class="md-x">10× faster</p>
+              </div>
+
+              <!-- 5 · the fix list -->
+              <ul class="md-fixes"><li>Crash on the Orders screen fixed</li><li>Outdated libraries updated</li><li>Sign-in moved to secure accounts</li><li>Automated tests, so it stays fixed</li></ul>
+
+              <!-- 6 · tablet and phone -->
+              <div class="md-tab"><div class="md-dev-top">Orders</div><div class="md-card"><b>#4821 · Harbor &amp; Bean</b><em class="ok">Shipped</em></div><div class="md-card"><b>#4820 · Blue Pine Dental</b><em class="wait">Packing</em></div><div class="md-card"><b>#4819 · Ridge Outfitters</b><em class="ok">Shipped</em></div></div>
+              <div class="md-phone"><div class="md-dev-top">Orders</div><div class="md-card"><b>#4821</b><em class="ok">Shipped</em></div><div class="md-card"><b>#4820</b><em class="wait">Packing</em></div><div class="md-card"><b>#4819</b><em class="ok">Shipped</em></div></div>
+
+              <!-- 7 · relaunch -->
+              <div class="md-relaunch"><b>v3.0</b><span>Relaunched · your team is back to work</span><span class="md-online"><i></i><i></i><i></i><i></i> 12 online</span></div>
+            </div>
+          </div>
+        </div>
+
+        <ol class="sj-progress" aria-hidden="true"></ol>
+      </div>
+    </section>
