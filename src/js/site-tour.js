@@ -77,34 +77,38 @@ function initTour() {
     onUpdate: () => setStop(Math.min(N - 1, Math.max(0, Math.floor(tl.time() + 0.12)))),
   });
 
-  // Intro: the window swings in from a tilt and settles.
-  tl.fromTo(browser, { rotateY: 16, rotateX: 8, scale: 0.9, y: 30 }, { rotateY: -5, rotateX: 3, scale: 1, y: 0, duration: 0.45, ease: 'power2.out' }, 0)
+  // The window holds still; a camera works inside it. Each stop's data-cam is
+  // "originX originY startScale endScale": the camera eases from start to end
+  // across the stop (e.g. close on "Book Now", pulling back as the page opens).
+  const cam = (i) => { const [ox, oy, s0, s1] = caps[i].dataset.cam.split(' ').map(Number); return { origin: `${ox}% ${oy}%`, s0, s1 }; };
+  const screenOf = (i) => clips[caps[i].dataset.clip];
+  gsap.set(Object.values(clips), { transformOrigin: '50% 50%' });
+
+  // Intro: the window rises in, straight on.
+  tl.fromTo(browser, { y: 60, scale: 0.94, autoAlpha: 0 }, { y: 0, scale: 1, autoAlpha: 1, duration: 0.35, ease: 'power3.out' }, 0)
     .fromTo(caps[0], { autoAlpha: 0, y: 30 }, { autoAlpha: 1, y: 0, duration: 0.16, ease: 'power3.out' }, 0.05);
 
-  for (let i = 1; i < N; i++) {
-    const at = i;
-    const from = caps[i - 1].dataset.clip, to = caps[i].dataset.clip;
-    const side = i % 2 ? 1 : -1;
+  for (let i = 0; i < N; i++) {
+    const at = i, c = cam(i), el = screenOf(i);
+    // the camera move for this stop
+    tl.fromTo(el, { scale: c.s0, transformOrigin: c.origin }, { scale: c.s1, transformOrigin: c.origin, duration: 0.95, ease: 'power1.inOut', immediateRender: i === 0 }, at);
+    if (i === 0) continue;
+    const prev = screenOf(i - 1);
     // captions
-    tl.to(caps[i - 1], { autoAlpha: 0, y: -24, duration: 0.12, ease: 'power2.in' }, at - 0.18)
+    tl.to(caps[i - 1], { autoAlpha: 0, y: -24, duration: 0.12, ease: 'power2.in' }, at - 0.16)
       .fromTo(caps[i], { autoAlpha: 0, y: 30 }, { autoAlpha: 1, y: 0, duration: 0.16, ease: 'power3.out' }, at);
-    // screens: the old one blurs and falls back, the new one opens from a rounded mask
-    if (from !== to) {
-      tl.to(clips[from], { autoAlpha: 0, scale: 0.92, filter: 'blur(10px)', duration: 0.24, ease: 'power2.in' }, at - 0.22)
-        .fromTo(clips[to],
-          { autoAlpha: 0, scale: 1.08, filter: 'blur(8px)', clipPath: 'inset(12% 8% 12% 8% round 24px)' },
-          { autoAlpha: 1, scale: 1, filter: 'blur(0px)', clipPath: 'inset(0% 0% 0% 0% round 0px)', duration: 0.34, ease: 'power3.out', immediateRender: false }, at - 0.1);
+    // zoom-through: the old screen keeps pushing in as it fades; the new one arrives from a step back
+    if (prev !== el) {
+      tl.to(prev, { scale: `+=${0.25}`, autoAlpha: 0, duration: 0.18, ease: 'power2.in' }, at - 0.1)
+        .fromTo(el, { autoAlpha: 0 }, { autoAlpha: 1, duration: 0.14, ease: 'power1.out', immediateRender: false }, at - 0.02);
     }
-    // the window floats to a new angle; the glow drifts with it
-    tl.to(browser, { rotateY: side * 6, rotateX: 2 + side, y: side * -8, duration: 0.5, ease: 'sine.inOut' }, at - 0.3)
-      .to(glow, { xPercent: side * 12, yPercent: side * -6, duration: 0.5, ease: 'sine.inOut' }, at - 0.3);
   }
 
-  // Last step: the window steps back and a phone slides in beside it.
+  // Last step: the window slides aside and a phone rises in beside it.
   const last = N - 1;
-  tl.to(browser, { rotateY: 8, rotateX: 3, x: () => -browser.offsetWidth * 0.07, scale: 0.9, duration: 0.4, ease: 'power2.inOut' }, last - 0.25)
-    .fromTo(phone, { autoAlpha: 0, y: 90, x: 40, rotateY: -28, rotateZ: 4 },
-      { autoAlpha: 1, y: 0, x: 0, rotateY: -10, rotateZ: 0, duration: 0.4, ease: 'power3.out' }, last - 0.1)
+  tl.to(browser, { x: () => -browser.offsetWidth * 0.07, scale: 0.9, duration: 0.4, ease: 'power2.inOut' }, last - 0.25)
+    .fromTo(phone, { autoAlpha: 0, y: 120 },
+      { autoAlpha: 1, y: 0, duration: 0.4, ease: 'power3.out' }, last - 0.1)
     .fromTo(live, { opacity: 0, scale: 0.6 }, { opacity: 1, scale: 1, duration: 0.1, ease: 'back.out(2.5)' }, last + 0.15)
     .to({}, { duration: 0.6 }, last + 0.25);           // hold on the finished picture
 
