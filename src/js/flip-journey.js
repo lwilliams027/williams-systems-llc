@@ -34,6 +34,26 @@ const fmt = (el, n) => {
 };
 const LETTERS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
 
+/** Product pieces are drawn at their real design size and scaled to fit the chapter. */
+function fitAll() {
+  document.querySelectorAll('.fj-fit').forEach((box) => {
+    const f = box.firstElementChild;
+    if (!f) return;
+    f.style.transform = 'none';
+    const w = f.offsetWidth, h = f.offsetHeight;
+    const maxW = box.parentElement.clientWidth || box.clientWidth;
+    const maxH = window.innerHeight * (window.innerWidth < 900 ? 0.36 : 0.66);
+    const k = Math.min(maxW / w, maxH / h, 1);
+    f.style.transformOrigin = '0 0';
+    f.style.transform = `scale(${k})`;
+    box.style.width = `${w * k}px`;
+    box.style.height = `${h * k}px`;
+  });
+}
+fitAll();
+window.addEventListener('resize', fitAll);
+if (document.fonts) document.fonts.ready.then(fitAll);
+
 document.querySelectorAll('[data-journey]').forEach((section, idx) => {
   const $$ = (s, r = section) => Array.from(r.querySelectorAll(s));
   const scenes = $$('[data-scene]');
@@ -129,6 +149,8 @@ document.querySelectorAll('[data-journey]').forEach((section, idx) => {
       } else if (kind === 'grow') {
         gsap.set(el.children, { scaleY: 0, transformOrigin: '50% 100%' });
         A.to(el.children, { scaleY: 1, duration: 0.35, stagger: 0.04, ease: 'power3.out' }, at);
+      } else if (kind === 'press') {
+        A.fromTo(el, { scale: 1 }, { keyframes: { scale: [1, 0.92, 1] }, duration: 0.12, immediateRender: false }, at);
       } else if (kind === 'fill') {
         gsap.set(el, { scaleX: 0, transformOrigin: '0% 50%' });
         A.to(el, { scaleX: 1, duration: parseFloat(el.dataset.dur) || 0.5, ease: 'power1.inOut' }, at);

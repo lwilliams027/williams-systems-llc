@@ -132,3 +132,47 @@
 }
 .fj-swatches { width: 100%; }
 .fj-swatches .sj-tile { width: 100%; }
+
+/* ---------- product and Solutions pages: sample-product pieces ---------- */
+.sj-product .sj-glow { background: radial-gradient(closest-side, rgba(var(--sj-tint), 0.26), rgba(var(--sj-tint), 0.08), transparent); }
+.sj-product .sj-grid { background-image: linear-gradient(rgba(var(--sj-tint), 0.09) 1px, transparent 1px), linear-gradient(90deg, rgba(var(--sj-tint), 0.09) 1px, transparent 1px); }
+.sj-product .sj-k, .sj-product .sj-h span { background: linear-gradient(90deg, rgb(var(--sj-tint)), #A06BFF); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.sj-product .sj-progress li.on { background: linear-gradient(90deg, rgb(var(--sj-tint)), #A06BFF); }
+.fj-fit { position: relative; margin: auto; }
+.fj-piece { position: absolute; left: 0; top: 0; border-radius: 20px; overflow: hidden; box-shadow: 0 40px 100px rgba(0,0,0,0.55), 0 0 0 1px rgba(255,255,255,0.08), 0 0 80px rgba(var(--sj-tint), 0.18); }
+.fj-piece.fj-over { border-radius: 16px; }
+.fj-stage { position: relative; }
+.fj-toast { position: absolute; z-index: 3; right: 0; top: -18px; display: flex; gap: 12px; align-items: flex-start; width: min(340px, 80%); padding: 14px 16px; border-radius: 16px; background: #fff; color: #1F2430; font-size: 0.9rem; box-shadow: 0 24px 60px rgba(0,0,0,0.5); }
+.fj-toast b { display: block; }
+.fj-toast span { color: #5F6368; }
+.fj-toast .tour-toast-dot { width: 12px; height: 12px; margin-top: 4px; flex: none; border-radius: 50%; background: #28C840; box-shadow: 0 0 0 4px rgba(40,200,64,0.2); }
+.fj-toast.se-alert .tour-toast-dot { background: #EF4444; }
+.fj-status { width: min(560px, 44vw); }
+.fj-status .sj-flap { font-size: clamp(0.95rem, 1.5vw, 1.35rem); padding: 16px; }
+@media (max-width: 899.98px) {
+  .fj-toast { top: -30px; width: 86%; font-size: 0.8rem; padding: 10px 12px; }
+  .fj-status { width: min(100%, 440px); }
+}
+
+/* browser bar inside the product pieces (its styles used to come from the old tour) */
+.fj-piece .tw-chrome { display: flex; align-items: center; gap: 16px; height: 44px; padding: 0 16px; background: #1E2129; color: #C9CED8; font: 13px/1 'Inter', system-ui, sans-serif; }
+.fj-piece .tw-dots { display: flex; gap: 7px; }
+.fj-piece .tw-dots i { width: 12px; height: 12px; border-radius: 50%; background: #FF5F57; }
+.fj-piece .tw-dots i:nth-child(2) { background: #FEBC2E; }
+.fj-piece .tw-dots i:nth-child(3) { background: #28C840; }
+.fj-piece .tw-url { flex: 1; max-width: 520px; margin-inline: auto; display: flex; align-items: center; gap: 8px; padding: 7px 14px; border-radius: 8px; background: #2A2E38; white-space: nowrap; }
+.fj-piece .tw-url svg { width: 14px; height: 14px; flex: none; fill: none; stroke: #8FE3A1; stroke-width: 1.6; }
+.fj-piece .tw-live { margin-left: auto; padding: 2px 10px; border-radius: 999px; background: #28C840; color: #0B2A12; font-size: 11px; }
+.fj-piece .tw-sample { padding: 3px 10px; border-radius: 999px; border: 1px solid #3A3F4B; font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; }
+/* the overview shows the top of the product, like a browser window */
+.fj-piece.fj-over { height: 900px; }
+
+/* chapter labels: never wrap; on phones only the current one is spelled out */
+.sj-progress li { white-space: nowrap; }
+@media (max-width: 1099.98px) {
+  .sj-product .sj-progress li { font-size: 0.66rem; padding: 6px 9px; }
+}
+@media (max-width: 899.98px) {
+  .sj-progress { gap: 6px; }
+  .sj-progress li:not(.on) { width: 8px; height: 8px; padding: 0; font-size: 0; border-radius: 50%; }
+}
