@@ -1,0 +1,117 @@
+    <!-- ============ Launch a new product: from a napkin to a launch ============
+         One idea (a fictional plant-care app, Sprout) goes from a sketch on a napkin
+         to a live product: the sketch comes to life as a waitlist page, the idea list
+         is cut down to a first version, launch day's numbers climb, and requests shape
+         version two. Animated by src/js/launch-journey.js; styles in src/styles/launch-journey.css. -->
+    <section class="sj ln" id="launchJourney" aria-labelledby="pageTitle">
+      <div class="sj-stage ln-stage">
+        <div class="sj-bg" aria-hidden="true"><i class="ln-paper"></i><i class="sj-glow"></i></div>
+
+        <div class="ln-copy">
+          <div class="ln-chap" data-label="Overview">
+            <p class="sj-k mono"><a href="launch-a-new-product.html">Solutions</a> / Launch a new product</p>
+            <h1 class="sj-h" id="pageTitle">You have the idea. <span>We build the thing.</span></h1>
+            <p class="sj-p">Go from a sketch on a napkin to software your customers can sign up for. One team designs it, builds it, ships it, and keeps it running.</p>
+            <div class="sj-cta"><a class="btn btn-primary" href="contact.html#book">Get started</a><span class="tour-hint mono">Scroll to launch it ↓</span></div>
+          </div>
+          <div class="ln-chap" data-label="Waitlist">
+            <p class="sj-k mono">Start with interest</p>
+            <h2 class="sj-h">A waitlist <span>before launch.</span></h2>
+            <p class="sj-p">A landing page that explains the idea and collects sign-ups, so you launch to people already waiting.</p>
+          </div>
+          <div class="ln-chap" data-label="First version">
+            <p class="sj-k mono">Focused first version</p>
+            <h2 class="sj-h">Ship the part <span>that matters.</span></h2>
+            <p class="sj-p">We help you pick the few features that prove the idea, and build those well.</p>
+          </div>
+          <div class="ln-chap" data-label="Launch day">
+            <p class="sj-k mono">Launch day</p>
+            <h2 class="sj-h">Real users, <span>real numbers.</span></h2>
+            <p class="sj-p">Sign-ups, paying customers, and feedback you can see from the first hour.</p>
+          </div>
+          <div class="ln-chap" data-label="Learn fast">
+            <p class="sj-k mono">Learn fast</p>
+            <h2 class="sj-h">Hear what users <span>want next.</span></h2>
+            <p class="sj-p">Early feedback shapes version two, so you build what people actually ask for.</p>
+          </div>
+          <div class="ln-chap" data-label="Live">
+            <p class="sj-k mono">Launch</p>
+            <h2 class="sj-h">Your idea, <span>live.</span></h2>
+            <p class="sj-p">From first sketch to real users, built by one team.</p>
+            <div class="sj-cta"><a class="btn btn-primary" href="contact.html#book">Book a free call</a><a class="btn btn-ghost" href="contact.html#message">Send a message</a></div>
+          </div>
+        </div>
+
+        <div class="ln-side" aria-hidden="true">
+          <div class="ln-fit">
+            <!-- drawn at 760 × 520 and scaled to fit -->
+            <div class="ln-scene">
+              <!-- 1 · the napkin sketch -->
+              <div class="ln-napkin">
+                <svg class="ln-sketch" viewBox="0 0 460 360">
+                  <path d="M40 40 H420 V300 H40 Z"/><path d="M40 72 H420"/>
+                  <circle cx="72" cy="56" r="8"/><path d="M68 58 C72 48 80 50 78 44"/>
+                  <path d="M80 118 C140 114 220 118 300 116"/><path d="M80 146 C150 144 230 148 270 146"/>
+                  <path d="M80 186 H250 V216 H80 Z"/><path d="M262 186 H330 V216 H262 Z"/>
+                  <path d="M350 118 C380 110 400 140 385 170 C370 196 340 190 338 160 C336 136 348 124 360 122"/>
+                  <path d="M360 170 V200"/><path d="M80 246 H140 M160 246 H220 M240 246 H300"/>
+                  <path class="ink2" d="M300 262 C330 250 350 236 352 222"/><path class="ink2" d="M344 228 L352 220 L358 230"/>
+                </svg>
+                <span class="ln-note n1">plant app!</span>
+                <span class="ln-note n2">sign up here</span>
+                <span class="ln-note n3">reminders?</span>
+              </div>
+
+              <!-- 2 · the waitlist page -->
+              <div class="ln-page">
+                <div class="ln-page-bar"><b>🌱 Sprout</b><span>Join the waitlist</span></div>
+                <h4>Never kill a houseplant <em>again.</em></h4>
+                <p>Watering reminders and plant care tips, made for busy people.</p>
+                <div class="ln-join"><span class="ln-email"><span class="ln-typed" data-text="you@email.com"></span></span><b>Join</b></div>
+                <div class="ln-wait"><span class="ln-faces"><i></i><i></i><i></i><i></i></span><b class="ln-count" data-count="1284">0</b> people waiting</div>
+              </div>
+
+              <!-- 3 · cutting it down to a first version -->
+              <div class="ln-board">
+                <div class="ln-sticky keep" style="left:30px;top:30px;--r:-3deg">Watering reminders</div>
+                <div class="ln-sticky cut" style="left:250px;top:20px;--r:2deg">Social feed</div>
+                <div class="ln-sticky keep" style="left:470px;top:40px;--r:-2deg">Plant care tips</div>
+                <div class="ln-sticky cut" style="left:40px;top:190px;--r:3deg">AR garden view</div>
+                <div class="ln-sticky keep" style="left:260px;top:180px;--r:-1deg">Sign-up and payments</div>
+                <div class="ln-sticky cut" style="left:480px;top:200px;--r:2deg">Plant marketplace</div>
+                <div class="ln-v1"><b>Version 1</b><ul><li>Watering reminders</li><li>Plant care tips</li><li>Sign-up and payments</li></ul></div>
+                <div class="ln-later"><b>Later</b></div>
+              </div>
+
+              <!-- 4 · launch day -->
+              <div class="ln-dash">
+                <div class="ln-go"><span class="ln-go-t">Launch</span></div>
+                <div class="ln-stats">
+                  <div><small>Sign-ups</small><b data-count="1184">0</b></div>
+                  <div><small>Paying customers</small><b data-count="96">0</b></div>
+                  <div><small>Feedback</small><b data-count="38">0</b></div>
+                </div>
+                <svg class="ln-chart" viewBox="0 0 640 150" preserveAspectRatio="none"><path d="M0 140 C60 138 90 120 140 118 S230 96 280 90 S380 60 430 52 S540 22 640 10"/></svg>
+                <div class="ln-sparks"></div>
+              </div>
+
+              <!-- 5 · what users ask for -->
+              <div class="ln-votes">
+                <div class="ln-req top"><span>Text message reminders</span><b><i>▲</i><em data-count="23">0</em></b></div>
+                <div class="ln-req"><span>Pet-safe plant labels</span><b><i>▲</i><em data-count="17">0</em></b></div>
+                <div class="ln-req"><span>Light level checker</span><b><i>▲</i><em data-count="11">0</em></b></div>
+                <div class="ln-req"><span>Share a plant with family</span><b><i>▲</i><em data-count="8">0</em></b></div>
+                <div class="ln-v2"><small>Next up</small><b>Version 2 · Text message reminders</b></div>
+              </div>
+
+              <!-- 6 · then and now -->
+              <span class="ln-tag then">Day one</span>
+              <span class="ln-tag now">Today · Live</span>
+              <i class="ln-arrow"></i>
+            </div>
+          </div>
+        </div>
+
+        <ol class="sj-progress" aria-hidden="true"></ol>
+      </div>
+    </section>
