@@ -27,6 +27,7 @@
   <link rel="stylesheet" href="/src/styles/main.css" />
   <link rel="stylesheet" href="/src/styles/pages.css" />
   <link rel="stylesheet" href="/src/styles/story-journey.css" />
+  <link rel="stylesheet" href="/src/styles/about-journey.css" />
   <link rel="stylesheet" href="/src/styles/story-contact.css" />
   <link rel="stylesheet" href="/src/styles/about-section.css" />
   <link rel="stylesheet" href="/src/styles/about.css" />
@@ -112,124 +113,105 @@
   </header>
 
   <main id="main" class="as-page about-page">
-    <section class="as-hero">
-      <div class="as-orbs" aria-hidden="true"><i></i><i></i><i></i></div>
-      <div class="container as-hero-grid">
-        <div>
-          <p class="scene-eyebrow mono">About · Who we are</p>
-          <h1 class="as-h1" id="pageTitle">Built with love, <span>priced to help.</span></h1>
-          <p class="pg-lede">Williams Systems LLC designs, builds, and supports websites, web apps, SaaS platforms, mobile apps, and personalized AI. We help people bring their ideas to life with custom software, at a price that makes sense.</p>
-          <div class="pg-actions"><a class="btn btn-primary" href="contact.html#book">Book a free call</a><a class="btn btn-ghost" href="how-we-work.html">How we work</a></div>
-          <ul class="as-facts"><li><b>Michigan</b><span>Home base</span></li><li><b>Worldwide</b><span>Remote clients</span></li><li><b>24 hours</b><span>Reply to inquiries</span></li></ul>
-        </div>
-        <aside class="founder-card as-founder">
-          <!-- Photo: add public/team/landon.jpg, then replace the initials span below with
-               <img class="founder-photo" src="/team/landon.jpg" alt="Landon Williams" width="160" height="160" /> -->
-          <div class="as-photo"><span class="founder-av" aria-hidden="true">LW</span></div>
-          <b class="as-name">Landon Williams</b>
-          <span class="as-role">Founder</span>
-          <p>“I’ve loved building since I was ten. I started Williams Systems LLC to help people bring their dreams to life with something I love doing, at a price they can afford.”</p>
-          <a class="btn btn-primary btn-sm" href="contact.html#book">Talk with Landon</a>
-        </aside>
-      </div>
-    </section>
+    <!-- ============ About us: the same desk through the years ============
+         One desk under a lamp. As you scroll, what's on it (and on the wall behind it)
+         changes era by era, while a split-flap sign flips to each era's name: today,
+         then back to age 10, self-taught, freelance, medical companies, and today again.
+         Animated by src/js/about-journey.js; styles in src/styles/about-journey.css. -->
+    <section class="sj ab" id="aboutJourney" aria-labelledby="pageTitle">
+      <div class="sj-stage ab-stage">
+        <div class="sj-bg" aria-hidden="true"><i class="ab-dust"></i><i class="sj-glow"></i></div>
 
-    <!-- ============ Our story ============
-         A pinned, scroll-scrubbed sequence in the home page's style: full-screen
-         chapters that flip in 3D from one to the next (src/js/story-journey.js).
-         Included by scripts/build-about-section.cjs, which drops the home page logo mark into the Today chapter. -->
-    <section class="sj" id="story" aria-labelledby="storyTitle">
-      <div class="sj-stage">
-        <div class="sj-bg" aria-hidden="true"><i class="sj-grid"></i><i class="sj-glow"></i></div>
-
-        <!-- 1 · Age 10 -->
-        <div class="sj-scene sj-s1" data-scene>
-          <div class="sj-copy">
+        <div class="ab-copy">
+          <div class="ab-chap" data-label="Who we are">
+            <p class="sj-k mono">About · Who we are</p>
+            <h1 class="sj-h" id="pageTitle">Built with love, <span>priced to help.</span></h1>
+            <p class="sj-p">Williams Systems LLC designs, builds, and supports websites, web apps, SaaS platforms, mobile apps, and personalized AI. We help people bring their ideas to life with custom software, at a price that makes sense.</p>
+            <div class="sj-cta"><a class="btn btn-primary" href="contact.html#book">Book a free call</a><span class="tour-hint mono">Scroll for the story ↓</span></div>
+          </div>
+          <div class="ab-chap" data-label="Age 10">
             <p class="sj-k mono">Our story · Age 10</p>
-            <h2 class="sj-h" id="storyTitle">It started with <span>a ten-year-old.</span></h2>
+            <h2 class="sj-h">It started with <span>a ten-year-old.</span></h2>
             <p class="sj-p">Landon Williams wrote his first lines of code at ten, and the moment something he typed came to life on screen, he was hooked.</p>
           </div>
-          <div class="sj-visual" aria-hidden="true">
-            <div class="sj-crt">
-              <div class="sj-crt-screen">
-                <p class="sj-line" data-text='10 PRINT "HELLO, WORLD"'></p>
-                <p class="sj-line" data-text="20 GOTO 10"></p>
-                <p class="sj-line" data-text="RUN"></p>
-                <p class="sj-hello">HELLO, WORLD<br />HELLO, WORLD<br />HELLO, WORLD<br />HELLO, WORLD</p>
-                <i class="sj-cursor"></i>
-                <i class="sj-flood"></i>
-              </div>
-              <i class="sj-crt-base"></i>
-            </div>
-          </div>
-        </div>
-
-        <!-- 2 · Self-taught -->
-        <div class="sj-scene sj-s2" data-scene>
-          <div class="sj-copy">
+          <div class="ab-chap" data-label="Self-taught">
             <p class="sj-k mono">Self-taught</p>
             <h2 class="sj-h">Learning by <span>building.</span></h2>
             <p class="sj-p">Every skill picked up the practical way: by building real projects and seeing them through.</p>
           </div>
-          <div class="sj-visual sj-tiles" aria-hidden="true">
-            <div class="sj-tile"><div class="sj-tile-in"><div class="sj-face back"></div><div class="sj-face front"><b>&lt;/&gt;</b><span>First website</span></div></div></div>
-            <div class="sj-tile"><div class="sj-tile-in"><div class="sj-face back"></div><div class="sj-face front"><b>÷</b><span>Calculator app</span></div></div></div>
-            <div class="sj-tile"><div class="sj-tile-in"><div class="sj-face back"></div><div class="sj-face front"><b>▲</b><span>Platform game</span></div></div></div>
-            <div class="sj-tile"><div class="sj-tile-in"><div class="sj-face back"></div><div class="sj-face front"><b>☀</b><span>Weather dashboard</span></div></div></div>
-            <div class="sj-tile"><div class="sj-tile-in"><div class="sj-face back"></div><div class="sj-face front"><b>✉</b><span>Chat app</span></div></div></div>
-            <div class="sj-tile"><div class="sj-tile-in"><div class="sj-face back"></div><div class="sj-face front"><b>∞</b><span>And many more</span></div></div></div>
-          </div>
-        </div>
-
-        <!-- 3 · Freelance: a split-flap board -->
-        <div class="sj-scene sj-s3" data-scene>
-          <div class="sj-copy">
+          <div class="ab-chap" data-label="Freelance">
             <p class="sj-k mono">Freelance</p>
             <h2 class="sj-h">Building for <span>clients.</span></h2>
             <p class="sj-p">Websites and apps for businesses, one client at a time, learning what people actually need from their software.</p>
           </div>
-          <div class="sj-visual sj-board" aria-hidden="true">
-            <div class="sj-board-head"><span>Project</span><span>Status</span></div>
-            <div class="sj-row"><span class="sj-flap" data-text="BUSINESS WEBSITE"></span><span class="sj-flap st" data-text="LAUNCHED"></span></div>
-            <div class="sj-row"><span class="sj-flap" data-text="BOOKING SYSTEM"></span><span class="sj-flap st" data-text="LAUNCHED"></span></div>
-            <div class="sj-row"><span class="sj-flap" data-text="ONLINE STORE"></span><span class="sj-flap st" data-text="LAUNCHED"></span></div>
-            <div class="sj-row"><span class="sj-flap" data-text="CUSTOM DASHBOARD"></span><span class="sj-flap st" data-text="LAUNCHED"></span></div>
-          </div>
-        </div>
-
-        <!-- 4 · Medical companies -->
-        <div class="sj-scene sj-s4" data-scene>
-          <div class="sj-copy">
+          <div class="ab-chap" data-label="Medical">
             <p class="sj-k mono">Medical companies</p>
             <h2 class="sj-h">Where details <span>matter.</span></h2>
             <p class="sj-p">Development work for medical companies, where getting every detail right isn’t optional.</p>
-            <ul class="sj-chips"><li>Every detail checked</li><li>Access by role</li><li>Tested before release</li></ul>
           </div>
-          <div class="sj-visual sj-ecg" aria-hidden="true">
-            <svg viewBox="0 0 600 220" preserveAspectRatio="none"><defs><linearGradient id="sjEcg" x1="0" x2="1"><stop offset="0" stop-color="#2E9BFF"/><stop offset="1" stop-color="#A06BFF"/></linearGradient></defs>
-              <path class="sj-ecg-grid" d="M0 55H600M0 110H600M0 165H600M100 0V220M200 0V220M300 0V220M400 0V220M500 0V220"/>
-              <path class="sj-ecg-line" d="M0 120H90l18-10 14 10h40l12-70 16 140 14-70h52l20-18 18 18h70l12-70 16 140 14-70h52l20-18 18 18H600"/></svg>
-            <div class="sj-bpm"><b>72</b><span>BPM</span></div>
-          </div>
-        </div>
-
-        <!-- 5 · Today -->
-        <div class="sj-scene sj-s5" data-scene>
-          <div class="sj-copy">
+          <div class="ab-chap" data-label="Today">
             <p class="sj-k mono">Today</p>
-            <h2 class="sj-h sj-name" data-text="WILLIAMS SYSTEMS LLC">WILLIAMS SYSTEMS LLC</h2>
-            <p class="sj-p">Built on a love of building and a simple idea: help people bring their dreams to life, at a price that makes sense. Based in Michigan, working worldwide.</p>
-            <div class="sj-cta"><a class="btn btn-primary" href="contact.html#book">Book a free call</a><span class="mono">What will we build together?</span></div>
-          </div>
-          <div class="sj-visual sj-today" aria-hidden="true">
-            <div class="sj-orbit o1"></div><div class="sj-orbit o2"></div><div class="sj-orbit o3"></div>
-            <div class="sj-mark-wrap"><svg class="sj-mark" aria-hidden="true" viewBox="130 -45 1500 850" fill="currentColor"><path d="M500 805L500 691.86L243.14 435L500 178.14L500 65L130 435Z"/><path fill="url(#bpL)" d="M610 611.86L610 -45L530 35L530 805L858.79 476.21L802.22 419.64Z"/><path d="M806.72 381.72L863.28 325.15L1150 611.86L1150 -45L1230 35L1230 805Z"/><path d="M1260 805L1260 691.86L1516.86 435L1260 178.14L1260 65L1630 435Z"/></svg></div>
-            <span class="sj-pin">Michigan</span>
-            <i class="sj-dot d1"></i><i class="sj-dot d2"></i><i class="sj-dot d3"></i><i class="sj-dot d4"></i><i class="sj-dot d5"></i><i class="sj-dot d6"></i>
+            <h2 class="sj-h">Michigan, <span>working worldwide.</span></h2>
+            <p class="sj-p">Built on a love of building and a simple idea: help people bring their dreams to life, at a price that makes sense.</p>
+            <div class="sj-cta"><a class="btn btn-primary" href="contact.html#book">Book a free call</a><a class="btn btn-ghost" href="how-we-work.html">How we work</a></div>
           </div>
         </div>
 
-        <ol class="sj-progress" aria-hidden="true"><li>Age 10</li><li>Self-taught</li><li>Freelance</li><li>Medical</li><li>Today</li></ol>
+        <div class="ab-side" aria-hidden="true">
+          <div class="ab-fit">
+            <!-- drawn at 780 × 520 and scaled to fit -->
+            <div class="ab-scene">
+              <!-- the room: wall, desk, lamp, and the era sign -->
+              <div class="ab-wall"></div>
+              <div class="ab-desk"></div>
+              <div class="ab-lamp"><i class="arm"></i><i class="head"></i><i class="cone"></i></div>
+              <div class="ab-sign"><span class="ab-era" data-text="TODAY">TODAY</span></div>
+
+              <!-- today -->
+              <div class="ab-era-g" data-e="today">
+                <div class="ab-map"><i class="land l1"></i><i class="land l2"></i><i class="land l3"></i><i class="land l4"></i><span class="ab-pin">Michigan</span><i class="ab-reach r1"></i><i class="ab-reach r2"></i><i class="ab-reach r3"></i><i class="ab-reach r4"></i><i class="ab-reach r5"></i></div>
+                <div class="ab-monitor"><div class="ab-screen ab-brand"><svg class="ab-mark" viewBox="130 -45 1500 850"><path d="M500 805L500 691.86L243.14 435L500 178.14L500 65L130 435Z"/><path class="l" d="M610 611.86L610 -45L530 35L530 805L858.79 476.21L802.22 419.64Z"/><path d="M806.72 381.72L863.28 325.15L1150 611.86L1150 -45L1230 35L1230 805Z"/><path d="M1260 805L1260 691.86L1516.86 435L1260 178.14L1260 65L1630 435Z"/></svg><b>WILLIAMS</b><small>SYSTEMS LLC</small></div><i class="ab-stand"></i></div>
+                <div class="ab-notes"><span>📍 Michigan</span><span>🌎 Worldwide</span><span>⏱ 24-hour replies</span></div>
+                <i class="ab-plant"></i>
+                <div class="ab-founder">
+                  <!-- Photo: add public/team/landon.jpg and put an <img> in place of the initials -->
+                  <span class="ab-av">LW</span>
+                  <div><b>Landon Williams</b><small>Founder</small><p>“I’ve loved building since I was ten. I started Williams Systems LLC to help people bring their dreams to life with something I love doing, at a price they can afford.”</p><span class="ab-talk">Talk with Landon →</span></div>
+                </div>
+              </div>
+
+              <!-- age 10 -->
+              <div class="ab-era-g" data-e="ten">
+                <div class="ab-crt"><div class="ab-crt-scr"><p class="ab-line" data-text='10 PRINT "HELLO, WORLD"'></p><p class="ab-line" data-text="20 GOTO 10"></p><p class="ab-line" data-text="RUN"></p><p class="ab-hello">HELLO, WORLD<br />HELLO, WORLD<br />HELLO, WORLD</p></div><i class="ab-crt-base"></i></div>
+                <i class="ab-floppy f1"></i><i class="ab-floppy f2"></i>
+                <span class="ab-crayon">my first program!</span>
+              </div>
+
+              <!-- self-taught -->
+              <div class="ab-era-g" data-e="self">
+                <div class="ab-laptop"><div class="ab-lap-scr"><p class="c1"></p><p class="c2"></p><p class="c3"></p><p class="c4"></p><p class="c5"></p><p class="c6"></p></div><i class="ab-lap-base"></i></div>
+                <div class="ab-books"><b style="--c:#E34F26">HTML</b><b style="--c:#F7DF1E;color:#222">JavaScript</b><b style="--c:#3776AB">Python</b></div>
+                <div class="ab-pins"><span>First website</span><span>Calculator app</span><span>Platform game</span><span>Weather dashboard</span><span>Chat app</span></div>
+              </div>
+
+              <!-- freelance -->
+              <div class="ab-era-g" data-e="free">
+                <div class="ab-cork"><div><b>Business website</b><em>LAUNCHED</em></div><div><b>Booking system</b><em>LAUNCHED</em></div><div><b>Online store</b><em>LAUNCHED</em></div><div><b>Custom dashboard</b><em>LAUNCHED</em></div></div>
+                <div class="ab-laptop sm"><div class="ab-lap-scr site"><i></i><i></i><i></i></div><i class="ab-lap-base"></i></div>
+                <i class="ab-phone"></i>
+                <i class="ab-mug"></i>
+              </div>
+
+              <!-- medical -->
+              <div class="ab-era-g" data-e="med">
+                <div class="ab-mon2 a"><svg viewBox="0 0 300 140" preserveAspectRatio="none"><path class="ab-ecg" d="M0 80H60l10-8 8 8h24l8-50 10 100 8-50h32l12-12 10 12h40l8-50 10 100 8-50h32"/></svg><span class="ab-bpm">72 BPM</span></div>
+                <div class="ab-mon2 b"><ul class="ab-checks"><li>Every detail checked</li><li>Access by role</li><li>Tested before release</li></ul></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <ol class="sj-progress" aria-hidden="true"></ol>
       </div>
     </section>
 
@@ -334,6 +316,6 @@
   </footer>
 
   <script type="module" src="/src/js/main.js"></script>
-  <script type="module" src="/src/js/story-journey.js"></script>
+  <script type="module" src="/src/js/about-journey.js"></script>
 </body>
 </html>
