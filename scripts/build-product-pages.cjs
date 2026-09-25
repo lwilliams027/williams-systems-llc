@@ -327,7 +327,7 @@ function assemble(f, P) {
   const lede = src.match(/<p class="pg-lede">([\s\S]*?)<\/p>/)[1];
   const faqs = [...src.matchAll(/<details class="faq-item"( open)?><summary>([\s\S]*?)<\/summary><p>([\s\S]*?)<\/p><\/details>/g)].map((m) => [m[2], m[3]]);
   if (!faqs.length) throw new Error('no FAQ in ' + f);
-  const allCaps = [`<li class="tour-cap tour-intro" data-stop="intro"><h1 class="tour-h1" id="pageTitle">${h1}</h1><p>${lede}</p><div class="tour-actions"><a class="btn btn-primary" href="schedule.html">Get started</a><span class="tour-hint mono">Scroll to take the tour ↓</span></div></li>`, ...P.caps];
+  const allCaps = [`<li class="tour-cap tour-intro" data-stop="intro"><h1 class="tour-h1" id="pageTitle">${h1}</h1><p>${lede}</p><div class="tour-actions"><a class="btn btn-primary" href="contact.html#book">Get started</a><span class="tour-hint mono">Scroll to take the tour ↓</span></div></li>`, ...P.caps];
 
   const main = `  <main id="main" class="product-page">
     <!-- ============ Product tour ============
@@ -384,7 +384,7 @@ function assemble(f, P) {
           <p class="scene-eyebrow mono">Questions</p>
           <h2 class="pg-h2 qa-title">${name}, <span>answered.</span></h2>
           <p class="pg-p">Straight answers to what people ask before we start.</p>
-          <div class="qa-ask"><p>Don't see your question?</p><a class="btn btn-primary btn-sm" href="schedule.html">Ask us on a free call</a><a class="qa-mail" href="mailto:lwilliams24270@gmail.com">lwilliams24270@gmail.com</a></div>
+          <div class="qa-ask"><p>Don't see your question?</p><a class="btn btn-primary btn-sm" href="contact.html#book">Ask us on a free call</a><a class="qa-mail" href="mailto:lwilliams24270@gmail.com">lwilliams24270@gmail.com</a></div>
         </div>
         <div class="faq-list qa-list">
 ${faqs.map(([q, a], i) => `          <details class="faq-item qa-item"${i === 0 ? ' open' : ''}><summary><span class="qa-q">${q}</span><span class="qa-icon" aria-hidden="true"></span></summary><div class="qa-a"><p>${a}</p></div></details>`).join('\n')}

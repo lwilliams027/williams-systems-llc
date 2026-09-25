@@ -26,3 +26,22 @@ if (form) {
     sent.focus();
   });
 }
+
+/* Contact page tabs: "Book a free call" and "Send a message".
+   contact.html#book and contact.html#message open the matching tab. */
+const tabs = [...document.querySelectorAll('.as-tab')];
+if (tabs.length) {
+  const show = (id, focus) => {
+    tabs.forEach((t) => {
+      const on = t.getAttribute('aria-controls') === id;
+      t.classList.toggle('on', on);
+      t.setAttribute('aria-selected', String(on));
+      document.getElementById(t.getAttribute('aria-controls')).hidden = !on;
+    });
+    if (focus) document.querySelector('.as-reach').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  };
+  tabs.forEach((t) => t.addEventListener('click', () => { show(t.getAttribute('aria-controls')); history.replaceState(null, '', '#' + t.getAttribute('aria-controls')); }));
+  const fromHash = () => { const id = location.hash.slice(1); if (id === 'book' || id === 'message') show(id, true); };
+  window.addEventListener('hashchange', fromHash);
+  if (location.hash) setTimeout(fromHash, 300);
+}

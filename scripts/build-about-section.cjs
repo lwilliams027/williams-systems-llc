@@ -44,12 +44,12 @@ const cta = (h, p) => `
       <div class="container as-cta-box">
         <h2 class="pg-h2 qa-title">${h}</h2>
         <p class="pg-p">${p}</p>
-        <div class="pg-actions"><a class="btn btn-primary" href="schedule.html">Book a free call</a><a class="btn btn-ghost" href="contact.html">Contact us</a></div>
+        <div class="pg-actions"><a class="btn btn-primary" href="contact.html#book">Book a free call</a><a class="btn btn-ghost" href="contact.html#message">Send a message</a></div>
       </div>
     </section>`;
 const subnav = (here) => `
     <nav class="as-subnav" aria-label="About section">
-      <div class="container">${[['about.html', 'About us'], ['how-we-work.html', 'How we work'], ['client-stories.html', 'Client stories'], ['faq.html', 'FAQ'], ['schedule.html', 'Schedule a call'], ['contact.html', 'Contact us']]
+      <div class="container">${[['about.html', 'About us'], ['how-we-work.html', 'How we work'], ['client-stories.html', 'Client stories'], ['faq.html', 'FAQ'], ['contact.html', 'Contact us']]
         .map(([h, t]) => `<a href="${h}"${h === here ? ' class="on" aria-current="page"' : ''}>${t}</a>`).join('')}</div>
     </nav>`;
 
@@ -64,7 +64,7 @@ let TOUR = '';
   TOUR = src.slice(a, e)
     .replace('aria-labelledby="howTitle"', 'aria-labelledby="pageTitle"')
     .replace(/<h2 class="tour-h1" id="howTitle">How we <span>work\.<\/span><\/h2><p>[\s\S]*?<\/p><div class="tour-actions">[\s\S]*?<\/div>/,
-      '<h1 class="tour-h1" id="pageTitle">How we <span>work.</span></h1><p>Meet, design, scope, build, launch. Here’s a sample project going through the same steps every client does.</p><div class="tour-actions"><a class="btn btn-primary" href="schedule.html">Book a free call</a><span class="tour-hint mono">Scroll to follow the project ↓</span></div>')
+      '<h1 class="tour-h1" id="pageTitle">How we <span>work.</span></h1><p>Meet, design, scope, build, launch. Here’s a sample project going through the same steps every client does.</p><div class="tour-actions"><a class="btn btn-primary" href="contact.html#book">Book a free call</a><span class="tour-hint mono">Scroll to follow the project ↓</span></div>')
     .replace('<p class="scene-eyebrow mono">How we work</p>', '<p class="scene-eyebrow mono"><a href="about.html">About</a> / How we work</p>');
   if (!TOUR.includes('<h1 class="tour-h1"')) throw new Error('tour intro not converted');
 }
@@ -89,6 +89,7 @@ let TOUR = '';
     ['Affordable', 'Real, custom software at a price that makes sense for your business, agreed up front.'],
     ['Looked after', 'After launch, a monthly support plan or pay per job, whichever suits you.'],
   ];
+  const STORY_TOUR = fs.readFileSync(path.join(__dirname, 'story-tour.html'), 'utf8').trimEnd();
   const main = `  <main id="main" class="as-page about-page">
     <section class="as-hero">
       <div class="as-orbs" aria-hidden="true"><i></i><i></i><i></i></div>
@@ -97,7 +98,7 @@ let TOUR = '';
           <p class="scene-eyebrow mono">About · Who we are</p>
           <h1 class="as-h1" id="pageTitle">Built with love, <span>priced to help.</span></h1>
           <p class="pg-lede">Williams Systems LLC designs, builds, and supports websites, web apps, SaaS platforms, mobile apps, and personalized AI. We help people bring their ideas to life with custom software, at a price that makes sense.</p>
-          <div class="pg-actions"><a class="btn btn-primary" href="schedule.html">Book a free call</a><a class="btn btn-ghost" href="how-we-work.html">How we work</a></div>
+          <div class="pg-actions"><a class="btn btn-primary" href="contact.html#book">Book a free call</a><a class="btn btn-ghost" href="how-we-work.html">How we work</a></div>
           <ul class="as-facts"><li><b>Michigan</b><span>Home base</span></li><li><b>Worldwide</b><span>Remote clients</span></li><li><b>24 hours</b><span>Reply to inquiries</span></li></ul>
         </div>
         <aside class="founder-card as-founder">
@@ -107,24 +108,12 @@ let TOUR = '';
           <b class="as-name">Landon Williams</b>
           <span class="as-role">Founder</span>
           <p>“I’ve loved building since I was ten. I started Williams Systems LLC to help people bring their dreams to life with something I love doing, at a price they can afford.”</p>
-          <a class="btn btn-primary btn-sm" href="schedule.html">Talk with Landon</a>
+          <a class="btn btn-primary btn-sm" href="contact.html#book">Talk with Landon</a>
         </aside>
       </div>
     </section>
-${subnav('about.html')}
 
-    <section class="pg-section as-story">
-      <div class="container as-story-grid">
-        <div class="as-story-copy">
-          <p class="scene-eyebrow mono">Our story</p>
-          <h2 class="pg-h2 qa-title">It started with a <span>ten-year-old and a computer.</span></h2>
-          <p class="pg-p">Landon Williams has been building since he was ten. Self-taught, he turned that love of building into freelance work for businesses, then development for medical companies, where the details really matter.</p>
-          <p class="pg-p">Along the way he saw how much good software usually costs, and how many good ideas never get built because of it. Williams Systems LLC exists to change that: real, custom software, built with care, at a price that makes sense.</p>
-          <p class="pg-p">When you work with us, you talk directly to the person designing and building your project.</p>
-        </div>
-        <ol class="as-timeline">${TIMELINE.map(([k, t, d]) => `<li><span class="as-dot"></span><em>${k}</em><b>${t}</b><p>${d}</p></li>`).join('')}</ol>
-      </div>
-    </section>
+${STORY_TOUR}
 
     <section class="pg-section about-what">
       <div class="container">
@@ -154,7 +143,7 @@ ${cta('Have an idea? <span>Let’s build it.</span>', 'Tell us what you have in 
   makePage('about.html', {
     title: 'About Williams Systems LLC | Founded by Landon Williams',
     desc: 'Williams Systems LLC is a Michigan software company founded by Landon Williams, building websites, apps, SaaS, and personalized AI for clients worldwide at a price that makes sense.',
-    crumb: 'About', main, css: ['/src/styles/about.css', '/src/styles/about-section.css'],
+    crumb: 'About', main, css: ['/src/styles/tour.css', '/src/styles/product-worlds.css', '/src/styles/about.css', '/src/styles/about-section.css', '/src/styles/story-contact.css'], js: ['/src/js/site-tour.js'],
     ld: [ORG, { '@type': 'AboutPage', '@id': BASE + 'about.html#page', url: BASE + 'about.html', name: 'About Williams Systems LLC', about: { '@id': BASE + '#org' } },
       { '@type': 'Person', name: 'Landon Williams', jobTitle: 'Founder', worksFor: { '@id': BASE + '#org' }, homeLocation: { '@type': 'Place', name: 'Michigan, US' } }],
   });
@@ -171,7 +160,6 @@ ${cta('Have an idea? <span>Let’s build it.</span>', 'Tell us what you have in 
   ];
   const main = `  <main id="main" class="as-page how-page product-page">
 ${TOUR}
-${subnav('how-we-work.html')}
 
     <section class="pg-section">
       <div class="container">
@@ -203,7 +191,7 @@ ${cta('Ready for <span>step one?</span>', 'Book a free discovery call. It’s th
   makePage('how-we-work.html', {
     title: 'How We Work | Williams Systems LLC',
     desc: 'How a project with Williams Systems LLC runs: a free call, design together, a written scope with the price, a fast build, launch, and support. One-time or monthly.',
-    crumb: 'How we work', main, css: ['/src/styles/tour.css', '/src/styles/product-worlds.css', '/src/styles/about.css', '/src/styles/about-section.css'], js: ['/src/js/site-tour.js'],
+    crumb: 'How we work', main, css: ['/src/styles/tour.css', '/src/styles/product-worlds.css', '/src/styles/about.css', '/src/styles/about-section.css', '/src/styles/story-contact.css'], js: ['/src/js/site-tour.js'],
     ld: [ORG, { '@type': 'WebPage', '@id': BASE + 'how-we-work.html#page', url: BASE + 'how-we-work.html', name: 'How we work' }],
   });
 }
@@ -223,7 +211,6 @@ ${cta('Ready for <span>step one?</span>', 'Book a free discovery call. It’s th
         <p class="pg-lede">Real stories from the people we build for, in their own words. We’re collecting them now, so check back soon.</p>
       </div>
     </section>
-${subnav('client-stories.html')}
 
     <section class="pg-section">
       <div class="container">
@@ -250,55 +237,103 @@ ${cta('Want to be <span>the next story?</span>', 'Tell us what you want to build
   makePage('client-stories.html', {
     title: 'Client Stories | Williams Systems LLC',
     desc: 'Stories from the people Williams Systems LLC builds for: websites, apps, SaaS, and personalized AI.',
-    crumb: 'Client stories', main, css: ['/src/styles/about.css', '/src/styles/about-section.css'],
+    crumb: 'Client stories', main, css: ['/src/styles/about.css', '/src/styles/about-section.css', '/src/styles/story-contact.css'],
     ld: [ORG],
   });
 }
 
-/* ------------------------------------------------------------------ contact.html */
+/* ------------------------------------------------------------------ contact.html (includes booking) */
 {
+  // The booking form (day and time picker) lives here now; take it from the old
+  // Schedule page the first time, then from contact.html on re-runs.
+  const from = read('schedule.html').includes('id="schedForm"') ? read('schedule.html') : read('contact.html');
+  const fa = from.indexOf('<form class="sched" id="schedForm"');
+  const fb = from.indexOf('</div>', from.indexOf('id="schedAgain"')) + '</div>'.length;
+  if (fa < 0 || fb < fa) throw new Error('booking form not found');
+  const BOOKING = from.slice(fa, fb);
   const NEEDS = ['Website', 'Web app', 'Mobile app', 'SaaS platform', 'Personalized AI', 'Cloud & hosting', 'Fix an existing app', 'Something else'];
   const main = `  <main id="main" class="as-page contact-page">
     <section class="as-hero as-hero-sm">
       <div class="as-orbs" aria-hidden="true"><i></i><i></i><i></i></div>
       <div class="container">
         <p class="scene-eyebrow mono"><a href="about.html">About</a> / Contact us</p>
-        <h1 class="as-h1" id="pageTitle">Let’s <span>talk.</span></h1>
-        <p class="pg-lede">Call, text, or send a message. We reply within 24 hours.</p>
+        <div class="as-hero-grid">
+          <div>
+            <h1 class="as-h1" id="pageTitle">Let’s <span>talk.</span></h1>
+            <p class="pg-lede">Book a free call, send a message, or just call or text. We reply within 24 hours.</p>
+            <div class="pg-actions"><a class="btn btn-primary" href="tel:${TEL}">Call ${PHONE}</a><a class="btn btn-ghost" href="sms:${TEL}">Send a text</a></div>
+            <ul class="as-facts"><li><b>24 hours</b><span>We reply within a day</span></li><li><b>Free</b><span>Discovery call</span></li><li><b>Michigan</b><span>Working worldwide</span></li></ul>
+          </div>
+          <div class="as-text-phone" aria-hidden="true">
+            <div class="as-tp-top"><span class="as-tp-av">LW</span><div><b>Williams Systems LLC</b><small>Usually replies within 24 hours</small></div></div>
+            <div class="as-tp-thread">
+              <p class="in">Hi! I have an idea for an app. Can we talk?</p>
+              <p class="out">Absolutely! Tell me a bit about it, and let’s set up a free call.</p>
+              <p class="in">Tomorrow afternoon work?</p>
+              <p class="out">Perfect. I’ll send you a time. 👍</p>
+            </div>
+            <div class="as-tp-bar"><span>Text message</span><i></i></div>
+            <small class="as-tp-note">Example conversation</small>
+          </div>
+        </div>
       </div>
     </section>
-${subnav('contact.html')}
 
-    <section class="pg-section">
-      <div class="container as-contact-grid">
-        <div class="as-contact-side">
-          <a class="as-phone-card" href="tel:${TEL}"><em>Call or text</em><b>${PHONE}</b><span>Tap to call</span></a>
-          <a class="as-mini" href="sms:${TEL}"><b>Text us</b><span>Quickest for short questions</span></a>
-          <a class="as-mini" href="schedule.html"><b>Book a free call</b><span>Pick a time that works for you</span></a>
-          <ul class="as-facts as-facts-col"><li><b>24 hours</b><span>We reply within a day</span></li><li><b>Michigan</b><span>Working with clients worldwide</span></li></ul>
+    <section class="pg-section as-reach">
+      <div class="container">
+        <div class="as-tabs" role="tablist" aria-label="How would you like to reach us?">
+          <button type="button" role="tab" class="as-tab on" id="tabBook" aria-controls="book" aria-selected="true">Book a free call</button>
+          <button type="button" role="tab" class="as-tab" id="tabMessage" aria-controls="message" aria-selected="false">Send a message</button>
         </div>
-        <form class="as-form win-card" id="contactForm" novalidate>
-          <h2 class="as-form-title">Send a message</h2>
-          <div class="as-row2">
-            <label>Your name<input name="name" autocomplete="name" required /></label>
-            <label>Email<input name="email" type="email" autocomplete="email" required /></label>
-          </div>
-          <label>Phone <small>(optional)</small><input name="phone" type="tel" autocomplete="tel" /></label>
-          <fieldset class="as-needs"><legend>What do you need?</legend>${NEEDS.map((n) => `<label class="as-need"><input type="checkbox" name="needs" value="${n}" /><span>${n.replace('&', '&amp;')}</span></label>`).join('')}</fieldset>
-          <label>Tell us about it<textarea name="message" rows="5" placeholder="What are you hoping to build?"></textarea></label>
-          <p class="as-error" id="contactError" role="alert" hidden></p>
-          <button class="btn btn-primary" type="submit">Send message</button>
-          <div class="as-sent" id="contactSent" hidden tabindex="-1"><b>Almost there.</b><p>Your email app just opened with your message. Hit send, and we’ll reply within 24 hours.</p></div>
-        </form>
+        <div class="as-panel win-card" id="book" role="tabpanel" aria-labelledby="tabBook">
+          <h2 class="as-form-title">Pick a time for a free call</h2>
+          <p class="as-panel-sub">Choose the kind of call, a day, and a time. We’ll confirm within 24 hours.</p>
+          ${BOOKING}
+        </div>
+        <div class="as-panel win-card" id="message" role="tabpanel" aria-labelledby="tabMessage" hidden>
+          <form class="as-form" id="contactForm" novalidate>
+            <h2 class="as-form-title">Send a message</h2>
+            <div class="as-row2">
+              <label>Your name<input name="name" autocomplete="name" required /></label>
+              <label>Email<input name="email" type="email" autocomplete="email" required /></label>
+            </div>
+            <label>Phone <small>(optional)</small><input name="phone" type="tel" autocomplete="tel" /></label>
+            <fieldset class="as-needs"><legend>What do you need?</legend>${NEEDS.map((n) => `<label class="as-need"><input type="checkbox" name="needs" value="${n}" /><span>${n.replace('&', '&amp;')}</span></label>`).join('')}</fieldset>
+            <label>Tell us about it<textarea name="message" rows="5" placeholder="What are you hoping to build?"></textarea></label>
+            <p class="as-error" id="contactError" role="alert" hidden></p>
+            <button class="btn btn-primary" type="submit">Send message</button>
+            <div class="as-sent" id="contactSent" hidden tabindex="-1"><b>Almost there.</b><p>Your email app just opened with your message. Hit send, and we’ll reply within 24 hours.</p></div>
+          </form>
+        </div>
       </div>
     </section>
   </main>`;
   makePage('contact.html', {
-    title: 'Contact Williams Systems LLC | Call, Text, or Send a Message',
-    desc: `Contact Williams Systems LLC: call or text ${PHONE}, or send a message. We reply within 24 hours.`,
-    crumb: 'Contact', main, css: ['/src/styles/about.css', '/src/styles/about-section.css'], js: ['/src/js/contact.js'],
+    title: 'Contact Williams Systems LLC | Book a Free Call or Send a Message',
+    desc: `Contact Williams Systems LLC: book a free discovery call, send a message, or call or text ${PHONE}. We reply within 24 hours.`,
+    crumb: 'Contact', main, css: ['/src/styles/about.css', '/src/styles/about-section.css', '/src/styles/story-contact.css'], js: ['/src/js/schedule.js', '/src/js/contact.js'],
     ld: [ORG, { '@type': 'ContactPage', '@id': BASE + 'contact.html#page', url: BASE + 'contact.html', name: 'Contact Williams Systems LLC' }],
   });
+
+  // The old Schedule page now forwards to the booking tab.
+  write('schedule.html', `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Book a Free Call | Williams Systems LLC</title>
+  <meta name="robots" content="noindex, follow" />
+  <link rel="canonical" href="${BASE}contact.html" />
+  <meta http-equiv="refresh" content="0; url=contact.html#book" />
+  <script>location.replace('contact.html#book');</script>
+</head>
+<body>
+  <p>Booking has moved to our <a href="contact.html#book">contact page</a>.</p>
+</body>
+</html>
+`);
+  let sm = read('public/sitemap.xml');
+  sm = sm.replace(/\s*<url><loc>[^<]*schedule\.html<\/loc>[^\n]*<\/url>/, '');
+  write('public/sitemap.xml', sm);
 }
 
 /* ------------------------------------------------------------------ links, build, sitemap, llms */
@@ -313,6 +348,9 @@ const LINKS = [
   ['href="#process">Process</a>', 'href="how-we-work.html">How we work</a>'],
   ['href="./#testimonials">Testimonials</a>', 'href="client-stories.html">Client stories</a>'],
   ['href="#testimonials">Testimonials</a>', 'href="client-stories.html">Client stories</a>'],
+  ['<li><a href="schedule.html"><b>Schedule a call</b><span>Book a free discovery call</span></a></li>', ''],
+  ['<a href="schedule.html">Schedule a call</a>', ''],
+  ['href="schedule.html"', 'href="contact.html#book"'],
 ];
 for (const f of fs.readdirSync(R).filter((x) => x.endsWith('.html') && x !== 'admin.html')) {
   let s = read(f); const b = s;

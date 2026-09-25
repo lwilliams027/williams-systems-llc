@@ -1,0 +1,93 @@
+/* ------------------------------------------------------------------ contact.html (includes booking) */
+{
+  // The booking form (day and time picker) lives here now; take it from the old
+  // Schedule page the first time, then from contact.html on re-runs.
+  const from = read('schedule.html').includes('id="schedForm"') ? read('schedule.html') : read('contact.html');
+  const fa = from.indexOf('<form class="sched" id="schedForm"');
+  const fb = from.indexOf('</div>', from.indexOf('id="schedAgain"')) + '</div>'.length;
+  if (fa < 0 || fb < fa) throw new Error('booking form not found');
+  const BOOKING = from.slice(fa, fb);
+  const NEEDS = ['Website', 'Web app', 'Mobile app', 'SaaS platform', 'Personalized AI', 'Cloud & hosting', 'Fix an existing app', 'Something else'];
+  const main = `  <main id="main" class="as-page contact-page">
+    <section class="as-hero as-hero-sm">
+      <div class="as-orbs" aria-hidden="true"><i></i><i></i><i></i></div>
+      <div class="container">
+        <p class="scene-eyebrow mono"><a href="about.html">About</a> / Contact us</p>
+        <div class="as-hero-grid">
+          <div>
+            <h1 class="as-h1" id="pageTitle">Let’s <span>talk.</span></h1>
+            <p class="pg-lede">Book a free call, send a message, or just call or text. We reply within 24 hours.</p>
+            <div class="pg-actions"><a class="btn btn-primary" href="tel:${TEL}">Call ${PHONE}</a><a class="btn btn-ghost" href="sms:${TEL}">Send a text</a></div>
+            <ul class="as-facts"><li><b>24 hours</b><span>We reply within a day</span></li><li><b>Free</b><span>Discovery call</span></li><li><b>Michigan</b><span>Working worldwide</span></li></ul>
+          </div>
+          <div class="as-text-phone" aria-hidden="true">
+            <div class="as-tp-top"><span class="as-tp-av">LW</span><div><b>Williams Systems LLC</b><small>Usually replies within 24 hours</small></div></div>
+            <div class="as-tp-thread">
+              <p class="in">Hi! I have an idea for an app. Can we talk?</p>
+              <p class="out">Absolutely! Tell me a bit about it, and let’s set up a free call.</p>
+              <p class="in">Tomorrow afternoon work?</p>
+              <p class="out">Perfect. I’ll send you a time. 👍</p>
+            </div>
+            <div class="as-tp-bar"><span>Text message</span><i></i></div>
+            <small class="as-tp-note">Example conversation</small>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="pg-section as-reach">
+      <div class="container">
+        <div class="as-tabs" role="tablist" aria-label="How would you like to reach us?">
+          <button type="button" role="tab" class="as-tab on" id="tabBook" aria-controls="book" aria-selected="true">Book a free call</button>
+          <button type="button" role="tab" class="as-tab" id="tabMessage" aria-controls="message" aria-selected="false">Send a message</button>
+        </div>
+        <div class="as-panel win-card" id="book" role="tabpanel" aria-labelledby="tabBook">
+          <h2 class="as-form-title">Pick a time for a free call</h2>
+          <p class="as-panel-sub">Choose the kind of call, a day, and a time. We’ll confirm within 24 hours.</p>
+          ${BOOKING}
+        </div>
+        <div class="as-panel win-card" id="message" role="tabpanel" aria-labelledby="tabMessage" hidden>
+          <form class="as-form" id="contactForm" novalidate>
+            <h2 class="as-form-title">Send a message</h2>
+            <div class="as-row2">
+              <label>Your name<input name="name" autocomplete="name" required /></label>
+              <label>Email<input name="email" type="email" autocomplete="email" required /></label>
+            </div>
+            <label>Phone <small>(optional)</small><input name="phone" type="tel" autocomplete="tel" /></label>
+            <fieldset class="as-needs"><legend>What do you need?</legend>${NEEDS.map((n) => `<label class="as-need"><input type="checkbox" name="needs" value="${n}" /><span>${n.replace('&', '&amp;')}</span></label>`).join('')}</fieldset>
+            <label>Tell us about it<textarea name="message" rows="5" placeholder="What are you hoping to build?"></textarea></label>
+            <p class="as-error" id="contactError" role="alert" hidden></p>
+            <button class="btn btn-primary" type="submit">Send message</button>
+            <div class="as-sent" id="contactSent" hidden tabindex="-1"><b>Almost there.</b><p>Your email app just opened with your message. Hit send, and we’ll reply within 24 hours.</p></div>
+          </form>
+        </div>
+      </div>
+    </section>
+  </main>`;
+  makePage('contact.html', {
+    title: 'Contact Williams Systems LLC | Book a Free Call or Send a Message',
+    desc: `Contact Williams Systems LLC: book a free discovery call, send a message, or call or text ${PHONE}. We reply within 24 hours.`,
+    crumb: 'Contact', main, css: ['/src/styles/about.css', '/src/styles/about-section.css'], js: ['/src/js/schedule.js', '/src/js/contact.js'],
+    ld: [ORG, { '@type': 'ContactPage', '@id': BASE + 'contact.html#page', url: BASE + 'contact.html', name: 'Contact Williams Systems LLC' }],
+  });
+
+  // The old Schedule page now forwards to the booking tab.
+  write('schedule.html', `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Book a Free Call | Williams Systems LLC</title>
+  <meta name="robots" content="noindex, follow" />
+  <link rel="canonical" href="${BASE}contact.html" />
+  <meta http-equiv="refresh" content="0; url=contact.html#book" />
+  <script>location.replace('contact.html#book');</script>
+</head>
+<body>
+  <p>Booking has moved to our <a href="contact.html#book">contact page</a>.</p>
+</body>
+</html>
+`);
+  let sm = read('public/sitemap.xml');
+  sm = sm.replace(/\s*<url><loc>[^<]*schedule\.html<\/loc>[^\n]*<\/url>/, '');
+  write('public/sitemap.xml', sm);
+}

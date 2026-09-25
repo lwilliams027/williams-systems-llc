@@ -24,13 +24,13 @@ const onEnter = (trigger, start = 'top 80%') =>
   gsap.timeline({ scrollTrigger: { trigger, start, once: true } });
 
 function hero() {
-  const h = document.querySelector('.pg-hero');
+  const h = document.querySelector('.pg-hero, .as-hero');
   if (!h) return;
-  const title = h.querySelector('.pg-title');
+  const title = h.querySelector('.pg-title, .as-h1');
   const tl = gsap.timeline({ delay: 0.1 });
   tl.from(h.querySelector('.scene-eyebrow'), { y: 16, autoAlpha: 0, duration: 0.6, ease: EASE });
   if (title) { const w = wipeIn(title); tl.fromTo(w.targets, w.from, w.to, '-=0.35'); }
-  tl.from($$('.pg-lede, .pg-actions > *', h), { y: 26, autoAlpha: 0, duration: 0.7, ease: EASE, stagger: 0.09 }, '-=0.55');
+  tl.from($$('.pg-lede, .pg-actions > *, .as-founder, .as-text-phone', h), { y: 26, autoAlpha: 0, duration: 0.7, ease: EASE, stagger: 0.09 }, '-=0.55');
   // A soft light drifts across the hero background.
   gsap.fromTo(h, { backgroundPosition: '0% 0%' }, { backgroundPosition: '0% 60%', ease: 'none', scrollTrigger: { trigger: h, start: 'top top', end: 'bottom top', scrub: true } });
 }
@@ -61,6 +61,14 @@ function groups() {
   rise('.faq-list', { y: 24, duration: 0.6, stagger: 0.07 });
   rise('.pd-others', { y: 28, duration: 0.6, stagger: 0.06 });
   rise('.sched', { y: 30, duration: 0.7, stagger: 0.1 });
+  // About section pages
+  rise('.about-cards', { y: 50, scale: 0.95, stagger: 0.07 });
+  rise('.promise-grid', { y: 56, rotateX: -12, transformOrigin: '50% 100%', stagger: 0.1 });
+  rise('.as-more-grid', { y: 40, stagger: 0.1 });
+  rise('.as-stories', { y: 50, scale: 0.94, stagger: { each: 0.08, grid: 'auto' } });
+  rise('.as-steps', { x: -50, y: 0, stagger: 0.1 });
+  rise('.as-plans', { y: 60, scale: 0.96, stagger: 0.12 });
+  rise('.as-facts', { y: 20, stagger: 0.08 });
   // Pills pop in one after another.
   $$('.pg-section .one-team-points').forEach((ul) => {
     onEnter(ul, 'top 90%').from(ul.children, { scale: 0.7, autoAlpha: 0, duration: 0.5, ease: 'back.out(2.2)', stagger: 0.05 });

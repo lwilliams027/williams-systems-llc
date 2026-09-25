@@ -107,7 +107,7 @@ const addAssets = (src, css, js) => {
           <p class="scene-eyebrow mono">Questions &amp; answers</p>
           <h1 class="ask-title" id="askTitle">Ask us <span>anything.</span></h1>
           <p class="pg-p">Type a question the way you'd ask it. Answers come straight from what we tell every client, and if we don't have one written down, you can ask us on a free call.</p>
-          <div class="qa-ask"><p>Rather talk it through?</p><a class="btn btn-primary btn-sm" href="schedule.html">Book a free call</a><a class="qa-mail" href="mailto:lwilliams24270@gmail.com">lwilliams24270@gmail.com</a></div>
+          <div class="qa-ask"><p>Rather talk it through?</p><a class="btn btn-primary btn-sm" href="contact.html#book">Book a free call</a><a class="qa-mail" href="mailto:lwilliams24270@gmail.com">lwilliams24270@gmail.com</a></div>
         </div>
         <div class="ask-box" data-ask>
           <div class="ask-chat" aria-live="polite">
@@ -204,7 +204,7 @@ if (false) {   // about.html is now built by scripts/build-about-section.cjs
           <p class="scene-eyebrow mono">About · Who we are</p>
           <h1 class="tour-h1 about-h1" id="pageTitle">${H1}</h1>
           <p class="pg-lede">${LEDE}</p>
-          <div class="pg-actions"><a class="btn btn-primary" href="schedule.html">Book a free call</a><a class="btn btn-ghost" href="#how">See how we work</a></div>
+          <div class="pg-actions"><a class="btn btn-primary" href="contact.html#book">Book a free call</a><a class="btn btn-ghost" href="#how">See how we work</a></div>
         </div>
         <aside class="founder-card">
           <div class="founder-top"><span class="founder-av" aria-hidden="true">LW</span><div><b>Landon Williams</b><span>Founder</span></div></div>

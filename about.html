@@ -26,8 +26,11 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@500;600;700;800&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="/src/styles/main.css" />
   <link rel="stylesheet" href="/src/styles/pages.css" />
+  <link rel="stylesheet" href="/src/styles/story-contact.css" />
   <link rel="stylesheet" href="/src/styles/about-section.css" />
   <link rel="stylesheet" href="/src/styles/about.css" />
+  <link rel="stylesheet" href="/src/styles/product-worlds.css" />
+  <link rel="stylesheet" href="/src/styles/tour.css" />
   <script>document.documentElement.classList.add('js');</script>
 </head>
 <body class="page">
@@ -78,7 +81,7 @@
               <li><a href="how-we-work.html"><b>How we work</b><span>Discover, design, build, launch, support</span></a></li>
               <li><a href="client-stories.html"><b>Client stories</b><span>Hear it from the people we build for</span></a></li>
               <li><a href="faq.html"><b>FAQ</b><span>Cost, timelines, ownership, and more</span></a></li>
-              <li><a href="schedule.html"><b>Schedule a call</b><span>Book a free discovery call</span></a></li>
+              
               <li><a href="contact.html"><b>Contact us</b><span>Email us about your project</span></a></li>
             </ul>
           </div>
@@ -87,7 +90,7 @@
 
       <div class="header-actions">
         <a href="admin.html" class="header-login">Login</a>
-        <a href="schedule.html" class="btn btn-primary btn-sm" data-magnetic>Get started</a>
+        <a href="contact.html#book" class="btn btn-primary btn-sm" data-magnetic>Get started</a>
         <button class="menu-toggle" id="menuToggle" aria-expanded="false" aria-controls="mobileNav" aria-label="Open menu"><span></span><span></span></button>
       </div>
     </div>
@@ -100,11 +103,11 @@
         <p class="mnav-head mono">Solutions</p><a href="launch-a-new-product.html">Launch a new product</a><a href="modernize-an-app.html">Modernize an existing app</a><a href="replace-spreadsheets.html">Replace spreadsheets</a><a href="secure-your-software.html">Secure your software</a><a href="move-to-the-cloud.html">Move to the cloud</a><a href="ongoing-support.html">Ongoing support</a>
       </div>
       <div class="mnav-group">
-        <p class="mnav-head mono">About</p><a href="about.html" aria-current="page">About us</a><a href="how-we-work.html">How we work</a><a href="client-stories.html">Client stories</a><a href="faq.html">FAQ</a><a href="schedule.html">Schedule a call</a><a href="contact.html">Contact us</a>
+        <p class="mnav-head mono">About</p><a href="about.html" aria-current="page">About us</a><a href="how-we-work.html">How we work</a><a href="client-stories.html">Client stories</a><a href="faq.html">FAQ</a><a href="contact.html">Contact us</a>
       </div>
       <div class="mnav-actions">
         <a href="admin.html" class="btn btn-ghost">Login</a>
-        <a href="schedule.html" class="btn btn-primary">Get started</a>
+        <a href="contact.html#book" class="btn btn-primary">Get started</a>
       </div>
     </div>
   </header>
@@ -117,7 +120,7 @@
           <p class="scene-eyebrow mono">About · Who we are</p>
           <h1 class="as-h1" id="pageTitle">Built with love, <span>priced to help.</span></h1>
           <p class="pg-lede">Williams Systems LLC designs, builds, and supports websites, web apps, SaaS platforms, mobile apps, and personalized AI. We help people bring their ideas to life with custom software, at a price that makes sense.</p>
-          <div class="pg-actions"><a class="btn btn-primary" href="schedule.html">Book a free call</a><a class="btn btn-ghost" href="how-we-work.html">How we work</a></div>
+          <div class="pg-actions"><a class="btn btn-primary" href="contact.html#book">Book a free call</a><a class="btn btn-ghost" href="how-we-work.html">How we work</a></div>
           <ul class="as-facts"><li><b>Michigan</b><span>Home base</span></li><li><b>Worldwide</b><span>Remote clients</span></li><li><b>24 hours</b><span>Reply to inquiries</span></li></ul>
         </div>
         <aside class="founder-card as-founder">
@@ -127,25 +130,75 @@
           <b class="as-name">Landon Williams</b>
           <span class="as-role">Founder</span>
           <p>“I’ve loved building since I was ten. I started Williams Systems LLC to help people bring their dreams to life with something I love doing, at a price they can afford.”</p>
-          <a class="btn btn-primary btn-sm" href="schedule.html">Talk with Landon</a>
+          <a class="btn btn-primary btn-sm" href="contact.html#book">Talk with Landon</a>
         </aside>
       </div>
     </section>
 
-    <nav class="as-subnav" aria-label="About section">
-      <div class="container"><a href="about.html" class="on">About us</a><a href="how-we-work.html">How we work</a><a href="client-stories.html">Client stories</a><a href="faq.html">FAQ</a><a href="schedule.html">Schedule a call</a><a href="contact.html">Contact us</a></div>
-    </nav>
-
-    <section class="pg-section as-story">
-      <div class="container as-story-grid">
-        <div class="as-story-copy">
-          <p class="scene-eyebrow mono">Our story</p>
-          <h2 class="pg-h2 qa-title">It started with a <span>ten-year-old and a computer.</span></h2>
-          <p class="pg-p">Landon Williams has been building since he was ten. Self-taught, he turned that love of building into freelance work for businesses, then development for medical companies, where the details really matter.</p>
-          <p class="pg-p">Along the way he saw how much good software usually costs, and how many good ideas never get built because of it. Williams Systems LLC exists to change that: real, custom software, built with care, at a price that makes sense.</p>
-          <p class="pg-p">When you work with us, you talk directly to the person designing and building your project.</p>
+    <!-- ============ Our story tour ============
+         Landon's path as a desk of screens the camera visits in order.
+         Included by scripts/build-about-section.cjs. -->
+    <section class="tour" id="tour" aria-labelledby="storyTitle">
+      <div class="tour-stage">
+        <div class="tour-window" aria-hidden="true">
+          <div class="tour-viewport">
+          <div class="tw-world w-story" id="tourWorld">
+            <div class="st-grid">
+              <section class="st-card st-retro" data-stop="ten">
+                <div class="st-crt"><div class="st-screen"><p class="st-code" data-anim="type" data-fill='10 PRINT "HELLO, WORLD"'></p><p class="st-code" data-anim="type" data-fill="20 GOTO 10"></p><p class="st-code dim" data-anim="type" data-fill="RUN"></p><p class="st-hello" data-anim="pop" data-delay="0.42">HELLO, WORLD<br />HELLO, WORLD<br />HELLO, WORLD</p></div></div>
+                <span class="st-label">Age 10</span>
+              </section>
+              <section class="st-card st-learn" data-stop="learn">
+                <b class="st-t">~/projects</b>
+                <div class="st-files" data-anim="rise" data-delay="0.06"><span><i></i>my-first-website</span><span><i></i>calculator-app</span><span><i></i>platformer-game</span><span><i></i>weather-dashboard</span><span><i></i>chat-app</span></div>
+                <p class="st-note">Learned by building, one project at a time.</p>
+                <span class="st-label">Self-taught</span>
+              </section>
+              <section class="st-card st-free" data-stop="freelance">
+                <b class="st-t">Client projects</b>
+                <div class="st-jobs" data-anim="rise" data-delay="0.06">
+                  <div><b>Business website</b><em>Launched</em></div>
+                  <div><b>Booking system</b><em>Launched</em></div>
+                  <div><b>Online store</b><em>Launched</em></div>
+                  <div><b>Custom dashboard</b><em class="wip">In progress</em></div>
+                </div>
+                <span class="st-label">Freelance</span>
+              </section>
+            </div>
+            <div class="st-grid two">
+              <section class="st-card st-med" data-stop="medical">
+                <div class="st-med-top"><i></i><b>Clinic scheduling</b><span>Secure</span></div>
+                <div class="st-appts" data-anim="rise" data-delay="0.06">
+                  <p><em>9:00</em>Consultation<span>Confirmed</span></p>
+                  <p><em>10:30</em>Follow-up visit<span>Confirmed</span></p>
+                  <p><em>1:15</em>New patient intake<span>Checked in</span></p>
+                </div>
+                <ul class="checks" data-anim="check" data-delay="0.3"><li>Every detail checked</li><li>Access by role</li><li>Tested before release</li></ul>
+                <span class="st-label">Medical companies</span>
+              </section>
+              <section class="st-card st-today" data-stop="today">
+                <div class="st-site"><div class="st-site-top"><span class="st-logo"><i></i>WILLIAMS <small>SYSTEMS LLC</small></span></div>
+                  <b class="st-headline">Custom software,<br /><span>built for you.</span></b></div>
+                <div class="st-map"><span class="st-pin">Michigan</span><i class="d1"></i><i class="d2"></i><i class="d3"></i><i class="d4"></i><i class="d5"></i></div>
+                <span class="st-label">Today</span>
+              </section>
+            </div>
+          </div>
+          </div>
         </div>
-        <ol class="as-timeline"><li><span class="as-dot"></span><em>Age 10</em><b>First lines of code</b><p>Landon starts building things on a computer and never stops.</p></li><li><span class="as-dot"></span><em>Self-taught</em><b>Learning by building</b><p>Every skill picked up the practical way: by shipping real projects.</p></li><li><span class="as-dot"></span><em>Freelance</em><b>Building for clients</b><p>Websites and apps for businesses, one client at a time.</p></li><li><span class="as-dot"></span><em>Medical</em><b>Software for medical companies</b><p>Development work where getting the details right really matters.</p></li><li><span class="as-dot"></span><em>Today</em><b>Williams Systems LLC</b><p>A full-service software company, based in Michigan and working with clients worldwide.</p></li></ol>
+        <div class="tour-captions">
+          <p class="scene-eyebrow mono">Our story</p>
+          <ol class="tour-caps">
+            <li class="tour-cap tour-intro" data-stop="intro"><h2 class="tour-h1" id="storyTitle">It started with <span>a ten-year-old.</span></h2><p>Landon Williams has been building since he was ten. Scroll through how that became Williams Systems LLC.</p><div class="tour-actions"><span class="tour-hint mono">Keep scrolling ↓</span></div></li>
+            <li class="tour-cap" data-stop="ten" data-pad="1.1"><p class="tour-cap-k">Age 10</p><h3>First lines of code.</h3><p>A computer, a curious kid, and the moment something he typed came to life on screen.</p></li>
+            <li class="tour-cap" data-stop="learn" data-pad="1.1"><p class="tour-cap-k">Self-taught</p><h3>Learning by building.</h3><p>Every skill picked up the practical way: by building real projects and seeing them through.</p></li>
+            <li class="tour-cap" data-stop="freelance" data-pad="1.1"><p class="tour-cap-k">Freelance</p><h3>Building for clients.</h3><p>Websites and apps for businesses, one client at a time, learning what people actually need from their software.</p></li>
+            <li class="tour-cap" data-stop="medical" data-pad="1.08"><p class="tour-cap-k">Medical companies</p><h3>Where details matter.</h3><p>Development work for medical companies, where getting every detail right isn’t optional.</p></li>
+            <li class="tour-cap" data-stop="today" data-pad="1.08"><p class="tour-cap-k">Today</p><h3>Williams Systems LLC.</h3><p>Built on a love of building and a simple idea: help people bring their dreams to life, at a price that makes sense. Based in Michigan, working worldwide.</p></li>
+            <li class="tour-cap" data-stop="site" data-pad="1.04"><p class="tour-cap-k">Your turn</p><h3>What will we <span>build together?</span></h3><p>You work directly with Landon, from the first call to long after launch.</p><a class="btn btn-primary" href="contact.html#book">Book a free call</a></li>
+          </ol>
+          <ul class="tour-dots" aria-hidden="true"><li></li><li></li><li></li><li></li><li></li><li></li><li></li></ul>
+        </div>
       </div>
     </section>
 
@@ -177,7 +230,7 @@
       <div class="container as-cta-box">
         <h2 class="pg-h2 qa-title">Have an idea? <span>Let’s build it.</span></h2>
         <p class="pg-p">Tell us what you have in mind. You’ll hear back within 24 hours.</p>
-        <div class="pg-actions"><a class="btn btn-primary" href="schedule.html">Book a free call</a><a class="btn btn-ghost" href="contact.html">Contact us</a></div>
+        <div class="pg-actions"><a class="btn btn-primary" href="contact.html#book">Book a free call</a><a class="btn btn-ghost" href="contact.html#message">Send a message</a></div>
       </div>
     </section>
   </main>
@@ -195,7 +248,7 @@
           <a class="sf-email" href="mailto:lwilliams24270@gmail.com?subject=Project%20inquiry">lwilliams24270@gmail.com</a>
           <a class="sf-phone" href="tel:+19472674788">(947) 267-4788</a>
           <div class="sf-btns">
-            <a class="btn btn-primary" href="schedule.html">Schedule a call</a>
+            <a class="btn btn-primary" href="contact.html#book">Book a free call</a>
             <a class="btn btn-ghost" href="mailto:lwilliams24270@gmail.com?subject=Free%20quote%20request">Get a free quote</a>
           </div>
         </div>
@@ -212,7 +265,7 @@
           <a href="how-we-work.html">How we work</a>
           <a href="client-stories.html">Client stories</a>
           <a href="faq.html">FAQ</a>
-          <a href="schedule.html">Schedule a call</a>
+          
           <a href="admin.html">Team login</a>
         </nav>
         <nav class="sf-col" aria-label="Products">
@@ -237,7 +290,7 @@
           <h3 class="mono">Contact</h3>
           <a href="mailto:lwilliams24270@gmail.com">lwilliams24270@gmail.com</a>
           <a href="tel:+19472674788">(947) 267-4788</a>
-          <a href="schedule.html">Book a discovery call</a>
+          <a href="contact.html#book">Book a discovery call</a>
           <a href="mailto:lwilliams24270@gmail.com?subject=Free%20quote%20request">Request a quote</a>
         </div>
       </div>
@@ -250,5 +303,6 @@
   </footer>
 
   <script type="module" src="/src/js/main.js"></script>
+  <script type="module" src="/src/js/site-tour.js"></script>
 </body>
 </html>
