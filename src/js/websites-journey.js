@@ -2,9 +2,10 @@
    Websites page: browse the sample site.
 
    One browser window with a fictional café site in it, drawn at desktop
-   size and scaled to fit. The window never zooms: each chapter the page
-   scrolls smoothly to a section, the way a visitor would browse, and a
-   Figma-style callout glides to what matters.
+   size and scaled to fit, in its own column. Each chapter the camera inside
+   the window glides and zooms to a section, the way a visitor would browse,
+   and a Figma-style callout follows it to what matters; at the end it pulls
+   back to show the whole page.
      1 Overview   the page loads: bar, photo sharpens, nav appears (plays on load)
      2 Design     the logo is called out; a style guide slides in
      3 Speed      the hero reloads in a blink; the performance score fills to 100
@@ -12,7 +13,7 @@
      5 Search     scroll to the address; "coffee near me" finds the café
      6 Bookings   the booking form fills itself in; a request arrives
      7 Accessible scroll to the footer; focus rings tab through the links
-     8 Launch     scroll back to the top; the address goes live
+     8 Launch     pull back to the whole page; the address goes live
    Pinned and scrubbed by scroll.
    ===================================================================== */
 import { gsap } from 'gsap';
@@ -57,31 +58,51 @@ function init() {
     el.textContent = '';
     tl.to(p, { n: txt.length, duration: dur, onUpdate: () => { el.textContent = txt.slice(0, Math.round(p.n)); } }, at);
   };
-  // where an element sits on the page (page pixels, ignoring transforms)
+  // where an element sits on the page, in page pixels. Measured once, before any animation
+  // moves things, and including CSS shifts like translateY(-50%).
+  const rects = new Map();
   const onPage = (el) => {
+    if (rects.has(el)) return rects.get(el);
     let x = 0, y = 0;
-    for (let n = el; n && n !== site; n = n.offsetParent) { x += n.offsetLeft; y += n.offsetTop; }
-    return { x, y, w: el.offsetWidth, h: el.offsetHeight };
+    for (let n = el; n && n !== site; n = n.offsetParent) {
+      const m = new DOMMatrix(getComputedStyle(n).transform);
+      x += n.offsetLeft + m.m41; y += n.offsetTop + m.m42;
+    }
+    const r = { x, y, w: el.offsetWidth, h: el.offsetHeight };
+    rects.set(el, r);
+    return r;
   };
-  const maxScroll = () => Math.max(0, site.offsetHeight - VIEW);
-  const scrollTo = (el, pad = 40) => Math.min(maxScroll(), Math.max(0, onPage(el).y - pad));
-  // the callout box around an element, given how far the page is scrolled
-  const markAt = (el, scroll, grow = 10) => {
+  // the camera inside the window: frame an element (pad = breathing room, max = most zoom,
+  // cx = where across the window its centre should sit), never showing past the page's edges
+  const clampAxis = (t, size, view) => (size <= view ? (view - size) / 2 : Math.min(0, Math.max(view - size, t)));
+  const frame = (el, pad = 1.15, max = 1.8, cx = W / 2, cy = VIEW / 2) => {
+    const r = onPage(el), pageH = site.offsetHeight;
+    const k = Math.max(1, Math.min(W / (r.w * pad), VIEW / (r.h * pad), max));
+    return { scale: k, x: clampAxis(cx - (r.x + r.w / 2) * k, W * k, W), y: clampAxis(cy - (r.y + r.h / 2) * k, pageH * k, VIEW) };
+  };
+  const wholePage = () => { const k = (VIEW / site.offsetHeight) * 0.94; return { scale: k, x: (W - W * k) / 2, y: (VIEW - site.offsetHeight * k) / 2 }; };
+  const TOP = { scale: 1, x: 0, y: 0 };
+  // the callout box around an element, wherever the camera is
+  const markAt = (el, cam, grow = 10) => {
     const r = onPage(el);
-    return { x: r.x - grow, y: BAR + r.y - scroll - grow, width: r.w + grow * 2, height: r.h + grow * 2 };
+    return { x: r.x * cam.scale + cam.x - grow, y: BAR + r.y * cam.scale + cam.y - grow, width: r.w * cam.scale + grow * 2, height: r.h * cam.scale + grow * 2 };
   };
   const SMOOTH = 'sine.inOut', OUT = 'power2.out';
 
   /* ---------- the page's sections and what each chapter points at ---------- */
   const logo = $('.tw-header .tw-logo'), hero = $('.tw-hero'), cards = $('.tw-cards'), visit = $('.tw-visit'),
     book = $('.tw-book'), footer = $('.tw-footer-inner');
-  const SCROLL = [0, 0, 0, scrollTo($('.tw-favs'), 0), scrollTo($('.tw-visit-sec'), 0), scrollTo($('.tw-visit-sec'), 0), maxScroll(), 0];
+  [logo, hero, cards, visit, book, footer, $('.tw-hero-copy'), ...$$('.tw-footer [data-focus]')].forEach(onPage);
+  // where the camera is for each chapter: zoomed in on what that chapter is about
+  const CAM = [TOP, frame(logo, 3, 1.8), frame($('.tw-hero-copy'), 1.35, 1.6, 560), frame(cards, 1.08), frame(visit, 1.1, 1.3, W / 2, 270),
+    frame(book, 1.1, 1.5, 480), frame(footer, 1.1), wholePage()];
   const MARK = [null, [logo, 'Your logo'], [hero, 'Hero · 0.8 s'], [cards, 'Menu'], [visit, 'Hours + address'], [book, 'Booking form'], [footer, 'Footer'], null];
 
   /* ---------- starting state ---------- */
   const mark = $('.ws-mark'), markT = $('.ws-mark-t');
   gsap.set(chaps, { autoAlpha: 0, y: 40 });
-  gsap.set(mark, { autoAlpha: 0, ...markAt(logo, 0) });
+  gsap.set(site, { transformOrigin: '0 0', ...TOP });
+  gsap.set(mark, { autoAlpha: 0, ...markAt(logo, TOP) });
   $$('.tw-field[data-text]').forEach((f) => { f.textContent = ''; });
 
   const SCENE = 1.8;
@@ -105,15 +126,15 @@ function init() {
     .from($$('.tw-hero-copy > *'), { opacity: 0, y: 20, duration: 0.3, stagger: 0.08, ease: OUT }, 0.75)
     .to(load.parentElement, { opacity: 0, duration: 0.2 }, 0.95);
 
-  /* ---------- every later chapter: scroll the page, move the callout ---------- */
+  /* ---------- every later chapter: the camera glides and zooms to it, the callout follows ---------- */
   for (let i = 1; i < chaps.length; i++) {
     const T = i * SCENE;
     tl.to(chaps[i - 1], { autoAlpha: 0, y: -30, duration: 0.2, ease: 'power2.in' }, T - 0.45)
       .to(chaps[i], { autoAlpha: 1, y: 0, duration: 0.3, ease: 'power3.out' }, T + 0.1);
-    if (SCROLL[i] !== SCROLL[i - 1]) tl.to(site, { y: -SCROLL[i], duration: i === 7 ? 0.8 : 0.6, ease: SMOOTH }, T - 0.4);
+    tl.to(site, { ...CAM[i], duration: i === 7 ? 0.8 : 0.7, ease: SMOOTH }, T - 0.4);
     if (MARK[i]) {
-      const [el, label] = MARK[i], at = SCROLL[i] !== SCROLL[i - 1] ? T - 0.4 : T - 0.3;
-      tl.to(mark, { ...markAt(el, SCROLL[i]), autoAlpha: 1, duration: 0.6, ease: SMOOTH }, at);
+      const [el, label] = MARK[i];
+      tl.to(mark, { ...markAt(el, CAM[i]), autoAlpha: 1, duration: 0.7, ease: SMOOTH }, T - 0.4);
       const from = MARK[i - 1] ? MARK[i - 1][1] : label, p = { v: 0 };
       tl.to(p, { v: 1, duration: 0.01, onUpdate: () => { markT.textContent = p.v > 0.5 ? label : from; } }, T - 0.1);
     } else {
@@ -171,9 +192,9 @@ function init() {
   {
     const T = 6 * SCENE, ring = $('.ws-ring'), stops = $$('.tw-footer [data-focus]');
     shows($('.ws-a11y'), 6, { y: -10 });
-    const first = markAt(stops[0], SCROLL[6], 0);
+    const first = markAt(stops[0], CAM[6], 0);
     tl.set(ring, first, T + 0.35).to(ring, { opacity: 1, duration: 0.08 }, T + 0.35);
-    stops.forEach((s, k) => { if (k) tl.to(ring, { ...markAt(s, SCROLL[6], 0), duration: 0.08, ease: SMOOTH }, T + 0.35 + k * 0.1); });
+    stops.forEach((s, k) => { if (k) tl.to(ring, { ...markAt(s, CAM[6], 0), duration: 0.08, ease: SMOOTH }, T + 0.35 + k * 0.1); });
     tl.to(ring, { opacity: 0, duration: 0.15 }, 7 * SCENE - 0.45);
   }
 
