@@ -113,32 +113,72 @@
   </header>
 
   <main id="main" class="as-page contact-page">
-    <section class="as-hero as-hero-sm">
-      <div class="as-orbs" aria-hidden="true"><i></i><i></i><i></i></div>
-      <div class="container">
-        <p class="scene-eyebrow mono"><a href="about.html">About</a> / Contact us</p>
-        <div class="as-hero-grid">
-          <div>
-            <h1 class="as-h1" id="pageTitle">Let’s <span>talk.</span></h1>
-            <p class="pg-lede">Book a free call, send a message, or just call or text. We reply within 24 hours.</p>
-            <div class="pg-actions"><a class="btn btn-primary" href="tel:+19472674788">Call (947) 267-4788</a><a class="btn btn-ghost" href="sms:+19472674788">Send a text</a></div>
-            <ul class="as-facts"><li><b>24 hours</b><span>We reply within a day</span></li><li><b>Free</b><span>Discovery call</span></li><li><b>Michigan</b><span>Working worldwide</span></li></ul>
+    <!-- Contact: what happens after you reach out -->
+    <section class="sj" data-journey aria-labelledby="pageTitle">
+      <div class="sj-stage">
+        <div class="sj-bg" aria-hidden="true"><i class="sj-grid"></i><i class="sj-glow"></i></div>
+
+        <div class="sj-scene" data-scene data-label="You reach out">
+          <div class="sj-copy">
+            <p class="sj-k mono"><a href="about.html">About</a> / Contact us</p>
+            <h1 class="sj-h" id="pageTitle">You <span>reach out.</span></h1>
+            <p class="sj-p">Call, text, book a free call, or send a message, whatever’s easiest for you. We reply within 24 hours.</p>
+            <div class="sj-cta"><a class="btn btn-primary" href="tel:+19472674788">Call (947) 267-4788</a><a class="btn btn-ghost" href="sms:+19472674788">Text us</a></div>
           </div>
-          <!-- A working text box: on a phone it opens the texting app to our number with
-               the message filled in; on a computer it hands the words to the message form. -->
-          <form class="as-text-phone" id="textPhone" data-tel="+19472674788" aria-label="Text Williams Systems LLC">
-            <div class="as-tp-top"><span class="as-tp-av" aria-hidden="true">LW</span><div><b>Williams Systems LLC</b><small>(947) 267-4788 · replies within 24 hours</small></div></div>
-            <div class="as-tp-thread" aria-live="polite">
-              <p class="in">Hi! 👋 Text us about your project, a question, or a good time for a call.</p>
-            </div>
-            <div class="as-tp-bar">
-              <label class="sr-only" for="textBody">Your text message</label>
-              <input id="textBody" type="text" autocomplete="off" placeholder="Type your message…" maxlength="600" />
-              <button type="submit" aria-label="Send text"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12l16-8-6 16-3-7z" fill="currentColor"/></svg></button>
-            </div>
-            <small class="as-tp-note">Texts go straight to Landon</small>
-          </form>
+          <div class="sj-visual sj-tiles fj-ways" data-sj="flip" aria-hidden="true">
+            <div class="sj-tile"><div class="sj-tile-in"><div class="sj-face back"></div><div class="sj-face front"><b>💬</b><span>Text</span></div></div></div>
+            <div class="sj-tile"><div class="sj-tile-in"><div class="sj-face back"></div><div class="sj-face front"><b>📞</b><span>Call</span></div></div></div>
+            <div class="sj-tile"><div class="sj-tile-in"><div class="sj-face back"></div><div class="sj-face front"><b>📅</b><span>Book</span></div></div></div>
+            <div class="sj-tile"><div class="sj-tile-in"><div class="sj-face back"></div><div class="sj-face front"><b>✉</b><span>Message</span></div></div></div>
+          </div>
         </div>
+
+        <div class="sj-scene" data-scene data-label="We reply" data-flip="y">
+          <div class="sj-copy">
+            <p class="sj-k mono">What happens next · 2</p>
+            <h2 class="sj-h">We reply within <span>24 hours.</span></h2>
+            <p class="sj-p">Landon gets back to you himself, usually much sooner.</p>
+          </div>
+          <div class="sj-visual" aria-hidden="true">
+            <div class="fj-clock">
+              <svg viewBox="0 0 200 200"><circle class="bg" cx="100" cy="100" r="86"/><circle class="fg" cx="100" cy="100" r="86" data-sj="draw" data-dur="0.8"/></svg>
+              <div class="fj-clock-in"><b data-sj="count" data-count="24">24</b><span>hours</span></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="sj-scene" data-scene data-label="Free call" data-flip="x">
+          <div class="sj-copy">
+            <p class="sj-k mono">What happens next · 3</p>
+            <h2 class="sj-h">A free <span>discovery call.</span></h2>
+            <p class="sj-p">We talk about your goals, your customers, and what you want to build. No cost, no obligation.</p>
+          </div>
+          <div class="sj-visual" aria-hidden="true">
+            <div class="fj-cal">
+              <div class="fj-cal-head"><b>Pick a day</b><span>Free · 30 min</span></div>
+              <div class="fj-cal-grid" data-sj="rise"><span><small>Mon</small><b>12</b></span><span><small>Tue</small><b>13</b></span><span class="pick"><small>Wed</small><b>14</b></span><span><small>Thu</small><b>15</b></span><span><small>Fri</small><b>16</b></span></div>
+              <span class="fj-stamp" data-sj="stamp" data-d="0.7">FREE</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="sj-scene" data-scene data-label="Your scope" data-flip="zoom">
+          <div class="sj-copy">
+            <p class="sj-k mono">What happens next · 4</p>
+            <h2 class="sj-h">Then a <span>written scope.</span></h2>
+            <p class="sj-p">Every feature, the timeline, the price, and the payment terms, in writing. Nothing starts until you approve it.</p>
+            <div class="sj-cta"><a class="btn btn-primary" href="#book">Book a free call</a><a class="btn btn-ghost" href="#message">Send a message</a></div>
+          </div>
+          <div class="sj-visual" aria-hidden="true">
+            <div class="fj-doc">
+              <b class="fj-doc-t">Scope of work</b>
+              <ul class="fj-checks" data-sj="check"><li>What we’ll build</li><li>The timeline</li><li>The price: one-time or monthly</li><li>Payment terms</li></ul>
+              <span class="fj-stamp" data-sj="stamp" data-d="0.6">NO SURPRISES</span>
+            </div>
+          </div>
+        </div>
+
+        <ol class="sj-progress" aria-hidden="true"></ol>
       </div>
     </section>
 
@@ -210,74 +250,6 @@
             <div class="as-sent" id="contactSent" hidden tabindex="-1"><b>Almost there.</b><p>Your email app just opened with your message. Hit send, and we’ll reply within 24 hours.</p></div>
           </form>
         </div>
-      </div>
-    </section>
-
-    <!-- Contact: what happens after you reach out -->
-    <section class="sj" data-journey aria-label="What happens after you reach out">
-      <div class="sj-stage">
-        <div class="sj-bg" aria-hidden="true"><i class="sj-grid"></i><i class="sj-glow"></i></div>
-
-        <div class="sj-scene" data-scene data-label="You reach out">
-          <div class="sj-copy">
-            <p class="sj-k mono">What happens next · 1</p>
-            <h2 class="sj-h">You <span>reach out.</span></h2>
-            <p class="sj-p">Text, call, book a time, or send a message. Whatever’s easiest for you.</p>
-          </div>
-          <div class="sj-visual sj-tiles fj-ways" data-sj="flip" aria-hidden="true">
-            <div class="sj-tile"><div class="sj-tile-in"><div class="sj-face back"></div><div class="sj-face front"><b>💬</b><span>Text</span></div></div></div>
-            <div class="sj-tile"><div class="sj-tile-in"><div class="sj-face back"></div><div class="sj-face front"><b>📞</b><span>Call</span></div></div></div>
-            <div class="sj-tile"><div class="sj-tile-in"><div class="sj-face back"></div><div class="sj-face front"><b>📅</b><span>Book</span></div></div></div>
-            <div class="sj-tile"><div class="sj-tile-in"><div class="sj-face back"></div><div class="sj-face front"><b>✉</b><span>Message</span></div></div></div>
-          </div>
-        </div>
-
-        <div class="sj-scene" data-scene data-label="We reply" data-flip="y">
-          <div class="sj-copy">
-            <p class="sj-k mono">What happens next · 2</p>
-            <h2 class="sj-h">We reply within <span>24 hours.</span></h2>
-            <p class="sj-p">Landon gets back to you himself, usually much sooner.</p>
-          </div>
-          <div class="sj-visual" aria-hidden="true">
-            <div class="fj-clock">
-              <svg viewBox="0 0 200 200"><circle class="bg" cx="100" cy="100" r="86"/><circle class="fg" cx="100" cy="100" r="86" data-sj="draw" data-dur="0.8"/></svg>
-              <div class="fj-clock-in"><b data-sj="count" data-count="24">24</b><span>hours</span></div>
-            </div>
-          </div>
-        </div>
-
-        <div class="sj-scene" data-scene data-label="Free call" data-flip="x">
-          <div class="sj-copy">
-            <p class="sj-k mono">What happens next · 3</p>
-            <h2 class="sj-h">A free <span>discovery call.</span></h2>
-            <p class="sj-p">We talk about your goals, your customers, and what you want to build. No cost, no obligation.</p>
-          </div>
-          <div class="sj-visual" aria-hidden="true">
-            <div class="fj-cal">
-              <div class="fj-cal-head"><b>Pick a day</b><span>Free · 30 min</span></div>
-              <div class="fj-cal-grid" data-sj="rise"><span><small>Mon</small><b>12</b></span><span><small>Tue</small><b>13</b></span><span class="pick"><small>Wed</small><b>14</b></span><span><small>Thu</small><b>15</b></span><span><small>Fri</small><b>16</b></span></div>
-              <span class="fj-stamp" data-sj="stamp" data-d="0.7">FREE</span>
-            </div>
-          </div>
-        </div>
-
-        <div class="sj-scene" data-scene data-label="Your scope" data-flip="zoom">
-          <div class="sj-copy">
-            <p class="sj-k mono">What happens next · 4</p>
-            <h2 class="sj-h">Then a <span>written scope.</span></h2>
-            <p class="sj-p">Every feature, the timeline, the price, and the payment terms, in writing. Nothing starts until you approve it.</p>
-            <div class="sj-cta"><a class="btn btn-primary" href="#book">Book your free call</a></div>
-          </div>
-          <div class="sj-visual" aria-hidden="true">
-            <div class="fj-doc">
-              <b class="fj-doc-t">Scope of work</b>
-              <ul class="fj-checks" data-sj="check"><li>What we’ll build</li><li>The timeline</li><li>The price: one-time or monthly</li><li>Payment terms</li></ul>
-              <span class="fj-stamp" data-sj="stamp" data-d="0.6">NO SURPRISES</span>
-            </div>
-          </div>
-        </div>
-
-        <ol class="sj-progress" aria-hidden="true"></ol>
       </div>
     </section>
   </main>

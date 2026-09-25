@@ -59,14 +59,17 @@ function init() {
   /* ---------------- 1 · Age 10 ---------------- */
   const [s1, s2, s3, s4, s5] = scenes;
   mark(0, 0.001);
-  copyIn(s1, 0);
+  // Chapter 1 plays by itself when the page loads; everything after is scrubbed by scroll.
+  const intro = gsap.timeline({ paused: true, defaults: { ease: 'none' } }).timeScale(0.6);
+  ScrollTrigger.create({ trigger: section, start: 'top 70%', once: true, onEnter: () => gsap.delayedCall(0.3, () => intro.play()) });
+  intro.to($$('.sj-copy > *', s1), { autoAlpha: 1, y: 0, duration: 0.3, stagger: 0.07, ease: 'power3.out' }, 0);
   gsap.set('.sj-crt', { rotateX: 14, rotateY: -18, scale: 0.9 });
-  tl.to('.sj-crt', { rotateX: 0, rotateY: 0, scale: 1, duration: 0.5, ease: 'power2.out' }, 0);
+  intro.to('.sj-crt', { rotateX: 0, rotateY: 0, scale: 1, duration: 0.5, ease: 'power2.out' }, 0);
   lines.forEach((l, k) => {
     const txt = l.dataset.text, p = { n: 0 };
-    tl.to(p, { n: txt.length, duration: 0.22, onUpdate: () => { l.textContent = txt.slice(0, Math.round(p.n)); } }, 0.2 + k * 0.24);
+    intro.to(p, { n: txt.length, duration: 0.22, onUpdate: () => { l.textContent = txt.slice(0, Math.round(p.n)); } }, 0.2 + k * 0.24);
   });
-  tl.to('.sj-hello', { autoAlpha: 1, duration: 0.08 }, 0.95)
+  intro.to('.sj-hello', { autoAlpha: 1, duration: 0.08 }, 0.95)
     .fromTo('.sj-hello', { y: 20 }, { y: 0, duration: 0.2 }, 0.95);
   // dive into the screen
   copyOut(s1, 1.3);

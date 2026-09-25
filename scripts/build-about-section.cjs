@@ -15,7 +15,7 @@ const read = (f) => fs.readFileSync(R + f, 'utf8').replace(/\r\n/g, '\n');
 const write = (f, s) => fs.writeFileSync(R + f, s);
 const PHONE = '(947) 267-4788', TEL = '+19472674788';
 // Flip journeys live in scripts/journeys/*.html and may use ${...} expressions.
-const J = (name) => new Function(`return \`${fs.readFileSync(path.join(__dirname, 'journeys', name + '.html'), 'utf8').replace(/\r\n/g, '\n').trimEnd()}\`;`)();
+const J = (name) => new Function('TEL', 'PHONE', `return \`${fs.readFileSync(path.join(__dirname, 'journeys', name + '.html'), 'utf8').replace(/\r\n/g, '\n').trimEnd()}\`;`)(TEL, PHONE);
 
 /* ------------------------------------------------------------------ shell */
 const SHELL = read('faq.html');        // clean head/header/footer without tour assets
@@ -226,34 +226,7 @@ ${cta('Want to be <span>the next story?</span>', 'Tell us what you want to build
   const BOOKING = from.slice(fa, fb);
   const NEEDS = ['Website', 'Web app', 'Mobile app', 'SaaS platform', 'Personalized AI', 'Cloud & hosting', 'Fix an existing app', 'Something else'];
   const main = `  <main id="main" class="as-page contact-page">
-    <section class="as-hero as-hero-sm">
-      <div class="as-orbs" aria-hidden="true"><i></i><i></i><i></i></div>
-      <div class="container">
-        <p class="scene-eyebrow mono"><a href="about.html">About</a> / Contact us</p>
-        <div class="as-hero-grid">
-          <div>
-            <h1 class="as-h1" id="pageTitle">Let’s <span>talk.</span></h1>
-            <p class="pg-lede">Book a free call, send a message, or just call or text. We reply within 24 hours.</p>
-            <div class="pg-actions"><a class="btn btn-primary" href="tel:${TEL}">Call ${PHONE}</a><a class="btn btn-ghost" href="sms:${TEL}">Send a text</a></div>
-            <ul class="as-facts"><li><b>24 hours</b><span>We reply within a day</span></li><li><b>Free</b><span>Discovery call</span></li><li><b>Michigan</b><span>Working worldwide</span></li></ul>
-          </div>
-          <!-- A working text box: on a phone it opens the texting app to our number with
-               the message filled in; on a computer it hands the words to the message form. -->
-          <form class="as-text-phone" id="textPhone" data-tel="${TEL}" aria-label="Text Williams Systems LLC">
-            <div class="as-tp-top"><span class="as-tp-av" aria-hidden="true">LW</span><div><b>Williams Systems LLC</b><small>${PHONE} · replies within 24 hours</small></div></div>
-            <div class="as-tp-thread" aria-live="polite">
-              <p class="in">Hi! 👋 Text us about your project, a question, or a good time for a call.</p>
-            </div>
-            <div class="as-tp-bar">
-              <label class="sr-only" for="textBody">Your text message</label>
-              <input id="textBody" type="text" autocomplete="off" placeholder="Type your message…" maxlength="600" />
-              <button type="submit" aria-label="Send text"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12l16-8-6 16-3-7z" fill="currentColor"/></svg></button>
-            </div>
-            <small class="as-tp-note">Texts go straight to Landon</small>
-          </form>
-        </div>
-      </div>
-    </section>
+${J('contact')}
 
     <section class="pg-section as-reach">
       <div class="container">
@@ -283,8 +256,6 @@ ${cta('Want to be <span>the next story?</span>', 'Tell us what you want to build
         </div>
       </div>
     </section>
-
-${J('contact')}
   </main>`;
   makePage('contact.html', {
     title: 'Contact Williams Systems LLC | Book a Free Call or Send a Message',
