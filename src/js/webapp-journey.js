@@ -103,7 +103,11 @@ function init() {
   const intro = gsap.timeline({ paused: true, defaults: { ease: 'none' } }).timeScale(0.75);
   ScrollTrigger.create({ trigger: section, start: 'top 70%', once: true, onEnter: () => gsap.delayedCall(0.3, () => intro.play()) });
   if (steps[0]) steps[0].classList.add('on');
-  const mark = (i, at) => tl.call(() => steps.forEach((s, k) => { s.classList.toggle('on', k === i); s.classList.toggle('done', k < i); }), null, at);
+  // the lit pill follows where the timeline is, in either scroll direction
+  tl.eventCallback('onUpdate', () => {
+    const i = Math.min(steps.length - 1, Math.floor(tl.time() / SCENE + 0.001));
+    steps.forEach((s, k) => { s.classList.toggle('on', k === i); s.classList.toggle('done', k < i); });
+  });
 
   const click = (t, at, p) => {
     t.set(ring, { x: p.x, y: p.y }, at)
@@ -154,7 +158,6 @@ function init() {
     // words
     tl.to(chaps[i - 1], { autoAlpha: 0, y: -30, duration: 0.2, ease: 'power2.in' }, T - 0.45)
       .to(chaps[i], { autoAlpha: 1, y: 0, duration: 0.3, ease: 'power3.out' }, T + 0.1);
-    mark(i, T + 0.001);
     // camera
     tl.to(fit, { ...CAM[i], duration: 0.7, ease: 'power2.inOut' }, T - 0.35);
     // click the sidebar (or, for search, press ⌘K after a run down the sidebar)
@@ -294,6 +297,8 @@ function init() {
     pin: $('.wa-stage'),
     scrub: 0.7,
     animation: tl,
+    // scrolling on before the opening chapter has finished playing: finish it now, so two chapters' words never overlap
+    onUpdate: (self) => { if (self.progress > 0 && intro.progress() < 1) intro.progress(1); },
     invalidateOnRefresh: true,
   });
   if (import.meta.env.DEV) window.__flip = tl;

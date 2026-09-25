@@ -219,7 +219,11 @@ document.querySelectorAll('[data-journey]').forEach((section, idx) => {
   const intro = gsap.timeline({ paused: true, defaults: { ease: 'none' } }).timeScale(0.75);   // chapter 1 plays by itself
   // ...as soon as the section is on screen (immediately, when it's at the top of the page)
   ScrollTrigger.create({ trigger: section, start: 'top 70%', once: true, onEnter: () => gsap.delayedCall(0.3, () => intro.play()) });
-  const mark = (i, at) => tl.call(() => steps.forEach((s, k) => { s.classList.toggle('on', k === i); s.classList.toggle('done', k < i); }), null, at);
+  // the lit pill follows where the timeline is, in either scroll direction
+  tl.eventCallback('onUpdate', () => {
+    const i = Math.min(steps.length - 1, Math.floor(tl.time() / SCENE + 0.001));
+    steps.forEach((s, k) => { s.classList.toggle('on', k === i); s.classList.toggle('done', k < i); });
+  });
 
   scenes.forEach((scene, i) => {
     const T = i * SCENE;
@@ -235,7 +239,6 @@ document.querySelectorAll('[data-journey]').forEach((section, idx) => {
         .fromTo(scene, { ...REST, ...M.rest, ...M.from, transformOrigin: originOf(M) }, { ...REST, ...M.rest, duration: M.dur || 0.4, ease: M.ease || 'power3.out' }, T);
       if (M.keepOut) tl.set(prev, { autoAlpha: 0 }, T + outAt + (M.outDur || 0.35));
     }
-    mark(i, T + 0.001);
     // The first chapter plays by itself when the page loads; the rest are scrubbed by scroll.
     const A = i === 0 ? intro : tl;
     const B = i === 0 ? 0 : T;
@@ -306,6 +309,8 @@ document.querySelectorAll('[data-journey]').forEach((section, idx) => {
     pin: section.querySelector('.sj-stage'),
     scrub: 0.7,
     animation: tl,
+    // scrolling on before the opening chapter has finished playing: finish it now, so two chapters' words never overlap
+    onUpdate: (self) => { if (self.progress > 0 && intro.progress() < 1) intro.progress(1); },
     invalidateOnRefresh: true,
   });
   if (import.meta.env.DEV) window[`__flip${idx || ''}`] = tl;

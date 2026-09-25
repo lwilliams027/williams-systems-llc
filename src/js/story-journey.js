@@ -54,11 +54,16 @@ function init() {
   const tl = gsap.timeline({ defaults: { ease: 'none' } });
   const copyIn = (scene, at) => tl.to($$('.sj-copy > *', scene), { autoAlpha: 1, y: 0, duration: 0.3, stagger: 0.07, ease: 'power3.out' }, at);
   const copyOut = (scene, at) => tl.to($$('.sj-copy > *', scene), { autoAlpha: 0, y: -30, duration: 0.2, stagger: 0.03, ease: 'power2.in' }, at);
-  const mark = (i, at) => tl.call(() => steps.forEach((s, k) => { s.classList.toggle('on', k === i); s.classList.toggle('done', k < i); }), null, at);
+  // the lit pill follows where the timeline is, in either scroll direction
+  const STARTS = [0, 1.9, 3.4, 5.15, 6.8];
+  tl.eventCallback('onUpdate', () => {
+    let i = 0;
+    STARTS.forEach((t, k) => { if (tl.time() >= t) i = k; });
+    steps.forEach((s, k) => { s.classList.toggle('on', k === i); s.classList.toggle('done', k < i); });
+  });
 
   /* ---------------- 1 · Age 10 ---------------- */
   const [s1, s2, s3, s4, s5] = scenes;
-  mark(0, 0.001);
   // Chapter 1 plays by itself when the page loads; everything after is scrubbed by scroll.
   const intro = gsap.timeline({ paused: true, defaults: { ease: 'none' } }).timeScale(0.6);
   ScrollTrigger.create({ trigger: section, start: 'top 70%', once: true, onEnter: () => gsap.delayedCall(0.3, () => intro.play()) });
@@ -79,7 +84,6 @@ function init() {
   /* ---------------- 2 · Self-taught: the scene flips over ---------------- */
   tl.set(s1, { autoAlpha: 0 }, 1.9)
     .fromTo(s2, { autoAlpha: 1, rotateY: -90 }, { rotateY: 0, duration: 0.4, ease: 'power3.out' }, 1.9);
-  mark(1, 1.9);
   copyIn(s2, 2.05);
   tl.to('.sj-tile-in', { rotateY: 0, duration: 0.35, stagger: 0.09, ease: 'back.out(1.4)' }, 2.1);
 
@@ -87,7 +91,6 @@ function init() {
   copyOut(s2, 3.0);
   tl.to(s2, { rotateX: 90, autoAlpha: 0, duration: 0.35, ease: 'power2.in' }, 3.1)
     .fromTo(s3, { autoAlpha: 1, rotateX: -90 }, { rotateX: 0, duration: 0.4, ease: 'power3.out' }, 3.4);
-  mark(2, 3.4);
   copyIn(s3, 3.55);
   const rows = $$('.sj-row');
   rows.forEach((row, k) => {
@@ -103,7 +106,6 @@ function init() {
   copyOut(s3, 4.75);
   tl.to(s3, { rotateY: 90, autoAlpha: 0, duration: 0.35, ease: 'power2.in' }, 4.85)
     .fromTo(s4, { autoAlpha: 1, rotateY: -90 }, { rotateY: 0, duration: 0.4, ease: 'power3.out' }, 5.15);
-  mark(3, 5.15);
   copyIn(s4, 5.3);
   tl.to('.sj-ecg-line', { drawSVG: '100%', duration: 0.7, ease: 'power1.inOut' }, 5.3)
     .fromTo('.sj-bpm', { scale: 0.6, autoAlpha: 0 }, { scale: 1, autoAlpha: 1, duration: 0.2, ease: 'back.out(2)' }, 5.7)
@@ -113,7 +115,6 @@ function init() {
   copyOut(s4, 6.4);
   tl.to(s4, { rotateX: -90, autoAlpha: 0, duration: 0.35, ease: 'power2.in' }, 6.5)
     .fromTo(s5, { autoAlpha: 1, rotateX: 90, scale: 0.9 }, { rotateX: 0, scale: 1, duration: 0.45, ease: 'power3.out' }, 6.8);
-  mark(4, 6.8);
   copyIn(s5, 6.95);
   tl.to(name, { scrambleText: { text: name.dataset.text, chars: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', speed: 0.8, revealDelay: 0.2 }, duration: 0.45 }, 7.0)
     .to('.sj-mark-wrap path', { drawSVG: '100%', duration: 0.5, stagger: 0.08, ease: 'power1.inOut' }, 7.0)
@@ -130,6 +131,8 @@ function init() {
     pin: $('.sj-stage'),
     scrub: 0.7,
     animation: tl,
+    // scrolling on before the opening chapter has finished playing: finish it now, so two chapters' words never overlap
+    onUpdate: (self) => { if (self.progress > 0 && intro.progress() < 1) intro.progress(1); },
     invalidateOnRefresh: true,
   });
   if (import.meta.env.DEV) window.__story = tl;
