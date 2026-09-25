@@ -10,6 +10,7 @@
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { DrawSVGPlugin } from 'gsap/DrawSVGPlugin';
+import { chapterNav } from './chapter-nav.js';
 
 gsap.registerPlugin(ScrollTrigger, DrawSVGPlugin);
 
@@ -106,7 +107,7 @@ function init() {
   for (let i = 1; i < chaps.length; i++) {
     const T = i * SCENE;
     tl.to(chaps[i - 1], { autoAlpha: 0, y: -30, duration: 0.2, ease: 'power2.in' }, T - 0.45)
-      .to(chaps[i], { autoAlpha: 1, y: 0, duration: 0.3, ease: 'power3.out' }, T + 0.1);
+      .to(chaps[i], { autoAlpha: 1, y: 0, duration: 0.3, ease: 'power3.out' }, T + 0.1);
     // glide to the next station; the customer rides along and the track lights up behind them
     tl.to(world, { x: camX(i), duration: 0.8, ease: 'sine.inOut' }, T - 0.4)
       .to(who, { x: whoX(i), duration: 0.75, ease: 'power2.inOut' }, T - 0.36)
@@ -235,5 +236,7 @@ function init() {
     onUpdate: (self) => { if (self.progress > 0 && intro.progress() < 1) intro.progress(1); },
     invalidateOnRefresh: true,
   });
+  // the chapter pills are buttons: each scrolls to its chapter, once it has played out
+  chapterNav(section, tl, (i) => i * SCENE + 1.25);
   if (import.meta.env.DEV) window.__flip = tl;
 }

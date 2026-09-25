@@ -25,6 +25,7 @@ import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { ScrambleTextPlugin } from 'gsap/ScrambleTextPlugin';
 import { DrawSVGPlugin } from 'gsap/DrawSVGPlugin';
+import { chapterNav } from './chapter-nav.js';
 
 gsap.registerPlugin(ScrollTrigger, ScrambleTextPlugin, DrawSVGPlugin);
 
@@ -313,5 +314,7 @@ document.querySelectorAll('[data-journey]').forEach((section, idx) => {
     onUpdate: (self) => { if (self.progress > 0 && intro.progress() < 1) intro.progress(1); },
     invalidateOnRefresh: true,
   });
+  // the chapter pills are buttons: each scrolls to its chapter, once it has played out
+  chapterNav(section, tl, (i) => i * SCENE + 1.25);
   if (import.meta.env.DEV) window[`__flip${idx || ''}`] = tl;
 });

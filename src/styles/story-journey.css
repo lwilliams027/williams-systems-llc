@@ -120,3 +120,9 @@
   .sj-progress { gap: 4px; }
   .sj-progress li { white-space: nowrap; padding: 5px 8px; font-size: 0.62rem; }
 }
+
+/* the chapter pills are buttons (src/js/chapter-nav.js) */
+.sj-progress li[role="button"] { cursor: pointer; }
+.sj-progress li[role="button"]:hover { color: #fff; background: rgba(255,255,255,0.1); }
+.sj-progress li[role="button"].on:hover { background: var(--grad); }
+.sj-progress li[role="button"]:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
