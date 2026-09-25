@@ -1,0 +1,113 @@
+    <!-- ============ Cloud: a live map of your infrastructure ============
+         One architecture diagram with traffic flowing through it the whole time.
+         Each chapter, a selection box glides to one part of the system and that
+         part does its job: a deploy rolls out, an alert fires and is fixed, backups
+         stack up, attacks are blocked, the bill shrinks.
+         Animated by src/js/cloud-journey.js; styles in src/styles/cloud-journey.css. -->
+    <section class="sj cl" id="cloudJourney" aria-labelledby="pageTitle">
+      <div class="sj-stage cl-stage">
+        <div class="sj-bg" aria-hidden="true"><i class="cl-sky"></i><i class="sj-glow"></i></div>
+
+        <div class="cl-copy">
+          <div class="cl-chap" data-label="Overview">
+            <p class="sj-k mono"><a href="./#services">Products</a> / Cloud &amp; DevOps</p>
+            <h1 class="sj-h" id="pageTitle">Infrastructure that <span>just works.</span></h1>
+            <p class="sj-p">Hosting, deployments, monitoring, and backups set up properly in your own cloud accounts, so releases are routine and outages are rare.</p>
+            <div class="sj-cta"><a class="btn btn-primary" href="contact.html#book">Get started</a><span class="tour-hint mono">Scroll to explore the system ↓</span></div>
+          </div>
+          <div class="cl-chap" data-label="Deployments">
+            <p class="sj-k mono">Automatic deployments</p>
+            <h2 class="sj-h">Ship without <span>the stress.</span></h2>
+            <p class="sj-p">Every change is built, tested, scanned, and released the same safe way, with zero downtime.</p>
+          </div>
+          <div class="cl-chap" data-label="Monitoring">
+            <p class="sj-k mono">Monitoring and alerts</p>
+            <h2 class="sj-h">Know <span>first.</span></h2>
+            <p class="sj-p">Uptime, speed, and errors are watched around the clock, so problems are fixed before customers notice.</p>
+          </div>
+          <div class="cl-chap" data-label="Backups">
+            <p class="sj-k mono">Backups and recovery</p>
+            <h2 class="sj-h">Nothing gets <span>lost.</span></h2>
+            <p class="sj-p">Automatic nightly backups, verified and restore-tested, kept in your own accounts.</p>
+          </div>
+          <div class="cl-chap" data-label="Security">
+            <p class="sj-k mono">Security hardening</p>
+            <h2 class="sj-h">Locked down <span>by default.</span></h2>
+            <p class="sj-p">Encrypted traffic, two-factor sign-in, secrets kept out of code, and systems kept up to date.</p>
+          </div>
+          <div class="cl-chap" data-label="Cost control">
+            <p class="sj-k mono">Cost control</p>
+            <h2 class="sj-h">Pay for what <span>you use.</span></h2>
+            <p class="sj-p">Right-sized servers and storage, so you are not paying for capacity you never touch.</p>
+          </div>
+          <div class="cl-chap" data-label="Launch">
+            <p class="sj-k mono">Launch</p>
+            <h2 class="sj-h">Infrastructure that <span>just works.</span></h2>
+            <p class="sj-p">Set up, monitored, and supported by one team.</p>
+            <div class="sj-cta"><a class="btn btn-primary" href="contact.html#book">Book a free call</a><a class="btn btn-ghost" href="contact.html#message">Send a message</a></div>
+          </div>
+        </div>
+
+        <div class="cl-side" aria-hidden="true">
+          <div class="cl-fit">
+            <!-- the system, drawn at 760 × 480 and scaled to fit -->
+            <div class="cl-map">
+              <svg class="cl-wires" viewBox="0 0 760 480">
+                <path d="M140 65 H170"/><path d="M266 65 H280"/><path d="M376 65 H390"/><path d="M486 65 H500"/>
+                <path d="M548 90 C548 130 505 130 505 170"/>
+                <path d="M140 340 H270"/>
+                <path d="M390 330 C415 330 415 202 440 202"/><path d="M390 330 C415 330 415 287 440 287"/><path d="M390 330 C415 330 415 372 440 372"/>
+                <path d="M330 360 V400"/>
+                <path d="M390 430 C415 430 415 446 440 446"/>
+                <path d="M570 202 H610"/><path d="M570 287 C590 287 590 230 610 230"/>
+              </svg>
+
+              <div class="cl-node" data-g="dev" style="left:20px;top:30px;width:120px;height:70px"><b>💻</b><span>Your code<small>git push</small></span></div>
+              <div class="cl-stage-n" data-g="pipe" style="left:170px"><b>Build</b><i>✓</i></div>
+              <div class="cl-stage-n" data-g="pipe" style="left:280px"><b>Test</b><i>✓</i></div>
+              <div class="cl-stage-n" data-g="pipe" style="left:390px"><b>Scan</b><i>✓</i></div>
+              <div class="cl-stage-n" data-g="pipe" style="left:500px"><b>Release</b><i>✓</i></div>
+
+              <div class="cl-node" data-g="users" style="left:20px;top:300px;width:120px;height:80px"><b>🌍</b><span>Your customers<small>requests</small></span></div>
+              <div class="cl-shield" data-g="fw" style="left:188px;top:262px"><b>🛡</b><small>Firewall</small><em class="cl-blocked">Blocked <span>0</span></em></div>
+              <div class="cl-node" data-g="lb" style="left:270px;top:300px;width:120px;height:60px"><b>⚖</b><span>Load balancer<small>HTTPS 🔒</small></span></div>
+
+              <div class="cl-srv" data-g="srv" style="top:170px"><b>▤</b><span>web-1<small class="cl-ver">v1.4</small></span><i class="cl-led"></i></div>
+              <div class="cl-srv" data-g="srv" style="top:255px"><b>▤</b><span>web-2<small class="cl-ver">v1.4</small></span><i class="cl-led"></i></div>
+              <div class="cl-srv big" data-g="srv" style="top:340px"><b>▤</b><span>web-3<small class="cl-ver">v1.4</small></span><i class="cl-led"></i></div>
+
+              <div class="cl-node" data-g="db" style="left:270px;top:400px;width:120px;height:60px"><b>🗄</b><span>Database<small>encrypted</small></span></div>
+              <div class="cl-vault" data-g="db"><div class="cl-snaps"><i>M</i><i>T</i><i>W</i><i>T</i><i>F</i><i>S</i><i>S</i></div><em class="cl-restore">Restore test ✓</em></div>
+
+              <div class="cl-mon" data-g="mon"><small>Monitoring</small><b class="cl-up">99.99%</b><div class="cl-bars"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div></div>
+              <div class="cl-cost" data-g="cost"><small>Monthly cost</small><b class="cl-bill">$1,150</b><div class="cl-gauge"><i class="cl-needle"></i></div></div>
+
+              <!-- traffic that never stops -->
+              <div class="cl-traffic">
+              <i class="cl-pk" style="offset-path:path('M140 340 H270');animation-delay:0s"></i>
+              <i class="cl-pk" style="offset-path:path('M140 340 H270');animation-delay:-0.8s"></i>
+              <i class="cl-pk" style="offset-path:path('M390 330 C415 330 415 202 440 202');animation-delay:-0.3s"></i>
+              <i class="cl-pk" style="offset-path:path('M390 330 C415 330 415 287 440 287');animation-delay:-1s"></i>
+              <i class="cl-pk" style="offset-path:path('M390 330 C415 330 415 372 440 372');animation-delay:-0.6s"></i>
+              <i class="cl-pk" style="offset-path:path('M330 360 V400');animation-delay:-0.4s"></i>
+              <i class="cl-pk" style="offset-path:path('M570 202 H610');animation-delay:-1.2s"></i>
+              <i class="cl-pk" style="offset-path:path('M570 287 C590 287 590 230 610 230');animation-delay:-0.2s"></i>
+              </div>
+
+              <!-- chapter pieces -->
+              <i class="cl-commit"></i>
+              <i class="cl-snap-dot"></i>
+              <i class="cl-bad"></i><i class="cl-bad"></i><i class="cl-bad"></i>
+              <span class="cl-tag cl-zero">Zero downtime</span>
+              <div class="cl-alert"><i></i><div><b class="cl-alert-t">web-2 is slow</b><span class="cl-alert-s">Restarting automatically…</span></div></div>
+              <div class="cl-status"><i></i>All systems operational<small>99.99% uptime</small></div>
+
+              <!-- the selection box that moves from part to part -->
+              <div class="cl-sel"><span class="cl-sel-t">System</span></div>
+            </div>
+          </div>
+        </div>
+
+        <ol class="sj-progress" aria-hidden="true"></ol>
+      </div>
+    </section>

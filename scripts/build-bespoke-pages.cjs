@@ -10,6 +10,7 @@ const R = path.join(__dirname, '..') + '/';
 const PAGES = {
   'web-apps': { id: 'webapp', name: 'webapp-journey' },
   'saas': { id: 'saasJourney', name: 'saas-journey' },
+  'cloud': { id: 'cloudJourney', name: 'cloud-journey' },
 };
 
 const only = process.argv.slice(2);
