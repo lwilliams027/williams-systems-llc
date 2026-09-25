@@ -105,8 +105,8 @@ function init() {
     tl.to(chaps[i - 1], { autoAlpha: 0, y: -30, duration: 0.2, ease: 'power2.in' }, T - 0.45)
       .to(chaps[i], { autoAlpha: 1, y: 0, duration: 0.3, ease: 'power3.out' }, T + 0.1)
       .to(mark, { x: MONTH[i] * slot, duration: 0.7, ease: SMOOTH, onUpdate: paintYear }, T - 0.4)
-      .fromTo(groups[i - 1], { opacity: 1, x: 0 }, { opacity: 0, x: -40, duration: 0.35, ease: SMOOTH, immediateRender: false }, T - 0.4)
-      .fromTo(groups[i], { opacity: 0, x: 40 }, { opacity: 1, x: 0, duration: 0.4, ease: SMOOTH, immediateRender: false }, T - 0.1);
+      .fromTo(groups[i - 1], { opacity: 1, x: 0 }, { opacity: 0, x: -40, duration: 0.3, ease: SMOOTH, immediateRender: false }, T - 0.45)
+      .fromTo(groups[i], { opacity: 0, x: 40 }, { opacity: 1, x: 0, duration: 0.4, ease: SMOOTH, immediateRender: false }, T - 0.05);
   }
 
   /* ---------- 2 · just ask ---------- */

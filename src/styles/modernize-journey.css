@@ -64,7 +64,7 @@ em.ok { background: #DCFCE7; color: #15803D; } em.wait { background: #FEF3C7; co
 .md-handle { position: absolute; top: 0; bottom: 0; left: 100%; width: 0; z-index: 5; opacity: 0; }
 .md-handle > i { position: absolute; top: 0; bottom: 0; left: -2px; width: 4px; background: #fff; box-shadow: 0 0 20px rgba(0,0,0,0.4); }
 .md-handle b { position: absolute; left: -26px; top: 50%; width: 52px; height: 52px; margin-top: -26px; display: grid; place-items: center; border-radius: 50%; background: #fff; color: #BE185D; font-size: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.4); }
-.md-handle span { position: absolute; top: 14px; padding: 5px 12px; border-radius: 999px; background: rgba(0,0,0,0.65); color: #fff; font-weight: 700; font-size: 12px; white-space: nowrap; }
+.md-handle span { position: absolute; bottom: 44px; padding: 5px 12px; border-radius: 999px; background: rgba(0,0,0,0.65); color: #fff; font-weight: 700; font-size: 12px; white-space: nowrap; }
 .md-handle .l { right: 12px; } .md-handle .r { left: 12px; background: #EC4899; }
 .md-bug { position: absolute; z-index: 4; font-size: 30px; font-style: normal; opacity: 0; filter: drop-shadow(0 4px 8px rgba(0,0,0,0.4)); }
 
@@ -78,14 +78,14 @@ em.ok { background: #DCFCE7; color: #15803D; } em.wait { background: #FEF3C7; co
 .md-x { margin: 6px 0 0; text-align: center; font: 800 34px var(--font-display); color: #fff; opacity: 0; }
 
 /* the fix list */
-.md-fixes { position: absolute; left: 400px; top: 270px; width: 340px; margin: 0; padding: 18px 20px; list-style: none; display: grid; gap: 10px; border-radius: 18px; background: #fff; color: #1E2230; box-shadow: 0 30px 70px rgba(0,0,0,0.5); font-weight: 600; opacity: 0; }
+.md-fixes { position: absolute; left: 190px; top: 150px; width: 400px; margin: 0; padding: 18px 20px; list-style: none; display: grid; gap: 10px; border-radius: 18px; background: #fff; color: #1E2230; box-shadow: 0 30px 70px rgba(0,0,0,0.5); font-weight: 600; opacity: 0; }
 .md-fixes li { display: flex; gap: 10px; align-items: center; }
 .md-fixes li::before { content: '✓'; display: grid; place-items: center; width: 22px; height: 22px; flex: none; border-radius: 50%; background: #22C55E; color: #fff; font-size: 12px; }
 
 /* tablet and phone */
 .md-tab, .md-phone { position: absolute; display: grid; align-content: start; gap: 8px; padding: 16px 12px; background: #F7F8FC; color: #1E2230; border: 10px solid #18181F; box-shadow: 0 30px 70px rgba(0,0,0,0.55); opacity: 0; }
-.md-tab { left: 400px; top: 70px; width: 250px; height: 360px; border-radius: 26px; }
-.md-phone { left: 640px; top: 120px; width: 130px; height: 270px; border-radius: 24px; border-width: 7px; padding: 12px 8px; }
+.md-tab { left: 400px; top: 96px; width: 250px; height: 360px; border-radius: 26px; }
+.md-phone { left: 640px; top: 146px; width: 130px; height: 270px; border-radius: 24px; border-width: 7px; padding: 12px 8px; }
 .md-dev-top { font-weight: 800; font-size: 16px; margin-bottom: 4px; }
 .md-card { display: grid; gap: 6px; padding: 10px; border-radius: 12px; background: #fff; box-shadow: 0 4px 12px rgba(30,34,48,0.06); font-size: 12px; }
 .md-phone .md-card { padding: 8px; font-size: 11px; }

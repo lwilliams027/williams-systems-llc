@@ -127,7 +127,10 @@ function init() {
   /* ---------- 5 · fixed and safer: the bugs are fixed ---------- */
   {
     const T = 4 * SCENE, bugs = $$('.md-bug'), fixes = $('.md-fixes');
-    tl.to(bugs, { opacity: 1, duration: 0.15, stagger: 0.05 }, T - 0.1);
+    // the app steps back while the fix list is up, so the list isn't sitting on the rows
+    tl.to(bugs, { opacity: 1, duration: 0.15, stagger: 0.05 }, T - 0.1)
+      .to(win, { filter: 'brightness(0.45)', duration: 0.3 }, T + 0.25)
+      .to(win, { filter: 'brightness(1)', duration: 0.3 }, 5 * SCENE - 0.45);
     bugs.forEach((b, k) => tl.to(b, { scale: 1.8, opacity: 0, duration: 0.15, ease: OUT }, T + 0.35 + k * 0.14));
     tl.fromTo(fixes, { opacity: 0, x: 20 }, { opacity: 1, x: 0, duration: 0.25, ease: OUT, immediateRender: false }, T + 0.3)
       .from($$('li', fixes), { opacity: 0, x: -10, duration: 0.15, stagger: 0.14, ease: OUT }, T + 0.4)

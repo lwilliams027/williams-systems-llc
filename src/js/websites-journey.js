@@ -94,8 +94,8 @@ function init() {
     book = $('.tw-book'), footer = $('.tw-footer-inner');
   [logo, hero, cards, visit, book, footer, $('.tw-hero-copy'), ...$$('.tw-footer [data-focus]')].forEach(onPage);
   // where the camera is for each chapter: zoomed in on what that chapter is about
-  const CAM = [TOP, frame(logo, 3, 1.8), frame($('.tw-hero-copy'), 1.35, 1.6, 560), frame(cards, 1.08), frame(visit, 1.1, 1.3, W / 2, 270),
-    frame(book, 1.1, 1.5, 480), frame(footer, 1.1), TOP];
+  const CAM = [TOP, frame(logo, 3, 1.35), frame($('.tw-hero-copy'), 1.35, 1.6, 560), frame(cards, 1.08), frame(visit, 1.1, 1.15, 420, 250),
+    frame(book, 1.1, 1.3, 430, 470), frame(footer, 1.1, 1.8, W / 2, 520), TOP];
   const MARK = [null, [logo, 'Your logo'], [hero, 'Hero · 0.8 s'], [cards, 'Menu'], [visit, 'Hours + address'], [book, 'Booking form'], [footer, 'Footer'], null];
 
   /* ---------- starting state ---------- */
@@ -175,7 +175,6 @@ function init() {
   shows($('.ws-serp'), 4);
   type(tl, $('.ws-typed'), 4 * SCENE + 0.4, 0.3);
   tl.from($('.ws-serp-r.top'), { opacity: 0, y: 12, duration: 0.2, ease: OUT }, 4 * SCENE + 0.75)
-    .from($('.ws-serp-r.dim'), { opacity: 0, duration: 0.2 }, 4 * SCENE + 0.9)
     .from($('.tw-open'), { scale: 0.6, opacity: 0, duration: 0.2, ease: OUT }, 4 * SCENE + 0.95);
 
   /* ---------- 6 · bookings: the form fills itself in ---------- */
@@ -191,7 +190,8 @@ function init() {
   /* ---------- 7 · accessible: focus rings tab through the footer ---------- */
   {
     const T = 6 * SCENE, ring = $('.ws-ring'), stops = $$('.tw-footer [data-focus]');
-    shows($('.ws-a11y'), 6, { y: -10 });
+    tl.fromTo($('.ws-a11y'), { opacity: 0 }, { opacity: 1, duration: 0.25, immediateRender: false }, 6 * SCENE + 0.3)
+      .to($('.ws-a11y'), { opacity: 0, duration: 0.2 }, 7 * SCENE - 0.45);
     const first = markAt(stops[0], CAM[6], 0);
     tl.set(ring, first, T + 0.35).to(ring, { opacity: 1, duration: 0.08 }, T + 0.35);
     stops.forEach((s, k) => { if (k) tl.to(ring, { ...markAt(s, CAM[6], 0), duration: 0.08, ease: SMOOTH }, T + 0.35 + k * 0.1); });
