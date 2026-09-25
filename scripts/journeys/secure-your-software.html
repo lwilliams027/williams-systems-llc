@@ -1,0 +1,120 @@
+    <!-- ============ Secure your software: lock the vault ============
+         A vault door with five bolts. Each chapter adds a layer of protection and
+         one bolt locks: two-step sign-in, blocked attacks, a weak-spot scan, access
+         by role, and an audit log. At the end the vault is sealed.
+         Animated by src/js/secure-journey.js; styles in src/styles/secure-journey.css. -->
+    <section class="sj sc" id="secureJourney" aria-labelledby="pageTitle">
+      <div class="sj-stage sc-stage">
+        <div class="sj-bg" aria-hidden="true"><i class="sc-hex"></i><i class="sj-glow"></i></div>
+
+        <div class="sc-copy">
+          <div class="sc-chap" data-label="Overview">
+            <p class="sj-k mono"><a href="launch-a-new-product.html">Solutions</a> / Secure your software</p>
+            <h1 class="sj-h" id="pageTitle">The part nobody sees, <span>until it goes wrong.</span></h1>
+            <p class="sj-p">Sign-in done properly, permissions that hold, secrets out of the code, and the known holes closed, on software we built or software you already have.</p>
+            <div class="sj-cta"><a class="btn btn-primary" href="contact.html#book">Get started</a><span class="tour-hint mono">Scroll to lock it down ↓</span></div>
+          </div>
+          <div class="sc-chap" data-label="Secure sign-in">
+            <p class="sj-k mono">Secure sign-in</p>
+            <h2 class="sj-h">A password <span>isn’t enough.</span></h2>
+            <p class="sj-p">Two-step sign-in keeps accounts safe even when a password leaks.</p>
+          </div>
+          <div class="sc-chap" data-label="Attacks stopped">
+            <p class="sj-k mono">Attacks stopped</p>
+            <h2 class="sj-h">Blocked before <span>they get in.</span></h2>
+            <p class="sj-p">Password guessing and bots are spotted and shut out automatically.</p>
+          </div>
+          <div class="sc-chap" data-label="Checked">
+            <p class="sj-k mono">Checked</p>
+            <h2 class="sj-h">No known <span>weak spots.</span></h2>
+            <p class="sj-p">We scan for and fix outdated libraries, weak storage, and unencrypted traffic.</p>
+          </div>
+          <div class="sc-chap" data-label="Least access">
+            <p class="sj-k mono">Least access</p>
+            <h2 class="sj-h">People see only <span>what they need.</span></h2>
+            <p class="sj-p">Access set by role, so staff never stumble into payroll or payments.</p>
+          </div>
+          <div class="sc-chap" data-label="Accountable">
+            <p class="sj-k mono">Accountable</p>
+            <h2 class="sj-h">Every action <span>on record.</span></h2>
+            <p class="sj-p">An audit log shows who did what and when, and flags anything unusual.</p>
+          </div>
+          <div class="sc-chap" data-label="Secured">
+            <p class="sj-k mono">Secured</p>
+            <h2 class="sj-h">Software you can <span>trust.</span></h2>
+            <p class="sj-p">Reviewed, hardened, and watched by one team.</p>
+            <div class="sj-cta"><a class="btn btn-primary" href="contact.html#book">Book a free call</a><a class="btn btn-ghost" href="contact.html#message">Send a message</a></div>
+          </div>
+        </div>
+
+        <div class="sc-side" aria-hidden="true">
+          <div class="sc-fit">
+            <!-- drawn at 800 × 520 and scaled to fit -->
+            <div class="sc-scene">
+              <!-- the vault -->
+              <div class="sc-vault">
+                <i class="sc-shield"></i>
+                <div class="sc-door">
+                  <i class="sc-bolt" style="--a:-90deg"></i><i class="sc-bolt" style="--a:-18deg"></i><i class="sc-bolt" style="--a:54deg"></i><i class="sc-bolt" style="--a:126deg"></i><i class="sc-bolt" style="--a:198deg"></i>
+                  <div class="sc-dial"><i></i><i></i><i></i><i></i><i></i><i></i><b></b></div>
+                </div>
+                <p class="sc-status"><b class="sc-weak">5</b> <span class="sc-weak-t">weak spots</span></p>
+              </div>
+              <div class="sc-bots"></div>
+
+              <!-- 2 · two-step sign-in -->
+              <div class="sc-panel sc-signin">
+                <b class="sc-p-t">Sign in</b>
+                <label>Password<span class="sc-field"><span class="sc-typed" data-text="••••••••••"></span></span></label>
+                <label>6-digit code from your phone<span class="sc-code"><i>4</i><i>8</i><i>2</i><i>9</i><i>1</i><i>3</i></span></label>
+                <p class="sc-ok">✓ Verified, it’s really you</p>
+              </div>
+
+              <!-- 3 · attacks -->
+              <div class="sc-panel sc-attacks"><small>Blocked today</small><b class="sc-n">0</b><span>password guesses and bots</span></div>
+
+              <!-- 4 · the scan -->
+              <div class="sc-panel sc-scan">
+                <b class="sc-p-t">Security scan</b>
+                <p><span>Outdated library: lodash 4.17.4</span><em>Updated</em></p>
+                <p><span>Passwords stored weakly</span><em>Hashed</em></p>
+                <p><span>Traffic sent without encryption</span><em>HTTPS only</em></p>
+                <p><span>API key written in the code</span><em>Moved to a vault</em></p>
+                <i class="sc-beam"></i>
+              </div>
+
+              <!-- 5 · access by role -->
+              <div class="sc-panel sc-roles">
+                <div class="sc-grid">
+                  <span></span><b>Orders</b><b>Refunds</b><b>Payroll</b>
+                  <b>Owner</b><i class="y"></i><i class="y"></i><i class="y"></i>
+                  <b>Manager</b><i class="y"></i><i class="y"></i><i class="n"></i>
+                  <b>Staff</b><i class="y"></i><i class="n"></i><i class="n deny"></i>
+                </div>
+                <p class="sc-denied">⛔ Staff can’t open Payroll</p>
+              </div>
+
+              <!-- 6 · the audit log -->
+              <div class="sc-panel sc-log">
+                <b class="sc-p-t">Audit log</b>
+                <div class="sc-lines">
+                  <p><em>09:14</em>Maya signed in · 2-step ✓</p>
+                  <p><em>09:20</em>Sam viewed Orders</p>
+                  <p><em>11:02</em>Lena approved refund #4812</p>
+                  <p class="flag"><em>03:12</em>40 exports from a new device</p>
+                </div>
+                <p class="sc-alert">Blocked · owner alerted</p>
+              </div>
+
+              <!-- 7 · the report -->
+              <div class="sc-panel sc-report">
+                <b class="sc-p-t">Security report</b>
+                <ul><li>Two-step sign-in on</li><li>Attacks blocked automatically</li><li>No known weak spots</li><li>Access set by role</li><li>Every action logged</li></ul>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <ol class="sj-progress" aria-hidden="true"></ol>
+      </div>
+    </section>
