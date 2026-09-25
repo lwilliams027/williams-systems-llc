@@ -93,7 +93,7 @@ function init() {
       .from($('.sa-land', s), { autoAlpha: 0, y: 60, rotateX: 30, duration: 0.5, ease: 'power3.out' }, 0)
       .to(cam, { scale: 1, y: 0, duration: 0.8, ease: 'power3.inOut' }, 0.3)
       .from($$('.sa-land > *', s), { autoAlpha: 0, y: 14, duration: 0.2, stagger: 0.06 }, 0.35)
-      .from($$('.sa-shots i', s), { scaleY: 0, transformOrigin: '50% 100%', duration: 0.25, stagger: 0.07, ease: 'back.out(2)' }, 0.8)
+      .from($$('.sa-shots i', s), { scaleY: 0, transformOrigin: '50% 100%', duration: 0.25, stagger: 0.07, ease: 'power3.out' }, 0.8)
       .to(who, { autoAlpha: 1, duration: 0.1 }, 0.9)
       .to(who, { x: whoX(0), duration: 0.45, ease: 'power2.out' }, 0.9)
       .to($('.sa-btn', s), { keyframes: { scale: [1, 1.08, 1] }, duration: 0.3, repeat: 1 }, 1.3);
@@ -107,9 +107,8 @@ function init() {
     mark(i, T + 0.001);
     // pull back, travel, push in; the customer rides along and the track lights up behind them
     tl.to(world, { x: camX(i), duration: 0.75, ease: 'power2.inOut' }, T - 0.4)
-      .to(cam, { keyframes: { scale: [1, 0.62, 1], ease: 'none' }, duration: 0.75, ease: 'sine.inOut' }, T - 0.4)
-      .to(who, { x: whoX(i), duration: 0.75, ease: 'power2.inOut' }, T - 0.36)
-      .to(who, { keyframes: { y: [0, -26, 0, -12, 0] }, duration: 0.75 }, T - 0.36)
+      .to(cam, { keyframes: { scale: [1, 0.8, 1], ease: 'sine.inOut' }, duration: 0.75 }, T - 0.4)
+      .to(who, { x: whoX(i), duration: 0.75, ease: 'sine.inOut' }, T - 0.36)
       .to(trail, { drawSVG: `${(i / 7) * 100}%`, duration: 0.75, ease: 'power2.inOut' }, T - 0.36);
   }
 
@@ -117,10 +116,10 @@ function init() {
   {
     const T = SCENE, s = st[1];
     const plans = $$('.sa-plan', s);
-    tl.from(plans, { rotateY: -90, autoAlpha: 0, duration: 0.3, stagger: 0.1, ease: 'back.out(1.4)' }, T + 0.15)
-      .to(plans[1], { scale: 1.1, y: -10, duration: 0.25, ease: 'back.out(2)' }, T + 0.6)
+    tl.from(plans, { rotateY: -90, autoAlpha: 0, duration: 0.3, stagger: 0.1, ease: 'power3.out' }, T + 0.15)
+      .to(plans[1], { scale: 1.1, y: -10, duration: 0.25, ease: 'power3.out' }, T + 0.6)
       .to([plans[0], plans[2]], { scale: 0.94, autoAlpha: 0.7, duration: 0.25 }, T + 0.6)
-      .from($('.sa-pick', s), { autoAlpha: 0, scale: 0.6, duration: 0.18, ease: 'back.out(2.5)' }, T + 0.8)
+      .from($('.sa-pick', s), { autoAlpha: 0, scale: 0.6, duration: 0.18, ease: 'power3.out' }, T + 0.8)
       .from($('.sa-stamp', s), { autoAlpha: 0, scale: 2.4, rotate: -20, duration: 0.18, ease: 'power4.in' }, T + 1.0);
     grow(tl, 49, 1, T + 0.85);
   }
@@ -135,7 +134,7 @@ function init() {
     tl.to($('.sa-signup .sa-btn', s), { keyframes: { scale: [1, 0.93, 1] }, duration: 0.12 }, T + 0.85);
     const ten = $$('.sa-tenant', s);
     tl.from(ten.slice(1), { autoAlpha: 0, x: 40, duration: 0.2, stagger: 0.08 }, T + 0.3)
-      .from(ten[0], { autoAlpha: 0, scale: 0.5, duration: 0.25, ease: 'back.out(2)' }, T + 0.95)
+      .from(ten[0], { autoAlpha: 0, scale: 0.5, duration: 0.25, ease: 'power3.out' }, T + 0.95)
       .from($('.sa-tenants p', s), { autoAlpha: 0, y: 8, duration: 0.2 }, T + 1.15);
   }
 
@@ -144,7 +143,7 @@ function init() {
     const T = 3 * SCENE, s = st[3];
     const ring = $('.sa-ring .fg', s), pct = $('.sa-pct', s);
     gsap.set(ring, { drawSVG: '0%' });
-    tl.from($('.sa-onb', s), { autoAlpha: 0, scale: 0.85, duration: 0.3, ease: 'back.out(1.6)' }, T + 0.1);
+    tl.from($('.sa-onb', s), { autoAlpha: 0, scale: 0.85, duration: 0.3, ease: 'power3.out' }, T + 0.1);
     const items = $$('.sa-list li', s);
     items.forEach((li, k) => {
       const at = T + 0.4 + k * 0.17;
@@ -184,7 +183,7 @@ function init() {
       .to($('.sa-act.up', s), { keyframes: { scale: [1, 0.9, 1] }, duration: 0.12 }, T + 0.98);
     const chip = $('.sa-planchip', s), p = { v: 0 };
     tl.to(p, { v: 1, duration: 0.01, onUpdate: () => { chip.textContent = p.v > 0.5 ? 'Team' : 'Pro'; } }, T + 1.05)
-      .fromTo(chip, { scale: 1 }, { keyframes: { scale: [1, 1.3, 1] }, duration: 0.2, immediateRender: false }, T + 1.05)
+      .fromTo(chip, { scale: 1 }, { keyframes: { scale: [1, 1.12, 1] }, duration: 0.2, immediateRender: false }, T + 1.05)
       .from($('.sa-note', s), { autoAlpha: 0, y: 8, duration: 0.18 }, T + 1.12);
     grow(tl, 20238, 412, T + 1.05, 0.3);
   }
@@ -193,7 +192,7 @@ function init() {
   {
     const T = 6 * SCENE, s = st[6];
     const card = $('.sa-card', s);
-    tl.from(card, { autoAlpha: 0, x: -80, rotateZ: -12, duration: 0.3, ease: 'back.out(1.4)' }, T + 0.1)
+    tl.from(card, { autoAlpha: 0, x: -80, rotateZ: -12, duration: 0.3, ease: 'power3.out' }, T + 0.1)
       .to(card, { rotateY: 180, duration: 0.35, ease: 'power2.inOut' }, T + 0.55)
       .fromTo($('.sa-receipt', s), { clipPath: 'polygon(0 0, 100% 0, 100% 0%, 0 0%)', y: -10 }, { clipPath: 'polygon(0 0, 100% 0, 100% 100%, 0 100%)', y: 0, duration: 0.4, ease: 'steps(8)' }, T + 0.75)
       .from($('.sa-retry', s), { autoAlpha: 0, y: 14, duration: 0.2 }, T + 0.9);
@@ -216,8 +215,8 @@ function init() {
     }
     tl.from($('.sa-live', s), { autoAlpha: 0, scale: 0.9, duration: 0.3 }, T + 0.1)
       .to(line, { drawSVG: '100%', duration: 0.6, ease: 'power1.inOut' }, T + 0.35)
-      .from($$('i', crowd), { autoAlpha: 0, scale: 0, duration: 0.12, stagger: { each: 0.012, from: 'random' }, ease: 'back.out(3)' }, T + 0.5)
-      .to(who, { scale: 1.3, duration: 0.2, ease: 'back.out(2)' }, T + 0.5)
+      .from($$('i', crowd), { autoAlpha: 0, scale: 0, duration: 0.12, stagger: { each: 0.012, from: 'random' }, ease: 'power3.out' }, T + 0.5)
+      .to(who, { scale: 1.3, duration: 0.2, ease: 'power3.out' }, T + 0.5)
       .to($('.sa-stat.live'), { autoAlpha: 1, duration: 0.15 }, T + 1.1)
       .to({}, { duration: 0.6 }, T + 1.45);                 // hold on the finish
     grow(tl, 48200, 1024, T + 0.5, 0.7);
