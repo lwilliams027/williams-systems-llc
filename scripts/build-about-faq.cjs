@@ -144,7 +144,7 @@ ${cards}
 }
 
 /* ------------------------------------------------------------------ 5. about.html */
-{
+if (false) {   // about.html is now built by scripts/build-about-section.cjs
   let a = read('about.html');
   const H1 = 'A software company <span>built around you.</span>';
   const LEDE = 'Williams Systems LLC designs, builds, and supports websites, web apps, SaaS platforms, mobile apps, and personalized AI for businesses around the world. You work directly with the person building it, from the first call to long after launch.';
