@@ -4,8 +4,8 @@
    One browser window with a fictional café site in it, drawn at desktop
    size and scaled to fit, in its own column. Each chapter the camera inside
    the window glides and zooms to a section, the way a visitor would browse,
-   and a Figma-style callout follows it to what matters; at the end it pulls
-   back to show the whole page.
+   and a Figma-style callout follows it to what matters; at the end it glides
+   back to the top of the page as the site goes live.
      1 Overview   the page loads: bar, photo sharpens, nav appears (plays on load)
      2 Design     the logo is called out; a style guide slides in
      3 Speed      the hero reloads in a blink; the performance score fills to 100
@@ -13,7 +13,7 @@
      5 Search     scroll to the address; "coffee near me" finds the café
      6 Bookings   the booking form fills itself in; a request arrives
      7 Accessible scroll to the footer; focus rings tab through the links
-     8 Launch     pull back to the whole page; the address goes live
+     8 Launch     back to the top; the address goes live and it's published
    Pinned and scrubbed by scroll.
    ===================================================================== */
 import { gsap } from 'gsap';
@@ -80,7 +80,6 @@ function init() {
     const k = Math.max(1, Math.min(W / (r.w * pad), VIEW / (r.h * pad), max));
     return { scale: k, x: clampAxis(cx - (r.x + r.w / 2) * k, W * k, W), y: clampAxis(cy - (r.y + r.h / 2) * k, pageH * k, VIEW) };
   };
-  const wholePage = () => { const k = (VIEW / site.offsetHeight) * 0.94; return { scale: k, x: (W - W * k) / 2, y: (VIEW - site.offsetHeight * k) / 2 }; };
   const TOP = { scale: 1, x: 0, y: 0 };
   // the callout box around an element, wherever the camera is
   const markAt = (el, cam, grow = 10) => {
@@ -95,7 +94,7 @@ function init() {
   [logo, hero, cards, visit, book, footer, $('.tw-hero-copy'), ...$$('.tw-footer [data-focus]')].forEach(onPage);
   // where the camera is for each chapter: zoomed in on what that chapter is about
   const CAM = [TOP, frame(logo, 3, 1.8), frame($('.tw-hero-copy'), 1.35, 1.6, 560), frame(cards, 1.08), frame(visit, 1.1, 1.3, W / 2, 270),
-    frame(book, 1.1, 1.5, 480), frame(footer, 1.1), wholePage()];
+    frame(book, 1.1, 1.5, 480), frame(footer, 1.1), TOP];
   const MARK = [null, [logo, 'Your logo'], [hero, 'Hero · 0.8 s'], [cards, 'Menu'], [visit, 'Hours + address'], [book, 'Booking form'], [footer, 'Footer'], null];
 
   /* ---------- starting state ---------- */
@@ -205,6 +204,7 @@ function init() {
     const p = { n: 0 }, full = 'yourbusiness.com', preview = addr.textContent;
     tl.to(p, { n: full.length, duration: 0.35, onUpdate: () => { addr.textContent = p.n < 0.5 ? preview : full.slice(0, Math.round(p.n)); } }, T + 0.5)
       .fromTo(live, { opacity: 0, scale: 0.6 }, { opacity: 1, scale: 1, duration: 0.15, ease: OUT, immediateRender: false }, T + 0.9)
+      .fromTo($('.ws-published'), { opacity: 0, y: 16 }, { opacity: 1, y: 0, duration: 0.25, ease: OUT, immediateRender: false }, T + 1.0)
       .to({}, { duration: 0.6 }, T + 1.45);                  // hold on the finish
   }
 
