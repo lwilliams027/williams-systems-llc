@@ -60,6 +60,21 @@ export function chapterNav(section, tl, timeOf) {
     });
   });
 
+  /* ---------- the last pill skips past the story to the rest of the page ---------- */
+  const end = document.createElement('li');
+  end.className = 'sj-end';
+  end.textContent = 'End ↓';
+  end.setAttribute('role', 'button');
+  end.tabIndex = 0;
+  end.title = 'Skip to the end of the story';
+  const skip = () => {
+    landing = Date.now();
+    window.scrollTo({ top: Math.round(section.getBoundingClientRect().bottom + window.scrollY), behavior: 'smooth' });
+  };
+  end.addEventListener('click', skip);
+  end.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); skip(); } });
+  list.appendChild(end);
+
   if (!touch()) return;
 
   /* ---------- touch: settle on the nearest chapter when a swipe comes to rest ---------- */

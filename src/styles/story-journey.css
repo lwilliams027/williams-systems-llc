@@ -140,3 +140,7 @@
 
 /* phones: no chapter pills (swiping and scrolling move between chapters) */
 @media (max-width: 899.98px) { section.sj .sj-progress { display: none; } }
+
+/* the "End ↓" pill: skips past the story (src/js/chapter-nav.js) */
+.sj-progress li.sj-end { margin-left: 6px; color: var(--text); background: rgba(255,255,255,0.08); box-shadow: inset 0 0 0 1px rgba(255,255,255,0.25); }
+.sj-progress li.sj-end:hover { background: rgba(255,255,255,0.16); }
