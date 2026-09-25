@@ -186,3 +186,79 @@
   .tour-serp-r b { font-size: 14px; }
   .tour-serp-r.dim { display: none; }
 }
+
+/* =====================================================================
+   Websites page built around the display: one continuous backdrop, the
+   header flows straight into it, and the sample site sits in a real
+   browser window whose address bar stays put while the camera moves.
+   ===================================================================== */
+body:has(.tour) .header,
+body:has(.tour) .header.scrolled { background: var(--ink); border-bottom-color: transparent; backdrop-filter: none; -webkit-backdrop-filter: none; }
+body:has(.tour) main { padding-top: 0; }
+.tour { border-bottom: 0; }
+.tour-stage {
+  background:
+    radial-gradient(ellipse 55% 60% at 72% 55%, rgba(46,155,255,0.16), transparent 70%),
+    radial-gradient(ellipse 40% 45% at 88% 85%, rgba(160,107,255,0.14), transparent 70%),
+    var(--ink);
+}
+.tour-window {
+  position: absolute; z-index: 2;
+  top: calc(var(--header-h) + 22px); bottom: 28px; right: var(--gutter); left: max(38vw, 470px);
+  display: flex; flex-direction: column;
+  border-radius: 18px; overflow: hidden; background: #16181e;
+  box-shadow: 0 50px 120px rgba(0,0,0,0.55), 0 0 0 1px rgba(255,255,255,0.08), 0 0 0 1px rgba(123,134,255,0.25) inset;
+}
+.tour-window .tw-chrome { flex: none; }
+.tour-viewport { position: relative; inset: auto; top: auto; flex: 1; overflow: hidden; -webkit-mask-image: none; mask-image: none; }
+.tw-world { border-radius: 0; box-shadow: none; }
+.tour-serp { top: auto; bottom: 20px; right: 20px; }
+.tour-toast { top: 60px; right: 20px; }
+
+/* captions: the opening stop is the page headline */
+.tour-captions { top: calc(50% + var(--header-h) / 2); width: min(420px, 32vw); }
+.tour-captions > .scene-eyebrow a { color: inherit; }
+.tour-cap.tour-intro { opacity: 1; visibility: visible; }
+.tour-h1 {
+  margin: 12px 0 18px; font-family: var(--font-display); font-weight: 700; letter-spacing: -0.05em; line-height: 0.96;
+  font-size: clamp(2.8rem, 5vw, 4.8rem); color: #fff;
+}
+.tour-h1 span { background: var(--grad); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.tour-intro p { color: var(--text-2); font-size: clamp(1rem, 1.3vw, 1.15rem); }
+.tour-actions { display: flex; align-items: center; flex-wrap: wrap; gap: 18px; margin-top: 26px; }
+.tour-hint { color: var(--text-3); font-size: 0.78rem; letter-spacing: 0.12em; }
+
+/* the cards further down share the browser-window look */
+.win-card { position: relative; padding-top: 34px !important; border-radius: 16px; overflow: hidden; }
+.win-card::before {
+  content: ""; position: absolute; left: 0; right: 0; top: 0; height: 30px;
+  background: #1E2129 radial-gradient(circle, #FF5F57 4.5px, transparent 5px) 14px 50% / 16px 16px no-repeat;
+  box-shadow: 30px 0 0 -1px transparent;
+  border-bottom: 1px solid var(--line-solid);
+}
+.win-card::after {
+  content: ""; position: absolute; top: 11px; left: 34px; width: 36px; height: 9px;
+  background: radial-gradient(circle, #FEBC2E 4.5px, transparent 5px) 0 50% / 16px 9px no-repeat,
+              radial-gradient(circle, #28C840 4.5px, transparent 5px) 18px 50% / 16px 9px no-repeat;
+}
+.faq-list.win-card { border: 1px solid var(--line-solid); border-top: 0; padding-inline: 22px; background: var(--ink-2); }
+.pg-cards.win-card { padding-top: 30px !important; background: #1E2129; }
+.ws-promise.win-card { padding-top: 58px !important; }
+
+@media (max-width: 899.98px) {
+  .tour-window { top: calc(var(--header-h) + 12px); bottom: auto; height: 42svh; left: var(--gutter); right: var(--gutter); border-radius: 14px; }
+  .tour-captions { top: auto; bottom: 22px; width: auto; }
+  .tour-h1 { font-size: clamp(2.1rem, 9vw, 2.8rem); margin: 6px 0 10px; }
+  .tour-intro p { font-size: 0.95rem; }
+  .tour-actions { margin-top: 14px; }
+  .tour-hint { display: none; }
+  .tour-serp { bottom: 12px; right: 12px; top: auto; }
+  .tour-toast { top: 48px; right: 12px; }
+}
+.tour.is-static .tour-window { position: relative; inset: auto; height: 60vh; margin: 0 var(--gutter) 40px; }
+@media (max-width: 899.98px) {
+  .tour-window .tw-chrome { height: 36px; gap: 10px; padding: 0 10px; font-size: 12px; }
+  .tour-window .tw-url { padding: 5px 10px; min-width: 0; }
+  .tour-window .tw-sample { display: none; }
+  .tour-window .tw-dots i { width: 9px; height: 9px; }
+}

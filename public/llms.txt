@@ -26,7 +26,7 @@ Every job is priced either as a one-time cost for the work or as a monthly plan,
 - [Schedule a call](https://lwilliams027.github.io/williams-systems-llc/schedule.html): book a free discovery call
 
 ## Product pages
-- [Websites](https://lwilliams027.github.io/williams-systems-llc/websites.html): Fast, accessible marketing websites designed and built from scratch around your brand, not a template. They load quickly, show up in search, and are easy for your team to update.
+- [Websites](https://lwilliams027.github.io/williams-systems-llc/websites.html): Fast, accessible marketing websites designed and built from scratch around your brand, not a template. They load quickly, show up in search, and turn visitors into customers.
 - [Web apps](https://lwilliams027.github.io/williams-systems-llc/web-apps.html): Customer portals, dashboards, and internal tools that replace spreadsheets and manual steps. Secure sign-in, the right permissions for every role, and data you can trust.
 - [SaaS platforms](https://lwilliams027.github.io/williams-systems-llc/saas.html): Multi-tenant software products with sign-up, subscriptions and billing, admin tools, and analytics built in, so you can launch, charge, and grow.
 - [Mobile apps](https://lwilliams027.github.io/williams-systems-llc/mobile-apps.html): Native-feeling iOS and Android apps from a single codebase that share the back end and design of your web product, published to the App Store and Google Play.

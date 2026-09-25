@@ -32,10 +32,10 @@ function initTour() {
 
   // Where each stop sits in the sample site (design pixels), and how much room to leave around it.
   // The stops follow the captions, top to bottom of the sample page.
-  const PAD = { brand: 1.04, hero: 1.03, favs: 1.03, visit: 1.08, book: 1.08, footer: 1.04, site: 1.04 };
+  const PAD = { intro: 1, brand: 1.5, hero: 1, favs: 1, visit: 1.06, book: 1.1, footer: 1, site: 1.06 };
   const STOPS = caps.map((c) => {
     const n = c.dataset.stop;
-    return { name: n, sel: n === 'site' ? null : `[data-stop="${n}"]`, pad: PAD[n] || 1.05 };
+    return { name: n, sel: n === 'site' || n === 'intro' ? null : `[data-stop="${n}"]`, pad: PAD[n] || 1.05 };
   });
   const N = STOPS.length;
   const SEG = 1;                                   // one stop per unit of timeline
@@ -49,14 +49,7 @@ function initTour() {
   };
 
   /** The part of the screen the camera frames into (beside or above the caption). */
-  const frame = () => {
-    const w = viewport.clientWidth, h = viewport.clientHeight;
-    if (section.classList.contains('is-static')) return { x: 16, y: 16, w: w - 32, h: h - 32 };
-    const top = 16;                               // the viewport already starts below the site header
-    if (w < 900) return { x: 12, y: top, w: w - 24, h: h * 0.52 - top };
-    const left = Math.max(w * 0.36, 460);
-    return { x: left, y: top + 8, w: w - left - 40, h: h - top - 48 };
-  };
+  const frame = () => ({ x: 0, y: 0, w: viewport.clientWidth, h: viewport.clientHeight });
 
   /** Camera settings that frame stop i: centre point and log of the scale. */
   const view = (i) => {
@@ -65,8 +58,12 @@ function initTour() {
     const f = frame();
     const scale = Math.min(f.w / (r.w * s.pad), f.h / (r.h * s.pad), 2.4);
     // The header stop shows the top of the page: browser bar at the top of the frame, hero below it.
-    if (s.name === 'brand') return { cx: r.x + r.w / 2, cy: f.h / (2 * scale), z: Math.log(scale) };
-    return { cx: r.x + r.w / 2, cy: r.y + r.h / 2, z: Math.log(scale) };
+    // The opening stop is the page as a browser shows it: full width, from the top.
+    if (s.name === 'intro') { const k = f.w / WORLD().w; return { cx: WORLD().w / 2, cy: f.h / (2 * k), z: Math.log(k) }; }
+    // Keep the camera inside the page so no empty space shows at its edges.
+    const W = WORLD(), hw = f.w / (2 * scale), hh = f.h / (2 * scale);
+    const clampTo = (v, lo, hi) => (lo > hi ? (lo + hi) / 2 : Math.min(hi, Math.max(lo, v)));
+    return { cx: clampTo(r.x + r.w / 2, hw, W.w - hw), cy: clampTo(r.y + r.h / 2, hh, W.h - hh), z: Math.log(scale) };
   };
 
   const cam = { cx: 0, cy: 0, z: 0 };
@@ -96,11 +93,9 @@ function initTour() {
     dots.forEach((d, k) => d.classList.toggle('on', k === i));
   };
 
-  // Start: close on the logo, easing back to frame the header.
+  // Start: the page as a browser shows it.
   Object.assign(cam, view(0));
-  tl.fromTo(cam,
-    { cx: () => view(0).cx - 140, cy: () => view(0).cy, z: () => view(0).z + 0.4 },
-    { cx: () => view(0).cx, cy: () => view(0).cy, z: () => view(0).z, duration: 0.45, ease: 'power2.out' }, 0);
+  tl.set(cam, { cx: () => view(0).cx, cy: () => view(0).cy, z: () => view(0).z }, 0);
 
   // Camera moves between stops, and captions swap as the camera arrives.
   for (let i = 0; i < N; i++) {
@@ -109,7 +104,7 @@ function initTour() {
       tl.to(cam, { cx: () => view(i).cx, cy: () => view(i).cy, z: () => view(i).z, duration: 0.42 * SEG, ease: 'power2.inOut' }, at - 0.3 * SEG);
       tl.to(caps[i - 1], { autoAlpha: 0, y: -24, duration: 0.12 * SEG, ease: 'power2.in' }, at - 0.18 * SEG);
     }
-    tl.fromTo(caps[i], { autoAlpha: 0, y: 30 }, { autoAlpha: 1, y: 0, duration: 0.16 * SEG, ease: 'power3.out' }, i === 0 ? 0.05 : at);
+    if (i > 0) tl.fromTo(caps[i], { autoAlpha: 0, y: 30 }, { autoAlpha: 1, y: 0, duration: 0.16 * SEG, ease: 'power3.out' }, at);
   }
 
   // Visit section: the business shows up as the top search result.
@@ -120,19 +115,12 @@ function initTour() {
   // Hero: the page loads, the photo sharpens in.
   const heroImg = $('.tw-hero-img', world);
   const load = $('.tw-load', world);
-  gsap.set(heroImg, { opacity: 0.25, scale: 1.08, filter: 'blur(14px)' });
-  tl.fromTo($('.tw-load i', world), { scaleX: 0 }, { scaleX: 1, duration: 0.3, ease: 'power1.inOut' }, stopAt('hero') + 0.04)
-    .to(heroImg, { opacity: 1, scale: 1, filter: 'blur(0px)', duration: 0.34, ease: 'power2.out' }, stopAt('hero') + 0.16)
+  tl.fromTo($('.tw-load i', world), { scaleX: 0 }, { scaleX: 1, duration: 0.3, ease: 'power1.inOut', immediateRender: false }, stopAt('hero') + 0.04)
+    .fromTo(heroImg, { opacity: 0.25, scale: 1.08, filter: 'blur(14px)' }, { opacity: 1, scale: 1, filter: 'blur(0px)', duration: 0.34, ease: 'power2.out', immediateRender: false }, stopAt('hero') + 0.04)
     .to(load, { autoAlpha: 0, duration: 0.08 }, stopAt('hero') + 0.4);
 
-  // Menu: an editor opens and the price changes on the live page.
-  const cms = $('.tour-cms');
-  tl.fromTo(cms, { autoAlpha: 0, x: 30 }, { autoAlpha: 1, x: 0, duration: 0.14, ease: 'power3.out' }, stopAt('favs') + 0.08)
-    .to($$('.tw-old'), { autoAlpha: 0, duration: 0.06 }, stopAt('favs') + 0.32)
-    .to($$('.tw-new'), { autoAlpha: 1, duration: 0.06 }, stopAt('favs') + 0.34)
-    .fromTo($('.tour-cms-btn'), { scale: 1 }, { keyframes: { scale: [1, 0.94, 1] }, duration: 0.1 }, stopAt('favs') + 0.42)
-    .fromTo($('.tw-badge', world), { autoAlpha: 0, scale: 0.6 }, { autoAlpha: 1, scale: 1, duration: 0.1, ease: 'back.out(2.5)' }, stopAt('favs') + 0.48)
-    .to(cms, { autoAlpha: 0, x: 20, duration: 0.1 }, stopAt('favs') + SEG - 0.24);
+  // Menu: the item cards rise into place one after another.
+  tl.fromTo($$('.tw-card', world), { y: 40, opacity: 0 }, { y: 0, opacity: 1, duration: 0.22, stagger: 0.06, ease: 'power3.out', immediateRender: false }, stopAt('favs') - 0.1);
 
   // Booking form: the fields fill in, the request is sent, a notification arrives.
   $$('.tw-field', world).forEach((field, k) => {
@@ -158,7 +146,7 @@ function initTour() {
   tl.to(focus, { opacity: 0, duration: 0.05 }, stopAt('footer') + SEG - 0.22);
 
   // The whole site: it goes live.
-  tl.fromTo($('.tw-live', world), { opacity: 0, scale: 0.6 }, { opacity: 1, scale: 1, duration: 0.1, ease: 'back.out(2.5)' }, stopAt('site') + 0.2)
+  tl.fromTo($('.tw-live'), { opacity: 0, scale: 0.6 }, { opacity: 1, scale: 1, duration: 0.1, ease: 'back.out(2.5)' }, stopAt('site') + 0.2)
     .to({}, { duration: 0.5 }, stopAt('site') + 0.3);     // hold on the finished site
 
   ScrollTrigger.create({
