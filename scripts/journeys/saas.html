@@ -1,0 +1,166 @@
+    <!-- ============ SaaS: follow one customer through the business ============
+         The camera flies along a strip of stations (landing page, pricing, sign-up,
+         onboarding, analytics, admin, payments, live) while a customer rides a
+         track between them and the monthly revenue above keeps climbing.
+         Animated by src/js/saas-journey.js; styles in src/styles/saas-journey.css. -->
+    <section class="sj sa" id="saasJourney" aria-labelledby="pageTitle">
+      <div class="sj-stage sa-stage">
+        <div class="sj-bg" aria-hidden="true"><i class="sa-bgrid"></i><i class="sj-glow"></i></div>
+
+        <div class="sa-copy">
+          <div class="sa-chap" data-label="Overview">
+            <p class="sj-k mono"><a href="./#services">Products</a> / SaaS platforms</p>
+            <h1 class="sj-h" id="pageTitle">SaaS, from idea to <span>paying customers.</span></h1>
+            <p class="sj-p">Multi-tenant software products with sign-up, subscriptions and billing, admin tools, and analytics built in, so you can launch, charge, and grow.</p>
+            <div class="sj-cta"><a class="btn btn-primary" href="contact.html#book">Get started</a><span class="tour-hint mono">Scroll to follow a customer ↓</span></div>
+          </div>
+          <div class="sa-chap" data-label="Subscriptions">
+            <p class="sj-k mono">Subscriptions</p>
+            <h2 class="sj-h">Charge on <span>day one.</span></h2>
+            <p class="sj-p">Plans, trials, upgrades, and invoices, built in from the start and handled through Stripe.</p>
+          </div>
+          <div class="sa-chap" data-label="Accounts and teams">
+            <p class="sj-k mono">Accounts and teams</p>
+            <h2 class="sj-h">Sign-up that <span>just works.</span></h2>
+            <p class="sj-p">Sign-up, sign-in, and team workspaces, with every customer’s data kept separate.</p>
+          </div>
+          <div class="sa-chap" data-label="Onboarding">
+            <p class="sj-k mono">Onboarding</p>
+            <h2 class="sj-h">New users, <span>up to speed.</span></h2>
+            <p class="sj-p">Guide every new user to the moment your product clicks for them.</p>
+          </div>
+          <div class="sa-chap" data-label="Analytics">
+            <p class="sj-k mono">Analytics</p>
+            <h2 class="sj-h">Know what’s <span>working.</span></h2>
+            <p class="sj-p">See who signs up, what they use, and where they drop off, as it happens.</p>
+          </div>
+          <div class="sa-chap" data-label="Admin tools">
+            <p class="sj-k mono">Admin tools</p>
+            <h2 class="sj-h">Run it without <span>the database.</span></h2>
+            <p class="sj-p">See your customers, change plans, and help users from one screen.</p>
+          </div>
+          <div class="sa-chap" data-label="Payments">
+            <p class="sj-k mono">Payments</p>
+            <h2 class="sj-h">Money in, <span>automatically.</span></h2>
+            <p class="sj-p">Cards are charged, receipts are sent, and failed payments are retried for you.</p>
+          </div>
+          <div class="sa-chap" data-label="Launch">
+            <p class="sj-k mono">Launch</p>
+            <h2 class="sj-h">Your product, <span>live.</span></h2>
+            <p class="sj-p">From idea to paying customers, built by one team.</p>
+            <div class="sj-cta"><a class="btn btn-primary" href="contact.html#book">Book a free call</a><a class="btn btn-ghost" href="contact.html#message">Send a message</a></div>
+          </div>
+        </div>
+
+        <div class="sa-side" aria-hidden="true">
+          <!-- the business, growing as you scroll (a sample product, Brightleaf) -->
+          <div class="sa-hud">
+            <span class="sa-stat"><small>Monthly revenue</small><b class="sa-mrr">$0</b></span>
+            <span class="sa-stat"><small>Customers</small><b class="sa-cust">0</b></span>
+            <span class="sa-stat live"><i></i><b>Live</b></span>
+          </div>
+          <div class="sa-fit">
+            <div class="sa-view">
+              <div class="sa-cam">
+                <div class="sa-world">
+                  <svg class="sa-track" viewBox="0 0 6400 40"><path class="sa-rail" d="M360 20 H5960"/><path class="sa-trail" d="M360 20 H5960"/></svg>
+
+                  <!-- 1 · the landing page -->
+                  <div class="sa-st" style="left:0">
+                    <div class="sa-land">
+                      <span class="sa-logo">🌿 Brightleaf</span>
+                      <h4>Invoices your clients <em>actually pay.</em></h4>
+                      <p>Send, track, and get paid, built for small studios.</p>
+                      <span class="sa-btn">Start free trial</span>
+                      <small>No card needed · 14 days free</small>
+                      <div class="sa-shots"><i></i><i></i><i></i></div>
+                    </div>
+                  </div>
+
+                  <!-- 2 · pricing: the customer picks a plan -->
+                  <div class="sa-st" style="left:800px">
+                    <div class="sa-plans">
+                      <div class="sa-plan"><small>Starter</small><b>$19<span>/mo</span></b><ul><li>1 user</li><li>50 invoices</li><li>Email support</li></ul></div>
+                      <div class="sa-plan pro"><em>Most popular</em><small>Pro</small><b>$49<span>/mo</span></b><ul><li>5 users</li><li>Unlimited invoices</li><li>Card payments</li></ul><span class="sa-pick">✓ Your customer chose Pro</span></div>
+                      <div class="sa-plan"><small>Team</small><b>$99<span>/mo</span></b><ul><li>Unlimited users</li><li>Approvals</li><li>Priority support</li></ul></div>
+                    </div>
+                    <span class="sa-stamp">14-DAY TRIAL</span>
+                  </div>
+
+                  <!-- 3 · sign-up and separate workspaces -->
+                  <div class="sa-st" style="left:1600px">
+                    <div class="sa-signup">
+                      <h5>Create your workspace</h5>
+                      <label>Work email<span class="sa-field"><span class="sa-typed" data-text="owner@juniperstudio.co"></span></span></label>
+                      <label>Workspace<span class="sa-field"><span class="sa-typed" data-text="Juniper Studio"></span></span></label>
+                      <span class="sa-btn">Create workspace</span>
+                    </div>
+                    <div class="sa-tenants">
+                      <div class="sa-tenant new"><b>🔒</b><span>Juniper Studio<small>New · just now</small></span></div>
+                      <div class="sa-tenant"><b>🔒</b><span>Northwind Ops<small>12 users</small></span></div>
+                      <div class="sa-tenant"><b>🔒</b><span>Harbor &amp; Bean<small>4 users</small></span></div>
+                      <p>Every customer’s data, kept separate</p>
+                    </div>
+                  </div>
+
+                  <!-- 4 · onboarding -->
+                  <div class="sa-st" style="left:2400px">
+                    <div class="sa-onb">
+                      <div class="sa-ring"><svg viewBox="0 0 120 120"><circle class="bg" cx="60" cy="60" r="50"/><circle class="fg" cx="60" cy="60" r="50"/></svg><b class="sa-pct">0%</b></div>
+                      <ul class="sa-list"><li>Add your logo</li><li>Invite your team</li><li>Connect Stripe</li><li>Send your first invoice</li></ul>
+                      <p class="sa-done">🎉 Juniper Studio is all set up</p>
+                      <div class="sa-confetti"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+                    </div>
+                  </div>
+
+                  <!-- 5 · analytics: the funnel -->
+                  <div class="sa-st" style="left:3200px">
+                    <div class="sa-funnel">
+                      <h5>This month</h5>
+                      <div class="sa-fbar"><span>Visitors</span><i style="--w:100%"></i><b data-count="12400">0</b></div>
+                      <div class="sa-fbar"><span>Sign-ups</span><i style="--w:62%"></i><b data-count="1860">0</b></div>
+                      <div class="sa-fbar"><span>Active</span><i style="--w:40%"></i><b data-count="1120">0</b></div>
+                      <div class="sa-fbar paid"><span>Paying</span><i style="--w:24%"></i><b data-count="412">0</b></div>
+                      <p class="sa-drop">⚠ Most drop-off happens at “Connect Stripe”</p>
+                    </div>
+                  </div>
+
+                  <!-- 6 · admin -->
+                  <div class="sa-st" style="left:4000px">
+                    <div class="sa-admin">
+                      <div class="sa-search">⌕ <span class="sa-typed" data-text="juniper"></span></div>
+                      <div class="sa-cust-row"><b class="av">J</b><span>Juniper Studio<small>owner@juniperstudio.co</small></span><em class="sa-planchip">Pro</em></div>
+                      <div class="sa-actions"><span class="sa-act up">Upgrade to Team</span><span class="sa-act">Refund</span><span class="sa-act">Reset password</span><span class="sa-act">View as user</span></div>
+                      <p class="sa-note">✓ Plan changed · the difference is prorated</p>
+                    </div>
+                  </div>
+
+                  <!-- 7 · payments -->
+                  <div class="sa-st" style="left:4800px">
+                    <div class="sa-pay">
+                      <div class="sa-card"><div class="face front"><i class="chip"></i><b>•••• •••• •••• 4242</b><span>JUNIPER STUDIO</span><small>12/28</small></div><div class="face back"><i class="strip"></i><em>Paid ✓</em></div></div>
+                      <div class="sa-receipt"><b>Receipt</b><p><span>Brightleaf Team</span><span>$99.00</span></p><p><span>Card ending 4242</span><span>Paid</span></p><small>Sent to owner@juniperstudio.co</small></div>
+                      <div class="sa-retry"><span>Card expired on 1 invoice</span><em class="sa-rstat">Retrying…</em></div>
+                    </div>
+                  </div>
+
+                  <!-- 8 · live -->
+                  <div class="sa-st" style="left:5600px">
+                    <div class="sa-live">
+                      <span class="sa-logo">🌿 Brightleaf</span>
+                      <svg viewBox="0 0 520 200" class="sa-growth"><path d="M0 190 C80 185 120 170 180 160 S280 120 330 100 S430 40 520 12" fill="none" stroke="#34D399" stroke-width="5" stroke-linecap="round"/></svg>
+                      <div class="sa-crowd"></div>
+                    </div>
+                  </div>
+
+                  <!-- the customer riding the track -->
+                  <div class="sa-who"><b>J</b><small>Your customer</small></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <ol class="sj-progress" aria-hidden="true"></ol>
+      </div>
+    </section>

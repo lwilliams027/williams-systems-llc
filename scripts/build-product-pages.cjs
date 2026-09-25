@@ -100,13 +100,13 @@ const PAGES = {
             <div class="s-row">
               <section class="s-card" data-stop="signup">
                 <b class="s-card-t">Create your workspace</b>
-                <label>Your name<span class="s-field" data-anim="type" data-fill="Alex Morgan"></span></label>
-                <label>Work email<span class="s-field" data-anim="type" data-fill="alex@brightleaf.co"></span></label>
+                <label>Your name<span class="s-field" data-anim="type" data-fill="Jordan Lee"></span></label>
+                <label>Work email<span class="s-field" data-anim="type" data-fill="owner@juniperstudio.co"></span></label>
                 <label>Workspace<span class="s-field" data-anim="type" data-fill="Brightleaf Studio"></span></label>
                 <span class="s-btn wide" data-anim="press" data-delay="0.42">Create workspace</span>
               </section>
               <section class="s-card" data-stop="onboard">
-                <b class="s-card-t">Welcome, Alex. Let's get you set up.</b>
+                <b class="s-card-t">Welcome, Jordan. Let's get you set up.</b>
                 <ul class="checks big" data-anim="check" data-delay="0.1"><li>Add your logo</li><li>Invite your team</li><li>Connect Stripe</li><li>Send your first invoice</li></ul>
                 <div class="s-progress"><i></i></div>
               </section>
@@ -161,7 +161,7 @@ const PAGES = {
                 <span class="m-notch"></span>
                 <div class="m-status"><span>9:41</span><span>●●● ▮</span></div>
                 <div class="m-push" data-stop="push" data-anim="pop" data-at="push" data-delay="0.1"><i></i><div><b>Pulse Studio</b><span>Sunrise Yoga starts in 30 minutes. See you there!</span></div></div>
-                <p class="m-hi">Good morning, Alex</p>
+                <p class="m-hi">Good morning, Jordan</p>
                 <div class="m-next"><small>Your next class</small><b>Sunrise Yoga</b><span>Tomorrow · 7:00 AM · Studio 2</span></div>
                 <p class="m-sec">Popular this week</p>
                 <div class="m-list" data-anim="rise" data-delay="0.1">
@@ -286,7 +286,7 @@ const PAGES = {
                 </section>
                 <section class="ai-action" data-stop="action">
                   <b class="ai-t">Draft reply to Sam Rivera</b>
-                  <p class="ai-draft"><span data-anim="type" data-fill="Hi Sam, thanks for reaching out! You can return the item within 30 days for store credit. I’ve booked a quick call for Tuesday at 10:00 AM to sort it out. Talk soon, Alex"></span></p>
+                  <p class="ai-draft"><span data-anim="type" data-fill="Hi Sam, thanks for reaching out! You can return the item within 30 days for store credit. I’ve booked a quick call for Tuesday at 10:00 AM to sort it out. Talk soon, the Lakeside team"></span></p>
                   <div class="ai-act-row"><span class="ai-btn" data-anim="press" data-delay="0.5">Send</span><span class="ai-btn ghost">Edit</span><span class="ai-meet" data-anim="pop" data-delay="0.56">📅 Tue 10:00 AM added to calendar</span></div>
                 </section>
               </main>

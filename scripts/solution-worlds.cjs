@@ -139,7 +139,7 @@ const sheet = {
                 <div class="sh-log" data-anim="rise" data-delay="0.08">
                   <p><i>MR</i><span><b>Maria</b> changed the price of Carpet · Ridge Outfitters from $480 to $520</span><em>2 min ago</em></p>
                   <p><i>DJ</i><span><b>Dev</b> moved Windows · Blue Pine to Crew 3</span><em>1 hour ago</em></p>
-                  <p><i>AL</i><span><b>Alex</b> added Move-out · Lakeside Studio</span><em>Yesterday</em></p>
+                  <p><i>PR</i><span><b>Priya</b> added Move-out · Lakeside Studio</span><em>Yesterday</em></p>
                 </div>
               </section>
             </div>`,
