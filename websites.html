@@ -133,35 +133,11 @@
               <span class="tw-sample">Sample site</span>
             </div>
 
-            <header class="tw-header">
-              <div class="tw-brand-zone" data-stop="brand">
-                <span class="tw-logo"><svg viewBox="0 0 32 32"><ellipse cx="16" cy="16" rx="9" ry="13" transform="rotate(35 16 16)"/><path d="M10 24c6-4 6-12 12-16" /></svg>Harbor &amp; Bean</span>
-                <nav class="tw-nav"><span>Menu</span><span>Order</span><span>Locations</span><span>About</span></nav>
-              </div>
-              <span class="tw-order">Order ahead</span>
+            <header class="tw-header" data-stop="brand">
+              <span class="tw-logo"><svg viewBox="0 0 32 32"><ellipse cx="16" cy="16" rx="9" ry="13" transform="rotate(35 16 16)"/><path d="M10 24c6-4 6-12 12-16" /></svg>Harbor &amp; Bean</span>
+              <nav class="tw-nav"><span class="on">Home</span><span>Menu</span><span>Visit</span><span>About</span><span>Contact</span></nav>
+              <span class="tw-btn tw-order">Order ahead</span>
             </header>
-
-            <aside class="tw-sidebar">
-              <div class="tw-visit" data-stop="visit">
-                <img src="/tour/cafe.jpg" alt="" width="640" height="480" />
-                <h4>Visit us</h4>
-                <p class="tw-addr">12 Harbor Street</p>
-                <ul class="tw-hours">
-                  <li><span>Mon to Fri</span><span>6 AM to 6 PM</span></li>
-                  <li><span>Saturday</span><span>7 AM to 5 PM</span></li>
-                  <li><span>Sunday</span><span>8 AM to 3 PM</span></li>
-                </ul>
-                <span class="tw-open">Open now</span>
-              </div>
-              <form class="tw-book" data-stop="book" onsubmit="return false">
-                <h4>Book a table</h4>
-                <label>Name<span class="tw-field" data-fill="Sam Rivera"></span></label>
-                <label>Date<span class="tw-field" data-fill="Saturday"></span></label>
-                <label>Time<span class="tw-field" data-fill="10:00 AM"></span></label>
-                <label>Guests<span class="tw-field" data-fill="2"></span></label>
-                <span class="tw-btn tw-book-btn">Request booking</span>
-              </form>
-            </aside>
 
             <section class="tw-hero" data-stop="hero">
               <span class="tw-load"><i></i></span>
@@ -169,30 +145,58 @@
               <div class="tw-hero-copy">
                 <p class="tw-kicker">Small-batch coffee roasters</p>
                 <h3>Fresh roasted,<br />every morning.</h3>
-                <span class="tw-btn">Order ahead</span>
+                <p class="tw-hero-sub">Hand-roasted beans, fresh pastries, and a warm seat by the harbor.</p>
+                <div class="tw-hero-btns"><span class="tw-btn">Order ahead</span><span class="tw-btn tw-ghost">See the menu</span></div>
               </div>
             </section>
 
             <section class="tw-favs" data-stop="favs">
-              <h3 class="tw-favs-title">Our favorites</h3>
+              <div class="tw-sec-head"><p class="tw-eyebrow">The menu</p><h3>Our favorites</h3></div>
               <div class="tw-cards">
-                <div class="tw-card"><img src="/tour/latte.jpg" alt="" width="640" height="480" /><b>Oat latte</b><span class="tw-price"><em class="tw-old">$4.50</em><em class="tw-new">$4.75</em></span><span class="tw-badge">Updated</span></div>
-                <div class="tw-card"><img src="/tour/tea.jpg" alt="" width="640" height="480" /><b>Jasmine tea</b><span class="tw-price"><em>$3.25</em></span></div>
-                <div class="tw-card"><img src="/tour/pastry.jpg" alt="" width="640" height="480" /><b>Almond biscotti</b><span class="tw-price"><em>$2.75</em></span></div>
-                <div class="tw-card"><img src="/tour/bowl.jpg" alt="" width="640" height="480" /><b>Berry yogurt bowl</b><span class="tw-price"><em>$6.50</em></span></div>
+                <div class="tw-card"><img src="/tour/latte.jpg" alt="" width="640" height="480" /><b>Oat latte</b><span class="tw-desc">Espresso, steamed oat milk</span><span class="tw-price"><em class="tw-old">$4.50</em><em class="tw-new">$4.75</em></span><span class="tw-badge">Updated</span></div>
+                <div class="tw-card"><img src="/tour/tea.jpg" alt="" width="640" height="480" /><b>Jasmine tea</b><span class="tw-desc">Loose-leaf, served by the pot</span><span class="tw-price"><em>$3.25</em></span></div>
+                <div class="tw-card"><img src="/tour/pastry.jpg" alt="" width="640" height="480" /><b>Almond biscotti</b><span class="tw-desc">Baked in-house every morning</span><span class="tw-price"><em>$2.75</em></span></div>
+                <div class="tw-card"><img src="/tour/bowl.jpg" alt="" width="640" height="480" /><b>Berry yogurt bowl</b><span class="tw-desc">Greek yogurt, granola, berries</span><span class="tw-price"><em>$6.50</em></span></div>
               </div>
             </section>
 
-            <footer class="tw-footer" data-stop="footer">
-              <img class="tw-footer-img" src="/tour/beans.jpg" alt="" width="1400" height="500" />
-              <div class="tw-footer-inner">
+            <section class="tw-visit-sec">
+              <div class="tw-visit" data-stop="visit">
+                <img src="/tour/cafe.jpg" alt="" width="640" height="480" />
                 <div>
-                  <h3>Get fresh beans every month.</h3>
-                  <p>Join the list for new roasts and weekend specials.</p>
+                  <p class="tw-eyebrow">Visit us</p>
+                  <h3>12 Harbor Street</h3>
+                  <ul class="tw-hours">
+                    <li><span>Mon to Fri</span><span>6 AM to 6 PM</span></li>
+                    <li><span>Saturday</span><span>7 AM to 5 PM</span></li>
+                    <li><span>Sunday</span><span>8 AM to 3 PM</span></li>
+                  </ul>
+                  <span class="tw-open">Open now</span>
+                </div>
+              </div>
+              <form class="tw-book" data-stop="book" onsubmit="return false">
+                <h4>Book a table</h4>
+                <div class="tw-book-grid">
+                  <label>Name<span class="tw-field" data-fill="Sam Rivera"></span></label>
+                  <label>Guests<span class="tw-field" data-fill="2"></span></label>
+                  <label>Date<span class="tw-field" data-fill="Saturday"></span></label>
+                  <label>Time<span class="tw-field" data-fill="10:00 AM"></span></label>
+                </div>
+                <span class="tw-btn tw-book-btn">Request booking</span>
+              </form>
+            </section>
+
+            <footer class="tw-footer" data-stop="footer">
+              <div class="tw-footer-inner">
+                <div class="tw-footer-brand">
+                  <span class="tw-logo"><svg viewBox="0 0 32 32"><ellipse cx="16" cy="16" rx="9" ry="13" transform="rotate(35 16 16)"/><path d="M10 24c6-4 6-12 12-16" /></svg>Harbor &amp; Bean</span>
+                  <p>Get fresh beans every month.</p>
                   <div class="tw-signup"><span>you@email.com</span><span class="tw-btn">Subscribe</span></div>
                 </div>
-                <nav class="tw-footer-links"><span>Menu</span><span>Order ahead</span><span>Gift cards</span><span>Careers</span><span>Contact</span></nav>
+                <nav class="tw-footer-links"><b>Visit</b><span>Menu</span><span>Order ahead</span><span>Locations</span></nav>
+                <nav class="tw-footer-links"><b>Company</b><span>About</span><span>Gift cards</span><span>Careers</span><span>Contact</span></nav>
               </div>
+              <p class="tw-copy">© Harbor &amp; Bean Coffee</p>
               <span class="tw-focus"></span>
             </footer>
           </div>
@@ -223,13 +227,13 @@
           <p class="scene-eyebrow mono">Take the tour</p>
           <h2 class="tour-title" id="tourTitle">Everything a great website needs.</h2>
           <ol class="tour-caps">
-            <li class="tour-cap"><p class="tour-cap-k">Custom design</p><h3>Your brand, front and center.</h3><p>Every website is designed from scratch around your business: your logo, your colors, your fonts. No themes, no templates.</p></li>
-            <li class="tour-cap"><p class="tour-cap-k">Found in search</p><h3>Found when it counts.</h3><p>Your hours, address, and services are marked up so Google and AI assistants can answer “coffee near me” with you.</p></li>
-            <li class="tour-cap"><p class="tour-cap-k">Built for speed</p><h3>Loads in a blink.</h3><p>Optimized images, lean code, and modern hosting, so pages appear right away, even on a phone.</p></li>
-            <li class="tour-cap"><p class="tour-cap-k">Easy to update</p><h3>Change it yourself.</h3><p>Update prices, swap photos, and add new items in a simple editor. No developer needed.</p></li>
-            <li class="tour-cap"><p class="tour-cap-k">Connected</p><h3>Visitors become customers.</h3><p>Booking, contact forms, email lists, and your CRM, wired in so every request lands where you need it.</p></li>
-            <li class="tour-cap"><p class="tour-cap-k">Accessible</p><h3>Built for everyone.</h3><p>Readable text, strong contrast, and full keyboard support, so every visitor can use your site.</p></li>
-            <li class="tour-cap"><p class="tour-cap-k">Launch</p><h3>Your website, <span>live.</span></h3><p>Designed, built, and launched by one team, on a domain you own.</p><a class="btn btn-primary" href="schedule.html">Get started</a></li>
+            <li class="tour-cap" data-stop="brand"><p class="tour-cap-k">Custom design</p><h3>Your brand, front and center.</h3><p>Every website is designed from scratch around your business: your logo, your colors, your fonts. No themes, no templates.</p></li>
+            <li class="tour-cap" data-stop="hero"><p class="tour-cap-k">Built for speed</p><h3>Loads in a blink.</h3><p>Optimized images, lean code, and modern hosting, so pages appear right away, even on a phone.</p></li>
+            <li class="tour-cap" data-stop="favs"><p class="tour-cap-k">Easy to update</p><h3>Change it yourself.</h3><p>Update prices, swap photos, and add new items in a simple editor. No developer needed.</p></li>
+            <li class="tour-cap" data-stop="visit"><p class="tour-cap-k">Found in search</p><h3>Found when it counts.</h3><p>Your hours, address, and services are marked up so Google and AI assistants can answer “coffee near me” with you.</p></li>
+            <li class="tour-cap" data-stop="book"><p class="tour-cap-k">Connected</p><h3>Visitors become customers.</h3><p>Booking, contact forms, email lists, and your CRM, wired in so every request lands where you need it.</p></li>
+            <li class="tour-cap" data-stop="footer"><p class="tour-cap-k">Accessible</p><h3>Built for everyone.</h3><p>Readable text, strong contrast, and full keyboard support, so every visitor can use your site.</p></li>
+            <li class="tour-cap" data-stop="site"><p class="tour-cap-k">Launch</p><h3>Your website, <span>live.</span></h3><p>Designed, built, and launched by one team, on a domain you own.</p><a class="btn btn-primary" href="schedule.html">Get started</a></li>
           </ol>
           <ul class="tour-dots" aria-hidden="true"><li></li><li></li><li></li><li></li><li></li><li></li><li></li></ul>
         </div>
