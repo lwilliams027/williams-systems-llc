@@ -144,3 +144,13 @@
 /* the "End ↓" pill: skips past the story (src/js/chapter-nav.js) */
 .sj-progress li.sj-end { margin-left: 6px; color: var(--text); background: rgba(255,255,255,0.08); box-shadow: inset 0 0 0 1px rgba(255,255,255,0.25); }
 .sj-progress li.sj-end:hover { background: rgba(255,255,255,0.16); }
+
+/* ---------- the words never run into the picture, at any screen size ----------
+   The words column is a size container: headings scale to its width (so the longest
+   word always fits), and the column itself can't be stretched past its share. */
+section.sj [class$="-copy"], section.sj .sj-copy { container-type: inline-size; min-width: 0; }
+section.sj [class$="-copy"] { grid-template-columns: minmax(0, 1fr); }
+@media (min-width: 900px) {
+  section.sj [class$="-copy"] .sj-h, section.sj .sj-copy .sj-h { font-size: clamp(2rem, min(5.4vw, 12.5cqi), 5.2rem); }
+  section.sj [class$="-copy"] .sj-p, section.sj .sj-copy .sj-p { max-width: min(42ch, 100%); }
+}

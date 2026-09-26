@@ -63,10 +63,10 @@ export function chapterNav(section, tl, timeOf) {
   /* ---------- the last pill skips past the story to the rest of the page ---------- */
   const end = document.createElement('li');
   end.className = 'sj-end';
-  end.textContent = 'End ↓';
+  end.textContent = 'Skip ↓';
   end.setAttribute('role', 'button');
   end.tabIndex = 0;
-  end.title = 'Skip to the end of the story';
+  end.title = 'Skip past the story';
   const skip = () => {
     landing = Date.now();
     window.scrollTo({ top: Math.round(section.getBoundingClientRect().bottom + window.scrollY), behavior: 'smooth' });

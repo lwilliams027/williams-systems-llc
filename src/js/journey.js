@@ -734,6 +734,18 @@ export function initJourney({ reduced = false } = {}) {
   rig.render();
   fin.resize();
 
+  // "Skip ↓": straight past the whole story to what's below it (like the Skip pill on the other pages)
+  const skip = document.createElement('button');
+  skip.type = 'button';
+  skip.className = 'journey-skip';
+  skip.textContent = 'Skip ↓';
+  skip.setAttribute('aria-label', 'Skip past the story');
+  section.appendChild(skip);
+  skip.addEventListener('click', () => {
+    const after = (section.parentElement.classList.contains('pin-spacer') ? section.parentElement : section).getBoundingClientRect().bottom + window.scrollY;
+    gsap.to(window, { scrollTo: Math.round(after), duration: 1.4, ease: 'power2.inOut' });
+  });
+
   // Header links (data-chapter) jump the scroll story to that chapter. Captured at the
   // document so the generic #anchor scrolling in main.js doesn't also fire.
   const jumpTo = (label) => {

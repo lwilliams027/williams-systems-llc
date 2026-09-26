@@ -97,7 +97,8 @@ function init() {
   home.classList.add('on');
   gsap.set(ind, { y: home.offsetTop, height: home.offsetHeight });
   gsap.set(cursor, { x: 620, y: 420, autoAlpha: 0 });
-  gsap.set(fit, { transformPerspective: 1800, transformOrigin: '50% 50%' });
+  // tilts turn around the window's left edge, so it grows to the right and never into the words
+  gsap.set(fit, { transformPerspective: 1800, transformOrigin: '0% 50%' });
 
   const SCENE = 1.8;
   const tl = gsap.timeline({ defaults: { ease: 'none' } });
