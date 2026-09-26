@@ -75,6 +75,11 @@ async function sql(query, attempts = 6) {
 }
 
 // ---------- 1. project ----------
+// A project made by hand in the dashboard: pass its ref (the ID in its URL) to use it.
+if (process.env.SUPABASE_PROJECT_REF && state.ref !== process.env.SUPABASE_PROJECT_REF) {
+  state.ref = process.env.SUPABASE_PROJECT_REF.trim();
+  save();
+}
 if (!state.ref) {
   step('Finding your Supabase organization');
   const orgs = await api('/v1/organizations');

@@ -284,3 +284,16 @@ create policy "Owners update requests" on public.access_requests
 drop policy if exists "Owners delete requests" on public.access_requests;
 create policy "Owners delete requests" on public.access_requests
   for delete to authenticated using (public.is_admin());
+
+-- ---------- Explicit table access (works when "automatically expose new tables" is off) ----------
+-- Row-level security above still decides which rows each person can touch.
+revoke all on public.profiles from anon, authenticated;
+grant select on public.profiles to authenticated;
+grant update (full_name) on public.profiles to authenticated;
+
+revoke all on public.invites from anon, authenticated;
+grant select, insert, update, delete on public.invites to authenticated;
+
+revoke all on public.access_requests from anon, authenticated;
+grant insert (name, email, company, message) on public.access_requests to anon, authenticated;
+grant select, update, delete on public.access_requests to authenticated;
