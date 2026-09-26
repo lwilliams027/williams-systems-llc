@@ -11,3 +11,7 @@ Thumbs.db
 .supabase-token
 .supabase-temp.json
 ADMIN-LOGIN.txt
+
+# private backup server: its data, and the key only you hold
+backup-server/data/
+.backup-token
