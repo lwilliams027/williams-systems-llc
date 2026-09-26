@@ -7,7 +7,8 @@
 
    What goes in a snapshot
      · tables: admins, profiles, invites, access_requests, inquiries,
-       inquiry_notes
+       inquiry_notes, contracts, contract_messages, events, activity,
+       notifications
      · accounts (auth.users) — emails, names, dates; never password hashes
      · every uploaded file in storage (sent once, then reused by hash)
 
@@ -34,7 +35,8 @@ if (!pat) fail('No Supabase access token (.supabase-token).');
 if (!ref) fail('No project ref (.supabase-temp.json). Run npm run provision first.');
 if (!backupKey) fail('No backup key (.backup-token). Start the backup server once: npm run backup:server');
 
-const TABLES = ['admins', 'profiles', 'invites', 'access_requests', 'inquiries', 'inquiry_notes'];
+const TABLES = ['admins', 'profiles', 'invites', 'access_requests', 'inquiries', 'inquiry_notes',
+  'contracts', 'contract_messages', 'events', 'activity', 'notifications'];
 const sha256 = (buf) => createHash('sha256').update(buf).digest('hex');
 
 async function api(path, { method = 'GET', body } = {}) {

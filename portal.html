@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="robots" content="noindex, nofollow" />
+  <title>Your project — Williams Systems LLC</title>
+  <meta name="theme-color" content="#0B0C10" />
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@500;600;700;800&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/src/styles/main.css" />
+  <link rel="stylesheet" href="/src/styles/admin.css" />
+  <link rel="stylesheet" href="/src/styles/crm.css" />
+</head>
+<body class="admin portal">
+  <svg class="brand-defs" width="0" height="0" aria-hidden="true" focusable="false" style="position:absolute"><defs><linearGradient id="bpL" gradientUnits="userSpaceOnUse" x1="530" y1="-45" x2="860" y2="805"><stop offset="0" stop-color="#2E9BFF"/><stop offset="1" stop-color="#A06BFF"/></linearGradient></defs></svg>
+
+  <header class="portal-top">
+    <a href="./" class="brand" aria-label="Williams Systems website">
+      <span class="brand-mark" aria-hidden="true"><svg class="logo" viewBox="130 -45 1500 850" fill="currentColor"><path d="M500 805L500 691.86L243.14 435L500 178.14L500 65L130 435Z"/><path fill="url(#bpL)" d="M610 611.86L610 -45L530 35L530 805L858.79 476.21L802.22 419.64Z"/><path d="M806.72 381.72L863.28 325.15L1150 611.86L1150 -45L1230 35L1230 805Z"/><path d="M1260 805L1260 691.86L1516.86 435L1260 178.14L1260 65L1630 435Z"/></svg></span>
+      <span class="brand-name">Williams<span class="brand-thin"> Systems</span></span>
+    </a>
+    <span class="portal-tag mono">Client portal</span>
+    <div class="crm-top-actions">
+      <span class="crm-me" id="whoami"></span>
+      <div id="bellMount"></div>
+      <button class="btn btn-ghost btn-sm" id="signOut" type="button">Sign out</button>
+    </div>
+  </header>
+
+  <nav class="portal-tabs" id="portalTabs" aria-label="Your projects" hidden></nav>
+
+  <main class="portal-main" id="portalMain">
+    <div class="cv-loading">Loading your project…</div>
+  </main>
+
+  <p class="auth-credit portal-credit">© <span data-year></span> Williams Systems LLC · Built by Williams Systems LLC.</p>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  <script type="module" src="/src/js/portal.js"></script>
+</body>
+</html>

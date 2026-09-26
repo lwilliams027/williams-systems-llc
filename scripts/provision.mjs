@@ -123,6 +123,7 @@ if (!anonKey || !serviceKey) throw new Error(`Couldn’t find API keys in: ${key
 // ---------- 4. schema ----------
 step('Applying supabase/schema.sql');
 await sql(readFileSync(p('supabase/schema.sql'), 'utf8'));
+await sql(readFileSync(p('supabase/crm.sql'), 'utf8').replace(/^﻿/, ''));
 console.log('  tables, security rules, storage bucket, and realtime ready');
 
 // ---------- 5. auth settings ----------

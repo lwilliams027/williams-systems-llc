@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="robots" content="noindex, nofollow" />
-  <title>Team Dashboard — Williams Systems LLC</title>
+  <title>Dashboard — Williams Systems LLC</title>
   <meta name="theme-color" content="#0B0C10" />
   <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -12,6 +12,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@500;600;700;800&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="/src/styles/main.css" />
   <link rel="stylesheet" href="/src/styles/admin.css" />
+  <link rel="stylesheet" href="/src/styles/crm.css" />
 </head>
 <body class="admin">
   <svg class="brand-defs" width="0" height="0" aria-hidden="true" focusable="false" style="position:absolute"><defs><linearGradient id="bpL" gradientUnits="userSpaceOnUse" x1="530" y1="-45" x2="860" y2="805"><stop offset="0" stop-color="#2E9BFF"/><stop offset="1" stop-color="#A06BFF"/></linearGradient><linearGradient id="bpWord" gradientUnits="userSpaceOnUse" x1="130" y1="0" x2="1630" y2="0"><stop offset="0" stop-color="#2E9BFF"/><stop offset="1" stop-color="#A06BFF"/></linearGradient><linearGradient id="bpBox" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#2E9BFF"/><stop offset="1" stop-color="#A06BFF"/></linearGradient><linearGradient id="bpIcon" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="120" y2="120"><stop offset="0" stop-color="#2E9BFF"/><stop offset="1" stop-color="#A06BFF"/></linearGradient><linearGradient id="bpArt" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="240" y2="240"><stop offset="0" stop-color="#2E9BFF"/><stop offset="1" stop-color="#A06BFF"/></linearGradient></defs></svg>
@@ -24,85 +25,95 @@
     </div>
   </section>
 
-  <!-- Login -->
-  <section class="admin-center" id="loginView" hidden>
-    <form class="login-card" id="loginForm" novalidate>
-      <img class="login-lockup" src="/brand/logo-lockup-white.svg" alt="Williams Systems LLC" width="86" height="70" />
-      <h1>Team sign in</h1>
-      <p>Inquiries, files, and notes for Williams Systems LLC.</p>
-      <label class="field">
-        <span class="field-label">Email</span>
-        <input type="email" name="email" autocomplete="username" required />
-      </label>
-      <label class="field">
-        <span class="field-label">Password</span>
-        <input type="password" name="password" autocomplete="current-password" required />
-      </label>
-      <p class="form-error" id="loginError" role="alert" hidden></p>
-      <button type="submit" class="btn btn-primary" id="loginBtn">Sign in</button>
-      <a class="login-back" href="./">← Back to website</a>
-    </form>
-  </section>
-
   <!-- App -->
-  <div class="admin-app" id="appView" hidden>
-    <header class="admin-top">
+  <div class="crm-app" id="appView" hidden>
+    <aside class="crm-side">
       <a href="./" class="brand" aria-label="Williams Systems website">
         <span class="brand-mark" aria-hidden="true"><svg class="logo" viewBox="130 -45 1500 850" fill="currentColor"><path d="M500 805L500 691.86L243.14 435L500 178.14L500 65L130 435Z"/><path fill="url(#bpL)" d="M610 611.86L610 -45L530 35L530 805L858.79 476.21L802.22 419.64Z"/><path d="M806.72 381.72L863.28 325.15L1150 611.86L1150 -45L1230 35L1230 805Z"/><path d="M1260 805L1260 691.86L1516.86 435L1260 178.14L1260 65L1630 435Z"/></svg></span>
         <span class="brand-name">Williams<span class="brand-thin"> Systems</span></span>
       </a>
-      <nav class="admin-views" aria-label="Dashboard sections"><button type="button" class="admin-view mono" data-view="inbox" aria-pressed="true">Inquiries</button><button type="button" class="admin-view mono" data-view="access" aria-pressed="false">Access</button></nav>
-      <span class="live mono" id="liveBadge" title="New inquiries appear automatically"><i></i>Live</span>
-      <div class="admin-top-actions">
-        <span class="admin-user" id="userEmail"></span>
-        <button class="btn btn-ghost btn-sm" id="refreshBtn" type="button">Refresh</button>
-        <button class="btn btn-ghost btn-sm" id="signOutBtn" type="button">Sign out</button>
+      <nav class="crm-nav" id="crmNav" aria-label="Dashboard"></nav>
+      <div class="crm-side-foot">
+        <span class="crm-me" id="userEmail"></span>
+        <a class="crm-side-link" href="./">View website</a>
+        <button class="crm-side-link" id="signOutBtn" type="button">Sign out</button>
       </div>
-    </header>
+    </aside>
 
-    <div class="admin-main" id="adminMain">
-      <aside class="inbox" aria-label="Inquiries">
-        <div class="inbox-tools">
-          <input type="search" id="search" class="search" placeholder="Search name, email, company…" aria-label="Search inquiries" />
-          <div class="tabs" id="statusTabs" role="tablist"></div>
+    <div class="crm-body">
+      <header class="crm-top">
+        <h1 class="crm-view-title" id="viewTitle">Home</h1>
+        <div class="crm-top-actions">
+          <span class="live mono" id="liveBadge" title="Updates arrive live"><i></i>Live</span>
+          <button class="btn btn-primary btn-sm crm-new" id="newContractBtn" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg><span>New contract</span></button>
+          <div id="bellMount"></div>
+          <button class="crm-signout-sm" id="signOutSm" type="button" aria-label="Sign out"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/></svg></button>
         </div>
-        <ul class="inquiry-list" id="inquiryList"></ul>
-        <p class="list-empty" id="listEmpty" hidden>No inquiries here yet.</p>
-      </aside>
+      </header>
 
-      <section class="detail" id="detail" aria-live="polite">
-        <div class="detail-empty">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 12h-6l-2 3h-4l-2-3H2"/><path d="M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/></svg>
-          <p>Select an inquiry to see details, files, and notes.</p>
+      <!-- Home: analytics -->
+      <main class="crm-view" id="view-home" hidden></main>
+
+      <!-- Contracts -->
+      <main class="crm-view" id="view-contracts" hidden></main>
+
+      <!-- One contract -->
+      <main class="crm-view" id="view-contract" hidden></main>
+
+      <!-- Requests: project inquiries + account requests -->
+      <main class="crm-view crm-requests" id="view-requests" hidden>
+        <nav class="admin-views" aria-label="Request type"><button type="button" class="admin-view mono" data-view="inbox" aria-pressed="true">Project inquiries <span class="crm-subcount" data-subcount="inbox"></span></button><button type="button" class="admin-view mono" data-view="access" aria-pressed="false">Account requests <span class="crm-subcount" data-subcount="access"></span></button></nav>
+        <div class="admin-main" id="adminMain">
+          <aside class="inbox" aria-label="Inquiries">
+            <div class="inbox-tools">
+              <input type="search" id="search" class="search" placeholder="Search name, email, company…" aria-label="Search inquiries" />
+              <div class="tabs" id="statusTabs" role="tablist"></div>
+            </div>
+            <ul class="inquiry-list" id="inquiryList"></ul>
+            <p class="list-empty" id="listEmpty" hidden>No inquiries here yet.</p>
+          </aside>
+
+          <section class="detail" id="detail" aria-live="polite">
+            <div class="detail-empty">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 12h-6l-2 3h-4l-2-3H2"/><path d="M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/></svg>
+              <p>Select an inquiry to see details, files, and notes.</p>
+            </div>
+          </section>
         </div>
-      </section>
-    </div>
-    <!-- Access: invites and "request a spot" (owners only) -->
-    <div class="access" id="accessView" hidden>
-      <section class="access-col">
-        <h2 class="access-h">Invite someone</h2>
-        <p class="access-p">Accounts are invite only. Create an invite, then send them the link.</p>
-        <form class="access-form" id="inviteForm" novalidate>
-          <label class="field"><span class="field-label">Email</span><input type="email" name="email" required /></label>
-          <label class="field"><span class="field-label">Access</span>
-            <select name="role"><option value="client">Client</option><option value="owner">Owner (full dashboard access)</option></select>
-          </label>
-          <button type="submit" class="btn btn-primary">Create invite</button>
-        </form>
-        <div class="access-link" id="inviteResult" hidden>
-          <p class="access-p">Invite ready for <b id="invitedEmail"></b>. Send them this link:</p>
-          <input type="text" id="inviteLink" readonly aria-label="Invite link" />
-          <div class="access-actions"><button type="button" class="btn btn-ghost btn-sm" id="copyInvite">Copy link</button><a class="btn btn-ghost btn-sm" id="mailInvite" href="#">Email it</a></div>
+        <!-- Access: invites and "request a spot" -->
+        <div class="access" id="accessView" hidden>
+          <section class="access-col">
+            <h2 class="access-h">Requests for a spot</h2>
+            <ul class="access-list" id="requestList"></ul>
+            <p class="access-empty" id="requestEmpty" hidden>No requests yet.</p>
+          </section>
+          <section class="access-col">
+            <h2 class="access-h">Invite someone</h2>
+            <p class="access-p">Accounts are invite only. Create an invite, then send them the link.</p>
+            <form class="access-form" id="inviteForm" novalidate>
+              <label class="field"><span class="field-label">Email</span><input type="email" name="email" required /></label>
+              <label class="field"><span class="field-label">Access</span>
+                <select name="role"><option value="client">Client</option><option value="owner">Owner (full dashboard access)</option></select>
+              </label>
+              <button type="submit" class="btn btn-primary">Create invite</button>
+            </form>
+            <div class="access-link" id="inviteResult" hidden>
+              <p class="access-p">Invite ready for <b id="invitedEmail"></b>. Send them this link:</p>
+              <input type="text" id="inviteLink" readonly aria-label="Invite link" />
+              <div class="access-actions"><button type="button" class="btn btn-ghost btn-sm" id="copyInvite">Copy link</button><a class="btn btn-ghost btn-sm" id="mailInvite" href="#">Email it</a></div>
+            </div>
+            <h2 class="access-h">Open invites</h2>
+            <ul class="access-list" id="inviteList"></ul>
+            <p class="access-empty" id="inviteEmpty" hidden>No open invites.</p>
+          </section>
         </div>
-        <h2 class="access-h">Open invites</h2>
-        <ul class="access-list" id="inviteList"></ul>
-        <p class="access-empty" id="inviteEmpty" hidden>No open invites.</p>
-      </section>
-      <section class="access-col">
-        <h2 class="access-h">Requests for a spot</h2>
-        <ul class="access-list" id="requestList"></ul>
-        <p class="access-empty" id="requestEmpty" hidden>No requests yet.</p>
-      </section>
+      </main>
+
+      <!-- Pending deals -->
+      <main class="crm-view" id="view-pending" hidden></main>
+
+      <!-- Calendar -->
+      <main class="crm-view" id="view-calendar" hidden></main>
     </div>
   </div>
 

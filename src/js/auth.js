@@ -50,14 +50,14 @@ function friendly(err) {
   return m || 'Something went wrong. Please try again.';
 }
 
-// Where someone goes once they're signed in: owners to the dashboard, clients to their account.
+// Where someone goes once they're signed in: owners to the dashboard, clients to their project portal.
 // ?next= can only name one of our own pages.
-const SAFE_NEXT = ['admin.html', 'account.html'];
+const SAFE_NEXT = ['admin.html', 'account.html', 'portal.html'];
 async function goHome() {
   const next = new URLSearchParams(location.search).get('next');
   const { data: role } = await supabase.rpc('my_role');
   if (next && SAFE_NEXT.includes(next) && !(next === 'admin.html' && role !== 'owner')) return location.assign(next);
-  location.assign(role === 'owner' ? 'admin.html' : 'account.html');
+  location.assign(role === 'owner' ? 'admin.html' : 'portal.html');
 }
 
 function wireGoogle(redirectPage, form) {
@@ -199,6 +199,7 @@ async function accountPage() {
   if (!session) return location.replace('login.html?next=account.html');
   const { data: me } = await supabase.from('profiles').select('full_name, role, email').eq('id', session.user.id).maybeSingle();
   const role = me?.role || 'client';
+  if (role === 'client') return location.replace('portal.html');   // a client's page is their project
   const first = (me?.full_name || '').trim().split(/\s+/)[0];
   $('#tier').textContent = role === 'owner' ? 'Owner' : 'Client';
   $('#hello').textContent = first ? `Hi, ${first}.` : 'Hi there.';
