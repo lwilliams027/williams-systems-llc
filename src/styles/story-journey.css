@@ -15,7 +15,7 @@
   backface-visibility: hidden; transform-style: preserve-3d; will-change: transform, opacity;
 }
 .sj-k { font-size: 0.8rem; letter-spacing: 0.18em; text-transform: uppercase; background: var(--grad); -webkit-background-clip: text; background-clip: text; color: transparent; display: inline-block; }
-.sj-h { margin: 14px 0 18px; font-family: var(--font-display); font-weight: 700; letter-spacing: -0.055em; line-height: 0.94; font-size: clamp(2.8rem, 6.2vw, 6rem); color: #fff; }
+.sj-h { margin: 14px 0 18px; font-family: var(--font-display); font-weight: 700; letter-spacing: -0.035em; word-spacing: 0.04em; line-height: 0.96; font-size: clamp(2.8rem, 6.2vw, 6rem); color: #fff; }
 .sj-h span { background: var(--grad); -webkit-background-clip: text; background-clip: text; color: transparent; }
 .sj-p { color: var(--text-2); font-size: clamp(1.02rem, 1.4vw, 1.25rem); max-width: 42ch; }
 .sj-visual { position: relative; display: grid; place-items: center; min-height: 0; }
@@ -150,6 +150,8 @@
    word always fits), and the column itself can't be stretched past its share. */
 section.sj [class$="-copy"], section.sj .sj-copy { container-type: inline-size; min-width: 0; }
 section.sj [class$="-copy"] { grid-template-columns: minmax(0, 1fr); }
+/* the sample café inside the Websites tour floats its text; sizing it by its container collapsed it to 0 wide */
+section.sj .tw-hero-copy { container-type: normal; }
 @media (min-width: 900px) {
   section.sj [class$="-copy"] .sj-h, section.sj .sj-copy .sj-h { font-size: clamp(2rem, min(5.4vw, 12.5cqi), 5.2rem); }
   section.sj [class$="-copy"] .sj-p, section.sj .sj-copy .sj-p { max-width: min(42ch, 100%); }

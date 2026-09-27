@@ -52,7 +52,8 @@ function startPinned() {
   if (!window.matchMedia('(pointer: coarse)').matches || location.hash) return;
   const nudge = () => {
     if (window.scrollY > 2) return;                       // they've already moved (or came back mid-page)
-    const top = ScrollTrigger.getAll().find((t) => t.pin && t.start <= 4);
+    // the home story pins at the very top; the product and Solutions stories just under the header
+    const top = ScrollTrigger.getAll().filter((t) => t.pin && t.start <= window.innerHeight * 0.4).sort((a, b) => a.start - b.start)[0];
     if (top) window.scrollTo(0, Math.round(top.start) + 12);
   };
   const later = () => setTimeout(nudge, 350);             // after the journeys have set up their pins

@@ -37,9 +37,11 @@ export function chapterNav(section, tl, timeOf) {
     return Math.round(i === 0 ? st.start : st.start + (t / tl.duration()) * (st.end - st.start));
   };
   let landing = 0;                                                     // when we last scrolled on purpose
+  let settled = 0;                                                     // the chapter we last came to rest on
   const go = (i) => {
     landing = Date.now();
-    window.scrollTo({ top: spot(Math.max(0, Math.min(n - 1, i))), behavior: 'smooth' });
+    settled = Math.max(0, Math.min(n - 1, i));
+    window.scrollTo({ top: spot(settled), behavior: 'smooth' });
   };
   const nearest = () => {
     let best = 0;
@@ -77,13 +79,19 @@ export function chapterNav(section, tl, timeOf) {
 
   if (!touch()) return;
 
-  /* ---------- touch: settle on the nearest chapter when a swipe comes to rest ---------- */
+  /* ---------- touch: when a swipe comes to rest, settle on a chapter in the direction it went ---------- */
+  // Like turning pages: a swipe forward lands on the next chapter, back on the previous one.
+  // (Settling on the *nearest* chapter pulled ordinary thumb swipes back to where they started,
+  // since a chapter is longer than a swipe.)
   ScrollTrigger.addEventListener('scrollEnd', () => {
     if (Date.now() - landing < 1200) return;                          // we're already heading somewhere
     const y = window.scrollY;
-    if (y <= spot(0) + 2 || y >= spot(n - 1) - 2) return;             // before the first or after the last: leave it be
-    const i = nearest();
-    if (Math.abs(spot(i) - y) > 6) go(i);
+    if (y <= spot(0) + 2 || y >= spot(n - 1) - 2) { settled = nearest(); return; }   // before the first or after the last: leave it be
+    const moved = y - spot(settled);
+    let i = settled;
+    if (moved > 40) { i = 0; while (i < n - 1 && spot(i) < y) i++; }                // the next chapter ahead
+    else if (moved < -40) { i = n - 1; while (i > 0 && spot(i) > y) i--; }          // the one behind
+    if (Math.abs(spot(i) - y) > 6) go(i); else settled = i;
   });
 
   /* ---------- touch: swipe sideways on the scene for the next or previous chapter ---------- */
