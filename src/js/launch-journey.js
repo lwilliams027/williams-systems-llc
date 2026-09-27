@@ -156,7 +156,7 @@ function init() {
     tl.to(votes, { autoAlpha: 0, y: -20, duration: 0.35, ease: SMOOTH }, T - 0.4)
       .to(napkin, { autoAlpha: 1, x: -190, y: -10, scale: 0.58, rotation: -6, duration: 0.6, ease: SMOOTH }, T - 0.2)
       .fromTo(page, { autoAlpha: 0, x: 190, y: -10, scale: 0.58, rotation: 0 }, { autoAlpha: 1, duration: 0.5, ease: SMOOTH, immediateRender: false }, T - 0.1)
-      .to($('.ln-arrow'), { opacity: 1, duration: 0.25 }, T + 0.35)
+      .fromTo($('.ln-arrow'), { opacity: 0, scaleX: 0 }, { opacity: 1, scaleX: 1, transformOrigin: '0% 50%', duration: 0.35, ease: OUT, immediateRender: false }, T + 0.35)   // draws itself napkin → app
       .to($$('.ln-tag'), { opacity: 1, duration: 0.25, stagger: 0.12 }, T + 0.45)
       .to({}, { duration: 0.6 }, T + 1.45);                  // hold on the finish
   }

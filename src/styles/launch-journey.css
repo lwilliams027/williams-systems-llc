@@ -85,6 +85,10 @@
 .ln-tag.now { left: 500px; background: #22A559; color: #fff; font: 700 16px 'Inter', sans-serif; padding: 11px 18px; }
 .ln-arrow { position: absolute; left: 356px; top: 240px; width: 48px; height: 4px; background: #86EFAC; border-radius: 2px; opacity: 0; }
 .ln-arrow::after { content: ''; position: absolute; right: -2px; top: -7px; border: 9px solid transparent; border-left: 12px solid #86EFAC; border-right: 0; }
+/* once it's drawn it keeps pointing the way: a gentle nudge toward the live app (translate stacks with GSAP's scale) */
+.ln-arrow { animation: ln-nudge 1.4s ease-in-out infinite; }
+@keyframes ln-nudge { 0%, 100% { translate: 0 0; } 50% { translate: 12px 0; } }
+@media (prefers-reduced-motion: reduce) { .ln-arrow { animation: none; } }
 
 @media (max-width: 899.98px) {
   .ln-stage { grid-template-columns: 1fr; grid-template-rows: auto 1fr; align-content: center; gap: 22px; padding: calc(var(--header-h) + 16px) var(--gutter) 70px; }
