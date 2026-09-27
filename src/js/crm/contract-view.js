@@ -372,28 +372,118 @@ export async function contractPage(root, opts) {
   }
 
   /* =====================================================================
-     Files: everything uploaded on this project's tickets
+     Files: upload anything to the project (stylesheets, CSVs, PDFs,
+     images, zips…), plus everything attached on its tickets
      ===================================================================== */
-  async function filesSection() {
-    fill(body, el('div', { class: 'cv-loading', text: 'Gathering files…' }));
+  const PF_BUCKET = 'project-files';
+  const PF_MAX = 50 * 1024 * 1024;
+  const extOf = (n = '') => (n.includes('.') ? n.split('.').pop().toLowerCase().slice(0, 5) : 'file');
+  const EXT_TONE = { css: 'code', scss: 'code', js: 'code', ts: 'code', html: 'code', json: 'code', csv: 'data', xlsx: 'data', xls: 'data', tsv: 'data',
+    pdf: 'doc', doc: 'doc', docx: 'doc', txt: 'doc', md: 'doc', png: 'img', jpg: 'img', jpeg: 'img', gif: 'img', webp: 'img', svg: 'img',
+    zip: 'zip', rar: 'zip', '7z': 'zip', fig: 'img', psd: 'img', ai: 'img', mp4: 'vid', mov: 'vid' };
+  let filesState = null;
+
+  async function uploadProjectFiles(list, status) {
+    let okCount = 0;
+    for (const f of list) {
+      if (f.size > PF_MAX) { toast(`${f.name} is over 50 MB`, 'error'); continue; }
+      status(`Uploading ${f.name}…`);
+      const safe = f.name.replace(/[^\w.\-]+/g, '_').slice(-120) || 'file';
+      const path = `${id}/${crypto.randomUUID().slice(0, 8)}-${safe}`;
+      const up = await supabase.storage.from(PF_BUCKET).upload(path, f, { contentType: f.type || 'application/octet-stream', upsert: false });
+      if (up.error) { toast(`Couldn’t upload ${f.name}: ${up.error.message}`, 'error'); continue; }
+      const ins = await supabase.from('project_files').insert({ contract_id: id, path, name: f.name, size: f.size, type: f.type || null });
+      if (ins.error) { await supabase.storage.from(PF_BUCKET).remove([path]); toast(`Couldn’t save ${f.name}: ${ins.error.message}`, 'error'); continue; }
+      okCount++;
+    }
+    status('');
+    if (okCount) toast(`${okCount} file${okCount === 1 ? '' : 's'} uploaded`);
+    await loadFiles();
+    renderFiles();
+  }
+
+  async function loadFiles() {
     const ids = s.tks.map((t) => t.id);
-    const { data: tm } = ids.length
-      ? await supabase.from('ticket_messages').select('ticket_id, files, created_at, sender_name').in('ticket_id', ids).neq('files', '[]').order('created_at', { ascending: false })
-      : { data: [] };
+    const [pf, tm] = await Promise.all([
+      supabase.from('project_files').select('*').eq('contract_id', id).order('created_at', { ascending: false }),
+      ids.length ? supabase.from('ticket_messages').select('ticket_id, files, created_at').in('ticket_id', ids).neq('files', '[]') : Promise.resolve({ data: [] }),
+    ]);
+    if (pf.error) toast(`Couldn’t load files: ${pf.error.message}`, 'error');
     const groups = [];
     for (const t of s.tks) {
-      const files = [...(t.files || []), ...(tm || []).filter((m) => m.ticket_id === t.id && m.files?.length).flatMap((m) => m.files)];
+      const files = [...(t.files || []), ...(tm.data || []).filter((m) => m.ticket_id === t.id && m.files?.length).flatMap((m) => m.files)];
       const seen = new Set();
       const unique = files.filter((f) => (seen.has(f.path) ? false : seen.add(f.path)));
       if (unique.length) groups.push({ t, files: unique });
     }
-    const total = groups.reduce((n, g) => n + g.files.length, 0);
-    fill(body, el('section', { class: 'cv-card' },
-      el('div', { class: 'cv-card-head' }, el('h2', { text: 'Files' }), total ? el('span', { class: 'cv-count mono', text: `${total} file${total === 1 ? '' : 's'}` }) : null),
-      groups.length ? groups.map((g) => el('div', { class: 'cv-file-group' },
-        el('a', { class: 'cv-file-group-h', href: href('tickets', g.t.number) }, el('span', { class: 'mono', text: `#${g.t.number}` }), el('span', { text: g.t.title })),
-        fileList(g.files)))
-        : el('p', { class: 'cv-empty', text: owner ? 'Files the client attaches to tickets (and files you send back) collect here.' : 'Files you attach to requests, and files Landon sends back, collect here.' })));
+    filesState = { shared: pf.data || [], groups };
+  }
+
+  function fileRow(f) {
+    const ext = extOf(f.name);
+    const mine = f.uploaded_by === opts.me.id;
+    const thumb = el('span', { class: `pf-ico t-${EXT_TONE[ext] || 'other'}`, text: ext });
+    const dl = el('button', { type: 'button', class: 'btn btn-ghost btn-sm', text: 'Download', onclick: async () => {
+      const { data, error } = await supabase.storage.from(PF_BUCKET).createSignedUrl(f.path, 60 * 10, { download: f.name });
+      if (error) return toast(`Couldn’t open it: ${error.message}`, 'error');
+      location.assign(data.signedUrl);
+    } });
+    if ((f.type || '').startsWith('image/')) {
+      supabase.storage.from(PF_BUCKET).createSignedUrl(f.path, 60 * 60).then(({ data }) => {
+        if (data?.signedUrl) thumb.replaceChildren(el('img', { src: data.signedUrl, alt: '', loading: 'lazy' }));
+      });
+    }
+    return el('li', { class: 'pf-row' },
+      thumb,
+      el('span', { class: 'pf-main' },
+        el('strong', { text: f.name, title: f.name }),
+        el('small', { text: `${formatBytes(f.size)} · ${mine ? 'You' : f.uploader_role === 'owner' && !owner ? 'Landon' : f.uploader_name || 'Someone'} · ${timeAgo(f.created_at)}` })),
+      el('span', { class: 'pf-actions' }, dl,
+        owner || mine ? armedButton('Remove', 'Sure?', async () => {
+          await supabase.storage.from(PF_BUCKET).remove([f.path]);
+          const { error } = await supabase.from('project_files').delete().eq('id', f.id);
+          if (error) return toast(`Couldn’t remove: ${error.message}`, 'error');
+          toast('File removed');
+          await loadFiles(); renderFiles();
+        }, 'link-btn danger') : null));
+  }
+
+  function renderFiles() {
+    if (section !== 'files' || !filesState) return;
+    const { shared, groups } = filesState;
+    const input = el('input', { type: 'file', multiple: true, hidden: true });
+    const status = el('p', { class: 'pf-status', 'aria-live': 'polite' });
+    const setStatus = (t) => { status.textContent = t; drop.classList.toggle('busy', Boolean(t)); };
+    const drop = el('div', { class: 'pf-drop', role: 'button', tabindex: 0, 'aria-label': 'Upload files' },
+      el('span', { class: 'pf-drop-ico', html: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 16V4M7 9l5-5 5 5"/><path d="M20 16v3a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-3"/></svg>' }),
+      el('strong', { text: 'Drop files here, or click to browse' }),
+      el('small', { text: 'Any type: stylesheets, CSVs, PDFs, images, zips… up to 50 MB each' }),
+      status, input);
+    drop.addEventListener('click', (e) => { if (e.target !== input) input.click(); });
+    drop.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); input.click(); } });
+    input.addEventListener('change', () => { const l = [...input.files]; input.value = ''; if (l.length) uploadProjectFiles(l, setStatus); });
+    drop.addEventListener('dragover', (e) => { e.preventDefault(); drop.classList.add('over'); });
+    drop.addEventListener('dragleave', () => drop.classList.remove('over'));
+    drop.addEventListener('drop', (e) => { e.preventDefault(); drop.classList.remove('over'); const l = [...e.dataTransfer.files]; if (l.length) uploadProjectFiles(l, setStatus); });
+
+    const ticketTotal = groups.reduce((n, g) => n + g.files.length, 0);
+    fill(body,
+      el('section', { class: 'cv-card pf-card' },
+        el('div', { class: 'cv-card-head' }, el('h2', { text: 'Shared files' }), shared.length ? el('span', { class: 'cv-count mono', text: `${shared.length} file${shared.length === 1 ? '' : 's'} · ${formatBytes(shared.reduce((n, f) => n + Number(f.size || 0), 0))}` }) : null),
+        drop,
+        shared.length ? el('ul', { class: 'pf-list' }, shared.map(fileRow))
+          : el('p', { class: 'cv-empty', text: owner ? 'Nothing shared yet. Files you or the client add here stay with this project.' : 'Nothing shared yet. Add brand files, content, spreadsheets, anything Landon needs.' })),
+      groups.length ? el('section', { class: 'cv-card' },
+        el('div', { class: 'cv-card-head' }, el('h2', { text: 'From tickets' }), el('span', { class: 'cv-count mono', text: `${ticketTotal} file${ticketTotal === 1 ? '' : 's'}` })),
+        groups.map((g) => el('div', { class: 'cv-file-group' },
+          el('a', { class: 'cv-file-group-h', href: href('tickets', g.t.number) }, el('span', { class: 'mono', text: `#${g.t.number}` }), el('span', { text: g.t.title })),
+          fileList(g.files)))) : null);
+  }
+
+  async function filesSection() {
+    fill(body, el('div', { class: 'cv-loading', text: 'Gathering files…' }));
+    await loadFiles();
+    renderFiles();
   }
 
   /* ---------- go ---------- */
@@ -422,6 +512,9 @@ export async function contractPage(root, opts) {
         const rows = body.querySelector('.tk-pane-list .tk-rows, .tk-pane-list .cv-empty');
         if (rows) rows.replaceWith(s.tks.length ? ticketRows(s.tks, { owner, onOpen: (t) => { location.hash = href('tickets', t.number); } }) : el('p', { class: 'cv-empty', text: 'No tickets yet.' }));
       }
+    })
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'project_files', filter: `contract_id=eq.${id}` }, async () => {
+      if (section === 'files') { await loadFiles(); renderFiles(); }
     })
     .on('postgres_changes', { event: '*', schema: 'public', table: 'events', filter: `contract_id=eq.${id}` }, async () => {
       const { data } = await supabase.from('events').select('*').eq('contract_id', id).order('starts_at');

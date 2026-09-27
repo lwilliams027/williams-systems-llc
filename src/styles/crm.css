@@ -1436,3 +1436,38 @@ a.ov-stat:hover { background: rgba(255, 255, 255, 0.025); }
 .ev-request { display: flex; flex-direction: column; gap: 4px; padding: 12px 14px; border-radius: 12px; background: rgba(245, 184, 75, 0.1); box-shadow: inset 3px 0 0 var(--warn); }
 .ev-request strong { color: var(--warn); font-size: 0.92rem; }
 .ev-request span { color: var(--text-2); font-size: 0.86rem; }
+
+/* =====================================================================
+   Project files
+   ===================================================================== */
+.pf-card { gap: 16px; }
+.pf-drop {
+  display: flex; flex-direction: column; align-items: center; gap: 6px; text-align: center; cursor: pointer;
+  padding: 28px 20px; border-radius: 16px; border: 1.5px dashed var(--line-2); background: var(--ink);
+  transition: border-color 0.15s, background 0.15s;
+}
+.pf-drop:hover, .pf-drop:focus-visible { border-color: var(--accent); outline: none; }
+.pf-drop.over { border-color: var(--accent); background: var(--accent-soft); }
+.pf-drop.busy { pointer-events: none; opacity: 0.8; }
+.pf-drop-ico { width: 44px; height: 44px; padding: 10px; border-radius: 14px; color: #fff; background: linear-gradient(135deg, #2E9BFF, #A06BFF); margin-bottom: 6px; }
+.pf-drop-ico svg { width: 100%; height: 100%; }
+.pf-drop strong { font-weight: 600; }
+.pf-drop small { color: var(--text-3); font-size: 0.84rem; }
+.pf-status { color: var(--accent-fg); font-size: 0.86rem; min-height: 1em; margin: 2px 0 0; }
+.pf-status:empty { display: none; }
+.pf-list { display: flex; flex-direction: column; }
+.pf-row { display: flex; align-items: center; gap: 14px; padding: 12px 4px; border-top: 1px solid var(--line-solid); }
+.pf-row:first-child { border-top: 0; }
+.pf-ico { width: 42px; height: 42px; flex: none; border-radius: 11px; display: grid; place-items: center; overflow: hidden;
+  font: 700 0.62rem var(--font-mono); text-transform: uppercase; letter-spacing: 0.04em; color: var(--tc, var(--text-2)); background: color-mix(in srgb, var(--tc, var(--text-3)) 14%, var(--surface)); }
+.pf-ico img { width: 100%; height: 100%; object-fit: cover; }
+.pf-ico.t-code { --tc: #7CB7FF; } .pf-ico.t-data { --tc: #3DDC84; } .pf-ico.t-doc { --tc: #FF8A8A; }
+.pf-ico.t-img { --tc: #A06BFF; } .pf-ico.t-zip { --tc: #F5B84B; } .pf-ico.t-vid { --tc: #FF9ED8; }
+.pf-main { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.pf-main strong { font-weight: 500; font-size: 0.93rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.pf-main small { color: var(--text-3); font-size: 0.78rem; }
+.pf-actions { display: flex; align-items: center; gap: 10px; flex: none; }
+@media (max-width: 560px) {
+  .pf-row { flex-wrap: wrap; }
+  .pf-actions { width: 100%; justify-content: flex-end; }
+}
