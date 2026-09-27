@@ -564,9 +564,32 @@ export function initJourney({ reduced = false } = {}) {
     .set(secure, { autoAlpha: 1, yPercent: 100 }, 'secure')
     .to(bulbScene, { yPercent: -100, duration: S('toSecure'), ease: 'power2.inOut' }, 'secure')
     .to(secure, { yPercent: 0, duration: S('toSecure'), ease: 'power2.inOut' }, 'secure')
-    .fromTo(login, { autoAlpha: 0, y: 40 }, { autoAlpha: 1, y: 0, duration: S('toSecure') * 0.5, ease: 'power3.out' }, `secure+=${S('toSecure') * 0.5}`)
+    // the card is solid before the falling bulb reaches it, so the bulb disappears behind it (not through it)
+    .fromTo(login, { autoAlpha: 0, y: 40 }, { autoAlpha: 1, y: 0, duration: S('toSecure') * 0.25, ease: 'power3.out' }, `secure+=${S('toSecure') * 0.2}`)
     .set(bulbScene, { autoAlpha: 0 }, `secure+=${S('toSecure')}`)
     .addLabel('denied', `secure+=${S('toSecure')}`);
+
+  // The bulb doesn't just fly off: as the sign-in page rises, it keeps falling and drops
+  // behind the Admin console card. A copy of it takes over inside the sign-in scene (in front
+  // of its background, behind the card) from exactly where the real one is.
+  const fallBulb = document.createElement('div');
+  fallBulb.className = 'secure-bulb';
+  fallBulb.setAttribute('aria-hidden', 'true');
+  fallBulb.innerHTML = bulb.innerHTML.replace(/\sid="[^"]*"/g, '');       // same drawing, no duplicate ids
+  secure.insertBefore(fallBulb, shake);                                  // under the card's layer
+  gsap.set(fallBulb, { autoAlpha: 0 });
+  const fallP = { p: 0 };
+  const FALL = S('toSecure') * 1.2;
+  const placeFall = () => {
+    const vh = window.innerHeight, vw = window.innerWidth, top = secure.getBoundingClientRect().top;
+    const screenY = vh * (0.6 + fallP.p * fallP.p * 0.75);                  // from where it was to off the bottom, speeding up
+    gsap.set(fallBulb, { x: vw * 0.516 - fallBulb.offsetWidth / 2, y: screenY - top, rotation: 320 + fallP.p * 240 });
+  };
+  master
+    .set(bulb, { autoAlpha: 0 }, 'secure')
+    .set(fallBulb, { autoAlpha: 1 }, 'secure')
+    .fromTo(fallP, { p: 0 }, { p: 1, duration: FALL, ease: 'none', onUpdate: placeFall, immediateRender: false }, 'secure')
+    .set(fallBulb, { autoAlpha: 0 }, `secure+=${FALL}`);
   attempt(master.labels.denied, 1);
   master
     // clear and try again…
@@ -783,7 +806,18 @@ export function initJourney({ reduced = false } = {}) {
       [L.cycle + S('cycle') * 0.5, SPEED.everyPiece],                   // "Every piece. One build."
       [L.desk, SPEED.website],                                          // the website, finished
       [L.unscrew, SPEED.lightbulb],                                     // the lightbulb: customization
-      [L.keyhole, SPEED.security],                                      // the padlock: security
+      // the padlock: security, in timed parts (play-speeds.js)
+      [L.keyhole, { phases: (() => {
+        const len = S('denied') * 0.45, SEC = SPEED.security;
+        return [
+          { y: toY(L.denied), seconds: SEC.fall, ease: 'power1.inOut' },                               // unscrew, fall, behind the card
+          { y: toY(L.denied + len * 0.35), seconds: SEC.typing },                                      // password types
+          { y: toY(L.denied + S('denied') * 0.52), seconds: SEC.refused },                             // refused, shake
+          { y: toY(L.denied + S('denied') * 0.52 + len * 0.35), seconds: SEC.typing },                 // types again
+          { y: toY(L.lockUp), seconds: SEC.refused },                                                  // refused again
+          { y: toY(L.keyhole), seconds: SEC.lock, ease: 'power1.out' },                                // the padlock rises and locks
+        ];
+      })() }],
       [L.climb - S('riseHold') * 0.3, SPEED.howWeWork],                 // "From first call to launch."
       ...steps.map((_, k) => [L.climb + k * slot + slot * 0.6, SPEED[['discover', 'design', 'build', 'launch', 'support'][k]]]),
       [L.reveal + S('reveal') * 0.9, SPEED.finale],                     // the finale

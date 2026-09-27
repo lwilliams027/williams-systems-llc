@@ -35,7 +35,14 @@ export const HOME = {
   everyPiece:  1,   // the window stack turns → "Every piece. One build."
   website:     1,   // into the website, scroll down it, onto the desk
   lightbulb:   1.5, // the bulb drops in → "Make it yours."
-  security:    1,   // the bulb falls, sign-in refused, padlock → "Locked down from day one."
+  // the bulb falls behind the Admin console, two refused sign-ins, the padlock → "Locked down from day one."
+  // In seconds, part by part:
+  security: {
+    fall:    2.6,   // unscrew, the lights die, the bulb falls behind the sign-in card
+    typing:  1,     // each password typing in (same pace as the code in the editor)
+    refused: 0.8,   // "Access denied", the red flash and the shake (after each try)
+    lock:    1.4,   // the padlock rises and snaps shut
+  },
   howWeWork:   1,   // through the keyhole → "From first call to launch."
   discover:    1,   // How we work, step 1
   design:      1,   // step 2

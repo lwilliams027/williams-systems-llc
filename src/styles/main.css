@@ -1763,3 +1763,10 @@ fieldset.field .field-label { margin-bottom: 8px; }
 .journey-skip:hover { background: rgba(255,255,255,0.16); }
 .journey-skip:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
 @media (max-width: 899.98px) { .journey-skip { display: none; } }
+
+/* the bulb falling behind the Admin console card (a copy of it, inside the sign-in scene) */
+.secure-bulb { position: absolute; left: 0; top: 0; z-index: 0; width: 110px; transform-origin: 50% 22%; pointer-events: none; will-change: transform; }
+.secure-bulb svg { display: block; width: 100%; height: auto; }
+.secure-bulb .bulb-glass { fill: rgba(170, 180, 200, 0.14); stroke: #7A8292; }
+.secure-bulb .bulb-fil { stroke: #6B7385; }
+.secure-bulb circle { display: none; }
