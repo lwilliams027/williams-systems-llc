@@ -368,8 +368,10 @@ export function initJourney({ reduced = false } = {}) {
         { autoAlpha: 1, y: 0, duration: (PLAY ? 0.06 : 0.12) * S('strip'), stagger: (PLAY ? 0.01 : 0.02) * S('strip'), ease: 'power2.out' }, at + (PLAY ? 0.03 : 0.06) * S('strip'));
   });
 
-  // Play-mode stops in the strip: just before the next card starts drawing, so every card on screen is complete.
+  // Play-mode stops in the strip: two services at a time (Front end + Back end, SaaS + Mobile, Cloud + AI),
+  // just before the next card starts drawing, so both cards on screen are complete.
   panelStarts.forEach((at, i) => {
+    if (i % 2 === 0 && i < panelStarts.length - 1) return;                 // stop after every second card
     const next = panelStarts[i + 1];
     readStops.push(next !== undefined ? Math.max(at + 0.12 * S('strip'), next - 0.005 * S('strip')) : at + 0.14 * S('strip'));
   });

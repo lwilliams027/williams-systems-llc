@@ -32,7 +32,8 @@ export const PLAY = (() => {
  */
 export function playMode(st, points) {
   if (!PLAY) return;
-  let busy = false;
+  let releasing = false;
+  let goal = null;                                                              // the stop we're heading to, while a play is running
   const stops = () => {
     const list = [st.start, ...points(), st.end].map(Math.round).sort((a, b) => a - b);
     return list.filter((y, i) => i === 0 || y - list[i - 1] > 40);            // drop near-duplicates
@@ -41,32 +42,44 @@ export function playMode(st, points) {
   const inside = () => window.scrollY >= st.start - window.innerHeight * 0.25 && window.scrollY <= st.end + 2;
 
   const step = (dir) => {
-    if (busy || !inside()) return;
-    const y = window.scrollY, list = stops();
+    if (releasing || !inside()) return;
+    // scrolling again mid-play goes on from where this play is heading, straight away
+    const y = goal ?? window.scrollY, list = stops();
     const from = Math.max(y, st.start);                                          // above the start: the first flick plays into the story
     const target = dir > 0 ? list.find((p) => p > from + 4) : [...list].reverse().find((p) => p < y - 4 && y > st.start + 4);
     // past either end: let go and carry on scrolling the page normally
     if (target === undefined) { release(dir); return; }
-    busy = true;
-    const dist = Math.abs(target - y);
-    const duration = gsap.utils.clamp(0.9, 3.2, dist / (window.innerHeight * 1.1));
+    goal = target;
+    const dist = Math.abs(target - window.scrollY);
+    const duration = gsap.utils.clamp(0.6, 2.2, dist / (window.innerHeight * 1.5));
     gsap.to(window, {
-      scrollTo: { y: target, autoKill: false }, duration, ease: 'power1.inOut',
-      onComplete: () => setTimeout(() => { busy = false; }, 450),              // swallow the trackpad's momentum
+      scrollTo: { y: target, autoKill: false }, duration, ease: 'power1.inOut', overwrite: true,
+      onComplete: () => { goal = null; },
     });
   };
 
   const release = (dir) => {
-    busy = true;
+    releasing = true;
+    goal = null;
     obs.disable();
     const y = dir > 0 ? st.end + Math.round(window.innerHeight * 0.6) : Math.max(0, st.start - Math.round(window.innerHeight * 0.6));
-    gsap.to(window, { scrollTo: { y, autoKill: false }, duration: 0.8, ease: 'power2.inOut', onComplete: () => { busy = false; } });
+    gsap.to(window, { scrollTo: { y, autoKill: false }, duration: 0.8, ease: 'power2.inOut', overwrite: true, onComplete: () => { releasing = false; } });
   };
 
+  // One gesture = one step. A trackpad or phone flick keeps sending scroll events for
+  // a second or so (momentum); those arrive back to back, so only an event after a
+  // short gap counts as a new scroll. No lock-out: the next scroll works right away.
+  let lastEvent = 0;
+  const gesture = (dir) => {
+    const now = performance.now();
+    const fresh = now - lastEvent > 180;
+    lastEvent = now;
+    if (fresh) step(dir);
+  };
   // wheelSpeed -1 so a wheel down and a finger swipe up are both "up" (= forward)
   const obs = Observer.create({
-    target: window, type: 'wheel,touch', wheelSpeed: -1, tolerance: 12, preventDefault: true,
-    onUp: () => step(1), onDown: () => step(-1),
+    target: window, type: 'wheel,touch', wheelSpeed: -1, tolerance: 10, preventDefault: true,
+    onUp: () => gesture(1), onDown: () => gesture(-1),
   });
   window.addEventListener('keydown', (e) => {
     if (!obs.isEnabled) return;
@@ -74,7 +87,7 @@ export function playMode(st, points) {
     if (['ArrowUp', 'PageUp'].includes(e.key)) { e.preventDefault(); step(-1); }
   });
   // take over only while the story is on screen; hand back the page outside it
-  const sync = () => { if (busy) return; if (inside()) obs.enable(); else obs.disable(); };
+  const sync = () => { if (releasing || goal !== null) return; if (inside()) obs.enable(); else obs.disable(); };
   window.addEventListener('scroll', sync, { passive: true });
   ScrollTrigger.addEventListener('refresh', sync);                           // positions are only known once measured
   sync();
