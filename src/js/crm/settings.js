@@ -6,7 +6,7 @@
 import { gsap } from 'gsap';
 import { supabase } from '../supabase.js';
 import { el, fill, toast, modal, field, initials, fmtDate, timeAgo } from './util.js';
-import { billingView, loadBillingSettings, saveBillingSettings, HOLD_DAYS } from './billing.js';
+import { billingView, loadBillingSettings, saveBillingSettings, syncStripe, HOLD_DAYS } from './billing.js';
 
 /* ---------- preferences: apply anywhere ---------- */
 export const ACCENTS = {
@@ -194,6 +194,47 @@ export function openSettings(ctx) {
     return [head('Billing & payments', 'What’s due, what’s coming up and how to pay, across all your projects.'), box];
   }
 
+  /* ---------- Stripe: paste the secret key once; it's kept encrypted in the database ---------- */
+  function stripeBlock(d) {
+    const box = el('div', { class: 'st-stripe' });
+    const draw = (info) => {
+      if (info?.connected) {
+        fill(box, row('Stripe', `Connected to ${info.account || 'your account'}. Every bill you send gets its own payment link for its exact amount, and paid bills mark themselves paid within a minute.`,
+          el('span', { class: `st-chip ${info.mode === 'test' ? 'test' : 'on'}`, text: info.mode === 'test' ? 'Test mode' : 'Live' })),
+        el('div', { class: 'st-stripe-actions' },
+          el('button', { type: 'button', class: 'btn btn-ghost btn-sm', text: 'Check for payments now', onclick: async (e) => { e.currentTarget.disabled = true; const n = await syncStripe(); toast(n ? `${n} bill${n === 1 ? '' : 's'} marked paid` : 'No new payments'); e.currentTarget.disabled = false; } }),
+          el('button', { type: 'button', class: 'link-btn', text: info.mode === 'test' ? 'Switch to live key' : 'Replace key', onclick: () => draw(null) }),
+          el('button', { type: 'button', class: 'link-btn danger', text: 'Disconnect', onclick: async () => {
+            if (!confirm('Disconnect Stripe? Bills keep the links they have; new bills won’t get one.')) return;
+            const { error } = await supabase.rpc('disconnect_stripe');
+            if (error) return toast(error.message, 'error');
+            toast('Stripe disconnected'); draw(null);
+          } })));
+        return;
+      }
+      const key = el('input', { type: 'password', autocomplete: 'off', spellcheck: 'false', placeholder: 'sk_test_… or sk_live_…', 'aria-label': 'Stripe secret key' });
+      const msg = el('p', { class: 'crm-form-msg', role: 'alert', hidden: true });
+      const go = el('button', { type: 'button', class: 'btn btn-primary btn-sm', text: 'Connect Stripe', onclick: async () => {
+        msg.hidden = true;
+        if (!key.value.trim()) { msg.textContent = 'Paste your secret key first.'; msg.hidden = false; return; }
+        go.disabled = true; go.textContent = 'Checking with Stripe…';
+        const { data, error } = await supabase.rpc('set_stripe_key', { k: key.value });
+        go.disabled = false; go.textContent = 'Connect Stripe';
+        if (error) { msg.textContent = error.message.replace(/^Stripe: /, 'Stripe said: '); msg.hidden = false; return; }
+        key.value = '';
+        toast(`Stripe connected (${data.mode === 'test' ? 'test mode' : 'live'})`);
+        draw(data);
+      } });
+      fill(box,
+        row('Stripe', 'Paste your Stripe secret key to connect. Every bill you send then gets its own payment link, and paid bills mark themselves paid. The key is stored encrypted and never shown again.', el('span', { class: 'st-chip', text: 'Not connected' })),
+        el('div', { class: 'st-stripe-connect' }, key, go),
+        el('p', { class: 'st-muted', text: 'Stripe → Developers → API keys → Secret key. Use the test key (sk_test_) first to try it with test cards, then connect the live key.' }),
+        msg);
+    };
+    draw(d.stripe);
+    return box;
+  }
+
   /* ---------- Business (owners): invoice defaults and payments ---------- */
   function business() {
     const box = el('div', {}, el('p', { class: 'cv-loading', text: 'Loading…' }));
@@ -224,13 +265,12 @@ export function openSettings(ctx) {
         say('');
         if (await saveBillingSettings({ payLink: links[0], portalLink: links[1], invoiceNote: note.value.trim(), dueDays: Math.max(0, Math.min(120, Number(dueDays.value) || 0)) })) toast('Business settings saved');
       });
-      fill(box, f,
+      fill(box,
         el('section', { class: 'st-block' }, el('h4', { text: 'Payments' }),
-          d.stripe?.connected
-            ? row('Stripe', `Connected to ${d.stripe.account || 'your account'} in ${d.stripe.mode} mode. Every bill you send gets its own payment link, and paid bills mark themselves paid.`, el('span', { class: 'st-chip on', text: d.stripe.mode === 'test' ? 'Test mode' : 'Live' }))
-            : row('Stripe', 'Not connected yet. Once it is, every bill gets a payment link for its exact amount and marks itself paid. Until then, paste a payment link above.', el('span', { class: 'st-chip', text: 'Not connected' })),
+          stripeBlock(d),
           row('Account hold', `A bill more than ${HOLD_DAYS} days past due puts that client on hold: no new tickets or meeting requests until it’s paid.`, el('span', { class: 'st-chip on', text: 'On' })),
-          row('Invoices and money', 'Bills, who owes what, expenses and profit.', el('a', { class: 'btn btn-ghost btn-sm', href: '#finances', onclick: () => m.close(), text: 'Open Finances' }))));
+          row('Invoices and money', 'Bills, who owes what, expenses and profit.', el('a', { class: 'btn btn-ghost btn-sm', href: '#finances', onclick: () => m.close(), text: 'Open Finances' }))),
+        f);
     });
     return [head('Business', 'How you bill clients.'), box];
   }
