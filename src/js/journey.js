@@ -80,6 +80,9 @@ const LEN = {             // chapter lengths, in screens of scroll
   hold:    0.5,
 };
 const S = (k) => LEN[k] * SCREEN;
+// The testimonials chapter is off until there are real client videos/photos to show.
+// Set to true to bring the carousel back between the keyhole and "How we work".
+const SHOW_QUOTES = false;
 const SCRUB = 0.7;        // seconds the animation lags the scroll (lower = snappier)
 // Overall scroll pace. DEFAULT_PACE is the site's standard speed (set 2026-09-24:
 // two rounds of "25% slower" than the first build, 0.75 × 0.75). To speed up or
@@ -619,19 +622,25 @@ export function initJourney({ reduced = false } = {}) {
     qDots.forEach((d, i) => d.classList.toggle('on', i === front));
   };
   gsap.set(quotesScene, { autoAlpha: 0 });
-  placeQuotes();
-  const TQ = S('toQuotes'), QN = S('quotes'), slotQ = QN / NQ;
+  const TQ = SHOW_QUOTES ? S('toQuotes') : 0, QN = SHOW_QUOTES ? S('quotes') : 0, slotQ = QN / NQ;
   master
     .set(secure, { autoAlpha: 0 }, 'up')              // the keyhole's dark fills the screen: swap scenes under it
     .to(lamp, { v: 0, duration: 0.05, onUpdate: setLamp }, 'up')   // and it's dark on the other side
-    .addLabel('quotes', 'up')
-    .fromTo(quotesScene, { autoAlpha: 0 }, { autoAlpha: 1, duration: TQ * 0.5 }, `quotes+=${TQ * 0.2}`)
-    .fromTo(ringState, { rot: 80 }, { rot: 0, duration: TQ, ease: 'power3.out', onUpdate: placeQuotes }, `quotes+=${TQ * 0.2}`)
-    .fromTo('.quotes-head', { autoAlpha: 0, y: -30 }, { autoAlpha: 1, y: 0, duration: TQ * 0.5, ease: 'power2.out' }, `quotes+=${TQ * 0.4}`)
-    .addLabel('quotesIn', `quotes+=${TQ}`);
-  for (let k = 1; k < NQ; k++) {
-    master.to(ringState, { rot: -STEP * k, duration: slotQ * 0.55, ease: 'power2.inOut', onUpdate: placeQuotes },
-      master.labels.quotes + TQ + (k - 1) * slotQ + slotQ * 0.4);
+    .addLabel('quotes', 'up');
+  if (SHOW_QUOTES) {
+    placeQuotes();
+    master
+      .fromTo(quotesScene, { autoAlpha: 0 }, { autoAlpha: 1, duration: TQ * 0.5 }, `quotes+=${TQ * 0.2}`)
+      .fromTo(ringState, { rot: 80 }, { rot: 0, duration: TQ, ease: 'power3.out', onUpdate: placeQuotes }, `quotes+=${TQ * 0.2}`)
+      .fromTo('.quotes-head', { autoAlpha: 0, y: -30 }, { autoAlpha: 1, y: 0, duration: TQ * 0.5, ease: 'power2.out' }, `quotes+=${TQ * 0.4}`)
+      .addLabel('quotesIn', `quotes+=${TQ}`);
+    for (let k = 1; k < NQ; k++) {
+      master.to(ringState, { rot: -STEP * k, duration: slotQ * 0.55, ease: 'power2.inOut', onUpdate: placeQuotes },
+        master.labels.quotes + TQ + (k - 1) * slotQ + slotQ * 0.4);
+    }
+  } else {
+    quotesScene.hidden = true;
+    master.addLabel('quotesIn', `quotes+=${S('toRise') + S('riseHold') * 0.5}`);   // old #testimonials links land on "How we work"
   }
 
   /* ---- 6b · how we work, one step per screen ------------------------- */
