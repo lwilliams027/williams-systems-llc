@@ -12,7 +12,7 @@ export const HOME = {
   services1:   1,   // → Front end + Back end & APIs
   services2:   1,   // → SaaS platforms + Mobile apps
   services3:   1,   // → Cloud & DevOps + Personalized AI
-  oneTeam:     1,   // the editor types → "One team. All custom."
+  oneTeam:     1.25, // the editor (project.config.js) types → "One team. All custom."
   everyPiece:  1,   // the window stack turns → "Every piece. One build."
   website:     1,   // into the website, scroll down it, onto the desk
   lightbulb:   1,   // the bulb drops in → "Make it yours."
