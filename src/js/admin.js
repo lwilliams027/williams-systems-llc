@@ -148,6 +148,11 @@ function updateCounts() {
   $$('[data-count]').forEach((e) => { const v = n[e.dataset.count]; e.textContent = v || ''; e.hidden = !v; e.classList.toggle('hot', ['requests', 'tickets'].includes(e.dataset.count) && v > 0); });
   const sub = { inbox: state.inquiries.filter((q) => q.status === 'new').length, access: state.requests.filter((r) => r.status === 'new').length };
   $$('[data-subcount]').forEach((e) => { e.textContent = sub[e.dataset.subcount] || ''; });
+  const rq = $('#rqSummary');
+  if (rq) {
+    const bits = [sub.inbox ? `${sub.inbox} new inquir${sub.inbox === 1 ? 'y' : 'ies'}` : null, sub.access ? `${sub.access} account request${sub.access === 1 ? '' : 's'}` : null].filter(Boolean);
+    rq.textContent = bits.length ? `${bits.join(' · ')} waiting for you` : 'All caught up. New website inquiries and account requests land here.';
+  }
   renderProjectsNav();
   state.bell?.update();
 }
@@ -169,7 +174,7 @@ function route() {
   const navKey = v === 'contract' ? 'contracts' : v;
   $$('.crm-nav-link').forEach((a) => a.setAttribute('aria-current', a.dataset.route === navKey ? 'page' : 'false'));
   $('#viewTitle').textContent = TITLES[v];
-  document.querySelector('.crm-top').classList.toggle('has-page-head', ['home', 'contracts'].includes(v));
+  document.querySelector('.crm-top').classList.toggle('has-page-head', ['home', 'contracts', 'requests'].includes(v));
   $('#newContractBtn').querySelector('span').textContent = v === 'pending' ? 'New deal' : 'New contract';
   document.title = `${TITLES[v]} — Williams Systems LLC`;
   window.scrollTo(0, 0);

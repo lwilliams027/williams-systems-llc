@@ -62,8 +62,10 @@
 
       <!-- Requests: project inquiries + account requests -->
       <main class="crm-view crm-requests" id="view-requests" hidden>
-        <nav class="admin-views" aria-label="Request type"><button type="button" class="admin-view mono" data-view="inbox" aria-pressed="true">Project inquiries <span class="crm-subcount" data-subcount="inbox"></span></button><button type="button" class="admin-view mono" data-view="access" aria-pressed="false">Account requests <span class="crm-subcount" data-subcount="access"></span></button></nav>
-        <div class="admin-main" id="adminMain">
+        <div class="rq">
+        <header class="ct-head"><div><h2>Requests</h2><p id="rqSummary">Website inquiries and requests for an account.</p></div></header>
+        <nav class="ct-seg rq-seg" aria-label="Request type"><button type="button" class="ct-seg-btn admin-view" data-view="inbox" aria-pressed="true">Project inquiries <span class="crm-subcount" data-subcount="inbox"></span></button><button type="button" class="ct-seg-btn admin-view" data-view="access" aria-pressed="false">Account requests <span class="crm-subcount" data-subcount="access"></span></button></nav>
+        <div class="admin-main rq-card" id="adminMain">
           <aside class="inbox" aria-label="Inquiries">
             <div class="inbox-tools">
               <input type="search" id="search" class="search" placeholder="Search name, email, company…" aria-label="Search inquiries" />
@@ -76,7 +78,8 @@
           <section class="detail" id="detail" aria-live="polite">
             <div class="detail-empty">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 12h-6l-2 3h-4l-2-3H2"/><path d="M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/></svg>
-              <p>Select an inquiry to see details, files, and notes.</p>
+              <strong>No inquiry selected</strong>
+              <p>Pick one to see the details, files, and your notes.</p>
             </div>
           </section>
         </div>
@@ -106,6 +109,7 @@
             <ul class="access-list" id="inviteList"></ul>
             <p class="access-empty" id="inviteEmpty" hidden>No open invites.</p>
           </section>
+        </div>
         </div>
       </main>
 
