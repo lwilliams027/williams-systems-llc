@@ -491,13 +491,15 @@ export function initJourney({ reduced = false } = {}) {
   // steps down out of the socket. From the second turn the contact fails and
   // the whole site flickers between light and dark, worse each turn.
   const TURNS = 4, turn = (U * 0.78) / TURNS;
+  // One smooth, continuous twist (four turns' worth): the threads roll, the bulb eases down
+  // out of the socket, the highlight and a gentle wobble ride along with each turn.
+  master
+    .to(thread, { t: TURNS * 9, duration: turn * TURNS, ease: 'sine.inOut', onUpdate: turnThreads }, 'unscrew')
+    .to(bulb, { y: TURNS * 5, duration: turn * TURNS, ease: 'sine.inOut' }, 'unscrew')
+    .to('#bulbShine', { keyframes: { x: [0, 12, -5, 0, 12, -5, 0, 12, -5, 0, 12, -5, 0], easeEach: 'sine.inOut' }, duration: turn * TURNS, ease: 'none' }, 'unscrew')
+    .to(bulb, { keyframes: { rotation: [0, -2.5, 2, 0, -2.5, 2, 0, -2.5, 2, 0, -2.5, 2, 0], easeEach: 'sine.inOut' }, duration: turn * TURNS, ease: 'none' }, 'unscrew');
   for (let i = 0; i < TURNS; i++) {
     const at = master.labels.unscrew + i * turn;
-    master
-      .to(thread, { t: (i + 1) * 9, duration: turn * 0.8, ease: 'power1.inOut', onUpdate: turnThreads }, at)
-      .to('#bulbShine', { keyframes: { x: [0, 16, -6, 0] }, duration: turn * 0.8 }, at)
-      .to(bulb, { y: (i + 1) * 5, duration: turn * 0.8, ease: 'power1.inOut' }, at)
-      .to(bulb, { keyframes: { rotation: [0, -3.5, 3, 0] }, duration: turn * 0.8 }, at);
     if (i >= 1) {
       const dips = i === 1 ? [1, 0.3, 1] : i === 2 ? [1, 0.1, 0.9, 0.2, 1] : [1, 0.05, 0.8, 0, 0.6, 0.1, 1];
       master
@@ -507,6 +509,13 @@ export function initJourney({ reduced = false } = {}) {
   }
 
   const loose = master.labels.unscrew + U * 0.82;
+  // Where the falling bulb is on screen: DROP_TO of the screen lower than where it hung, at the handover.
+  const DROP_TO = 0.336;
+  const dropP = { p: 0 };
+  const placeDrop = () => {
+    const worldY = gsap.getProperty(bulbWorld, 'y');                      // the scenery rushing up (px)
+    gsap.set(bulb, { y: TURNS * 5 + window.innerHeight * DROP_TO * dropP.p * dropP.p - worldY });
+  };
   master
     // It comes loose: a spark at the contact and the lights die — the site goes dark.
     .fromTo('#bulbSpark', { scale: 0.3, opacity: 1 }, { scale: 1.6, opacity: 0, duration: U * 0.12, ease: 'power2.out', immediateRender: false }, loose)
@@ -520,9 +529,11 @@ export function initJourney({ reduced = false } = {}) {
     .to('#bulbCopy > *', { autoAlpha: 0, y: -30, duration: F * 0.15, stagger: F * 0.03 }, 'drop')
     .to('#bulbCord', { keyframes: { scaleY: [1, 0.86, 1.05, 0.98, 1] }, duration: F * 0.35 }, 'drop')
     .to('#bulbSocket', { keyframes: { y: [0, -14, 4, -2, 0] }, duration: F * 0.35 }, 'drop')
-    .to(bulb, { y: () => window.innerHeight * 2.2, duration: F * 0.95, ease: 'power2.in' }, 'drop')
     .to(bulb, { rotation: 320, duration: F, ease: 'power1.in' }, 'drop')
     .to(bulbWorld, { y: () => -window.innerHeight * 1.8, duration: F * 0.9, ease: 'power1.in' }, `drop+=${F * 0.1}`)
+    // The bulb falls on screen the whole way (it used to drop out of frame and reappear):
+    // it speeds up smoothly down to the spot where the sign-in scene's copy takes over.
+    .fromTo(dropP, { p: 0 }, { p: 1, duration: F, ease: 'none', onUpdate: placeDrop, immediateRender: false }, 'drop')
     .to('#bulbFil', { stroke: '#6B7385', duration: F * 0.45 }, `drop+=${F * 0.05}`)   // …cooling as it goes
     .to('#bulbStreaks', { opacity: 1, duration: F * 0.15 }, `drop+=${F * 0.15}`)
     .fromTo('#bulbStreaks', { y: 0 }, { y: () => -window.innerHeight * 2.2, duration: F * 0.85, ease: 'power1.in' }, `drop+=${F * 0.15}`);
@@ -582,7 +593,9 @@ export function initJourney({ reduced = false } = {}) {
   const FALL = S('toSecure') * 1.2;
   const placeFall = () => {
     const vh = window.innerHeight, vw = window.innerWidth, top = secure.getBoundingClientRect().top;
-    const screenY = vh * (0.6 + fallP.p * fallP.p * 0.75);                  // from where it was to off the bottom, speeding up
+    // carries on from the real bulb's position and speed (it was moving at 2 × DROP_TO per fall-length)
+    const k1 = 2 * DROP_TO * FALL / F;
+    const screenY = vh * (0.6 + k1 * fallP.p + (0.75 - k1) * fallP.p * fallP.p);   // on down and off the bottom
     gsap.set(fallBulb, { x: vw * 0.516 - fallBulb.offsetWidth / 2, y: screenY - top, rotation: 320 + fallP.p * 240 });
   };
   master
@@ -806,11 +819,12 @@ export function initJourney({ reduced = false } = {}) {
       [L.cycle + S('cycle') * 0.5, SPEED.everyPiece],                   // "Every piece. One build."
       [L.desk, SPEED.website],                                          // the website, finished
       [L.unscrew, SPEED.lightbulb],                                     // the lightbulb: customization
-      // the padlock: security, in timed parts (play-speeds.js)
+      // the bulb falls behind the Admin console: stop there, so the next scroll plays the passwords
+      [L.denied, { seconds: SPEED.security.fall, ease: 'power1.inOut' }],
+      // the passwords and the padlock: security, in timed parts (play-speeds.js)
       [L.keyhole, { phases: (() => {
         const len = S('denied') * 0.45, SEC = SPEED.security;
         return [
-          { y: toY(L.denied), seconds: SEC.fall, ease: 'power1.inOut' },                               // unscrew, fall, behind the card
           { y: toY(L.denied + len * 0.35), seconds: SEC.typing },                                      // password types
           { y: toY(L.denied + S('denied') * 0.52), seconds: SEC.refused },                             // refused, shake
           { y: toY(L.denied + S('denied') * 0.52 + len * 0.35), seconds: SEC.typing },                 // types again

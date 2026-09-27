@@ -37,9 +37,10 @@ export const HOME = {
   lightbulb:   1.5, // the bulb drops in → "Make it yours."
   // the bulb falls behind the Admin console, two refused sign-ins, the padlock → "Locked down from day one."
   // In seconds, part by part:
+  // Two scrolls: first the fall (stops on the Admin console), then the passwords and the padlock.
   security: {
-    fall:    2.6,   // unscrew, the lights die, the bulb falls behind the sign-in card
-    typing:  1,     // each password typing in (same pace as the code in the editor)
+    fall:    2.6,   // scroll 1: unscrew, the lights die, the bulb falls behind the sign-in card
+    typing:  1,     // scroll 2: each password typing in (same pace as the code in the editor)
     refused: 0.8,   // "Access denied", the red flash and the shake (after each try)
     lock:    1.4,   // the padlock rises and snaps shut
   },
