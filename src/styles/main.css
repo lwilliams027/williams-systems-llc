@@ -1533,10 +1533,11 @@ fieldset.field .field-label { margin-bottom: 8px; }
   transition: opacity 0.2s, transform 0.25s var(--ease-out), visibility 0s 0.2s;
 }
 .nav-menu::before { content: ""; position: absolute; left: 0; right: 0; top: -14px; height: 14px; } /* hover bridge */
-.nav-item:hover .nav-menu, .nav-item:focus-within .nav-menu, .nav-item.open .nav-menu {
+.nav-item:hover .nav-menu, .nav-item:has(:focus-visible) .nav-menu, .nav-item.open .nav-menu {
   opacity: 1; visibility: visible; transform: none; transition: opacity 0.2s, transform 0.25s var(--ease-out), visibility 0s;
 }
-.nav-item.closed .nav-menu { opacity: 0; visibility: hidden; }
+.nav-item.closed .nav-menu { opacity: 0; visibility: hidden; pointer-events: none; }
+.nav-item:hover, .nav-item.open { z-index: 2; }   /* the menu you are on is always on top */
 .nav-menu-lead { color: var(--accent-fg); font-size: 0.72rem; letter-spacing: 0.14em; text-transform: uppercase; padding: 4px 12px 10px; }
 .nav-menu-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 2px; }
 .nav .nav-menu a { display: flex; flex-direction: column; gap: 3px; padding: 12px; border-radius: 12px; background: none; }
@@ -1602,7 +1603,7 @@ fieldset.field .field-label { margin-bottom: 8px; }
   .header-inner { position: relative; }
   .nav { position: absolute; left: 50%; transform: translateX(-50%); margin-left: 0; }
   .nav-menu { left: 50%; transform: translate(-50%, -6px); }
-  .nav-item:hover .nav-menu, .nav-item:focus-within .nav-menu, .nav-item.open .nav-menu { transform: translate(-50%, 0); }
+  .nav-item:hover .nav-menu, .nav-item:has(:focus-visible) .nav-menu, .nav-item.open .nav-menu { transform: translate(-50%, 0); }
 }
 
 /* Hero video: no colour tint, just darker so the headline reads cleanly. */
@@ -1757,6 +1758,8 @@ fieldset.field .field-label { margin-bottom: 8px; }
 .journey-skip { position: absolute; right: max(var(--gutter), calc((100vw - var(--container)) / 2)); bottom: 26px; z-index: 30;
   padding: 7px 14px; border-radius: 999px; border: 0; cursor: pointer; font: 600 0.78rem var(--font-body, 'Inter'), sans-serif; color: var(--text);
   background: rgba(255,255,255,0.08); box-shadow: inset 0 0 0 1px rgba(255,255,255,0.25); backdrop-filter: blur(8px); }
+.journey-skip { opacity: 0; visibility: hidden; transform: translateY(6px); transition: opacity 0.3s, transform 0.3s, visibility 0s 0.3s; }
+.journey-skip.on { opacity: 1; visibility: visible; transform: none; transition: opacity 0.3s, transform 0.3s, visibility 0s; }
 .journey-skip:hover { background: rgba(255,255,255,0.16); }
 .journey-skip:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
 @media (max-width: 899.98px) { .journey-skip { display: none; } }

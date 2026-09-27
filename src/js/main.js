@@ -461,6 +461,7 @@ function initMobileNav() {
     actions.innerHTML = '<a href="contact.html" class="btn btn-primary mnav-contact">Contact us</a>'
       + '<a href="sms:+18102145388" class="btn btn-ghost">Text us</a><a href="tel:+18102145388" class="btn btn-ghost">Call</a>'
       + '<a href="login.html" class="mnav-login">Log in</a>';
+    markAccountLinks(actions);
   }
 
   const links = $$('.mnav-toggle, .mnav-actions > *', nav);
@@ -529,13 +530,21 @@ function setYear() {
   items.forEach((it) => {
     const btn = it.querySelector('.nav-trigger');
     btn.addEventListener('click', () => {
-      const open = !it.classList.contains('open');
+      // a click opens the menu; clicking it again (after a click opened it) closes it
+      const showing = it.classList.contains('open');
       close(it);
-      it.classList.toggle('open', open);
-      it.classList.remove('closed');
-      btn.setAttribute('aria-expanded', String(open));
+      it.classList.toggle('open', !showing);
+      it.classList.toggle('closed', showing);   // keep it shut even though the pointer is still over it
+      btn.setAttribute('aria-expanded', String(!showing));
     });
-    it.addEventListener('mouseenter', () => it.classList.remove('closed'));
+    // pointing at another menu switches to it (never two open at once)
+    it.addEventListener('mouseenter', () => {
+      it.classList.remove('closed');
+      if (items.some((x) => x !== it && x.classList.contains('open'))) close(it);
+    });
+    it.addEventListener('mouseleave', () => it.classList.remove('closed'));
+    // leaving the menu with the keyboard closes it
+    it.addEventListener('focusout', (e) => { if (!it.contains(e.relatedTarget)) { it.classList.remove('open'); btn.setAttribute('aria-expanded', 'false'); } });
 
   });
   document.addEventListener('click', (e) => { if (!e.target.closest('.nav-item')) close(); });
@@ -604,3 +613,23 @@ function setYear() {
     });
   });
 })();
+
+/* ---------------------------------------------------------------------
+   Signed in? Say "My account" instead of "Log in"
+   The sign-in is remembered in this browser under "ws-team-auth"
+   (see src/js/supabase.js). login.html forwards a signed-in person to
+   their dashboard or project portal, so the link itself stays the same.
+   --------------------------------------------------------------------- */
+function signedIn() {
+  try {
+    const s = JSON.parse(localStorage.getItem('ws-team-auth') || 'null');
+    return Boolean(s && (s.refresh_token || s.currentSession?.refresh_token));
+  } catch { return false; }
+}
+function markAccountLinks(root = document) {
+  if (!signedIn()) return;
+  root.querySelectorAll('a[href="login.html"], a[href="./login.html"]').forEach((a) => {
+    if (/^\s*log\s*-?\s*in\s*$/i.test(a.textContent)) { a.textContent = 'My account'; a.setAttribute('aria-label', 'My account'); }
+  });
+}
+markAccountLinks();

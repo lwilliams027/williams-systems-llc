@@ -745,6 +745,15 @@ export function initJourney({ reduced = false } = {}) {
     const after = (section.parentElement.classList.contains('pin-spacer') ? section.parentElement : section).getBoundingClientRect().bottom + window.scrollY;
     gsap.to(window, { scrollTo: Math.round(after), duration: 1.4, ease: 'power2.inOut' });
   });
+  // Only offer Skip once the first animation is behind you (from the second chapter on).
+  const firstDone = () => (master.labels.strip ?? master.duration() * 0.12) / master.duration();
+  const toggleSkip = () => {
+    const y = window.scrollY;
+    skip.classList.toggle('on', y >= st.start + firstDone() * (st.end - st.start) && y < st.end - 4);
+  };
+  window.addEventListener('scroll', toggleSkip, { passive: true });
+  ScrollTrigger.addEventListener('refresh', toggleSkip);
+  toggleSkip();
 
   // Header links (data-chapter) jump the scroll story to that chapter. Captured at the
   // document so the generic #anchor scrolling in main.js doesn't also fire.
