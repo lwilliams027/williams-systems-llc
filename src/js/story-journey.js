@@ -10,6 +10,7 @@
      5 Today        flip in → the logo draws, the name decodes, Michigan to the world
    ===================================================================== */
 import { gsap } from 'gsap';
+import { PLAY } from './play-mode.js';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { ScrambleTextPlugin } from 'gsap/ScrambleTextPlugin';
 import { DrawSVGPlugin } from 'gsap/DrawSVGPlugin';
@@ -130,7 +131,7 @@ function init() {
     start: 'top top',
     end: () => '+=' + pinLength(5),
     pin: $('.sj-stage'),
-    scrub: 0.7,
+    scrub: PLAY ? 0.15 : 0.7,   // play mode: barely any lag, so each step ends when the scroll does
     animation: tl,
     // scrolling on before the opening chapter has finished playing: finish it now, so two chapters' words never overlap
     onUpdate: (self) => { if (self.progress > 0 && intro.progress() < 1) intro.progress(1); },

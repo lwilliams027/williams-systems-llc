@@ -51,7 +51,7 @@ export function playMode(st, points) {
     if (target === undefined) { release(dir); return; }
     goal = target;
     const dist = Math.abs(target - window.scrollY);
-    const duration = gsap.utils.clamp(0.6, 2.2, dist / (window.innerHeight * 1.5));
+    const duration = gsap.utils.clamp(0.45, 1.3, dist / (window.innerHeight * 2.6));
     gsap.to(window, {
       scrollTo: { y: target, autoKill: false }, duration, ease: 'power1.inOut', overwrite: true,
       onComplete: () => { goal = null; },

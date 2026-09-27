@@ -23,6 +23,7 @@
    Overlays outside the product (.tour-pop[data-at]) show during their stop.
    ===================================================================== */
 import { gsap } from 'gsap';
+import { PLAY } from './play-mode.js';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 
 gsap.registerPlugin(ScrollTrigger);
@@ -193,7 +194,7 @@ function initTour() {
     start: 'top top',
     end: () => '+=' + window.innerHeight * N * 1.15,
     pin: stage,
-    scrub: 0.7,
+    scrub: PLAY ? 0.15 : 0.7,   // play mode: barely any lag, so each step ends when the scroll does
     animation: tl,
     invalidateOnRefresh: true,
     onRefresh: render,

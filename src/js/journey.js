@@ -748,7 +748,7 @@ export function initJourney({ reduced = false } = {}) {
     start: 'top top',
     end: () => '+=' + (master.duration() / SCREEN / PACE) * window.innerHeight,
     pin: true,
-    scrub: SCRUB,
+    scrub: PLAY ? 0.15 : SCRUB,   // play mode: barely any lag, so each step ends when the scroll does
     anticipatePin: 1,
     invalidateOnRefresh: true,
     onRefresh: () => { rig.render(); fin.resize(); placeQuotes(); },
