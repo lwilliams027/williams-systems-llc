@@ -339,26 +339,48 @@ export async function contractPage(root, opts) {
      ===================================================================== */
   const newTicket = () => ticketForm({ contracts: [s.c], contractId: id, owner, onCreated: (t) => { s.tks.unshift(t); location.hash = href('tickets', t.number); } });
   let stopTicket = null;
+  let tkFilter = 'open';
+  function ticketList(selected) {
+    const open = s.tks.filter((t) => OPEN_STATES.includes(t.status));
+    const done = s.tks.filter((t) => !OPEN_STATES.includes(t.status));
+    if (selected && !OPEN_STATES.includes(selected.status)) tkFilter = 'done';
+    const shown = tkFilter === 'open' ? open : done;
+    return el('section', { class: 'tkl-pane' },
+      el('div', { class: 'tkl-head' },
+        el('h2', { text: owner ? 'Tickets' : 'Your requests' }),
+        s.c.status !== 'lost' ? el('button', { type: 'button', class: 'btn btn-primary btn-sm tkl-new', html: `${icon.plus}<span>${owner ? 'New ticket' : 'New request'}</span>`, onclick: newTicket }) : null),
+      s.tks.length ? el('div', { class: 'tkl-tabs', role: 'tablist' },
+        [['open', 'Open', open.length], ['done', 'Done', done.length]].map(([k, label, n]) => el('button', { type: 'button', role: 'tab', class: 'tkl-tab', 'aria-selected': String(tkFilter === k),
+          onclick: () => { tkFilter = k; const old = body.querySelector('.tkl-pane'); if (old) old.replaceWith(ticketList(selected)); } }, label, el('b', { text: n })))) : null,
+      shown.length ? ticketRows(shown, { owner, selectedId: selected?.id, onOpen: (t) => { location.hash = href('tickets', t.number); } })
+        : el('div', { class: 'tkl-empty' },
+          el('span', { class: 'tkl-empty-ico', html: icon.tickets }),
+          el('strong', { text: s.tks.length ? (tkFilter === 'open' ? 'Nothing open' : 'Nothing done yet') : owner ? 'No tickets yet' : 'No requests yet' }),
+          el('p', { text: s.tks.length ? (tkFilter === 'open' ? 'Everything’s been handled.' : 'Resolved tickets show up here.') : owner ? 'Tickets the client sends show up here.' : 'Need a change, found a bug, or have a question? Send a request, with screenshots or files.' })));
+  }
   function ticketsSection() {
-    const selected = opts.sub ? s.tks.find((t) => String(t.number) === String(opts.sub)) : null;
-    const list = el('section', { class: 'cv-card tk-pane-list' },
-      el('div', { class: 'cv-card-head' }, el('h2', { text: owner ? 'Tickets' : 'Your requests' }),
-        s.c.status !== 'lost' ? el('button', { type: 'button', class: 'btn btn-primary btn-sm', text: owner ? '+ New ticket' : '+ New request', onclick: newTicket }) : null),
-      s.tks.length ? ticketRows(s.tks, { owner, onOpen: (t) => { location.hash = href('tickets', t.number); } })
-        : el('p', { class: 'cv-empty', text: owner ? 'No tickets on this project yet.' : 'Need a change, found a bug, or have a question? Send a request (with screenshots or files) and Landon will reply here.' }));
-    list.querySelectorAll('.tk-rows button').forEach((b, i) => { if (s.tks[i] === selected) b.classList.add('on'); });
+    const listOnly = opts.sub === 'list';
+    let selected = opts.sub && !listOnly ? s.tks.find((t) => String(t.number) === String(opts.sub)) : null;
+    if (!selected && !listOnly && s.tks.length) {
+      // start on the top ticket in the list (open ones first), never a blank panel
+      selected = s.tks.find((t) => OPEN_STATES.includes(t.status)) || s.tks[0];
+      history.replaceState(null, '', href('tickets', selected.number));
+    }
     const pane = el('section', { class: 'tk-pane' });
-    fill(body, el('div', { class: `tk-split${selected ? ' show-detail' : ''}` }, list, pane));
+    fill(body, el('div', { class: `tk-split tk-split2${selected ? ' show-detail' : ''}` }, ticketList(selected), pane));
     stopTicket?.(); stopTicket = null;
     if (!selected) {
-      fill(pane, el('div', { class: 'detail-empty' }, el('span', { class: 'tk-empty-ico', html: icon.tickets }),
-        el('p', { text: s.tks.length ? 'Pick a ticket to see it and reply.' : owner ? 'Tickets the client sends show up here.' : 'Your requests will show up here.' })));
+      fill(pane, el('div', { class: 'tkv-none' },
+        el('span', { class: 'tkl-empty-ico big', html: icon.tickets }),
+        el('strong', { text: s.tks.length ? 'Pick a ticket' : owner ? 'No tickets on this project yet' : 'Ask for a change, report a bug, or ask a question' }),
+        el('p', { text: s.tks.length ? 'Open one from the list to read it and reply.' : owner ? 'Create one for the client, or wait for their first request.' : 'Each request gets its own thread with Landon, and you can attach files.' }),
+        s.c.status !== 'lost' ? el('button', { type: 'button', class: 'btn btn-primary btn-sm', text: owner ? 'New ticket' : 'New request', onclick: newTicket }) : null));
       return;
     }
     ticketView(pane, {
       id: selected.id, owner, me: opts.me, contracts: [s.c],
-      onBack: () => { location.hash = href('tickets'); },
-      onChanged: (t) => { const i = s.tks.findIndex((x) => x.id === t.id); if (i >= 0) s.tks[i] = t; renderTabs(); opts.onChanged?.(s.c); },
+      onBack: () => { location.hash = href('tickets', 'list'); },
+      onChanged: (t) => { const i = s.tks.findIndex((x) => x.id === t.id); if (i >= 0) s.tks[i] = t; renderTabs(); opts.onChanged?.(s.c); const old = body.querySelector('.tkl-pane'); if (old) old.replaceWith(ticketList(s.tks.find((x) => x.id === t.id))); },
       onDeleted: () => { s.tks = s.tks.filter((t) => t.id !== selected.id); location.hash = href('tickets'); },
       onRead: opts.onRead,
     }).then((stop) => { stopTicket = stop; });
@@ -835,8 +857,8 @@ export async function contractPage(root, opts) {
       if (section === 'overview' && !scopeEditing) overview();
       if (section === 'tickets') {
         // refresh the list only; the open ticket keeps itself up to date
-        const rows = body.querySelector('.tk-pane-list .tk-rows, .tk-pane-list .cv-empty');
-        if (rows) rows.replaceWith(s.tks.length ? ticketRows(s.tks, { owner, onOpen: (t) => { location.hash = href('tickets', t.number); } }) : el('p', { class: 'cv-empty', text: 'No tickets yet.' }));
+        const old = body.querySelector('.tkl-pane');
+        if (old) old.replaceWith(ticketList(opts.sub && opts.sub !== 'list' ? s.tks.find((t) => String(t.number) === String(opts.sub)) : null));
       }
     })
     .on('postgres_changes', { event: '*', schema: 'public', table: 'project_files', filter: `contract_id=eq.${id}` }, async () => {

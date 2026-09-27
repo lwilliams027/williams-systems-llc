@@ -24,7 +24,7 @@ import { barChart, chartMotion } from './crm/charts.js';
 import { contractPage, contractForm, SECTIONS, projectHref } from './crm/contract-view.js';
 import { calendarView, eventModal } from './crm/calendar.js';
 import { notificationBell } from './crm/notifications.js';
-import { ticketView, ticketForm, ticketPill, T_KIND, T_PRIORITY, T_STATUS, OPEN_STATES } from './crm/tickets.js';
+import { ticketView, ticketForm, ticketPill, statusIcon, priorityIcon, T_KIND, T_PRIORITY, T_STATUS, OPEN_STATES } from './crm/tickets.js';
 
 const INQ_STATUSES = [
   ['new', 'New'],
@@ -648,9 +648,21 @@ function renderTickets(id) {
           el('button', { type: 'button', class: 'btn btn-primary btn-sm tq-new', html: `${icon.plus}<span>New ticket</span>`, onclick: () => ticketForm({ contracts: state.contracts, owner: true, onCreated: (t) => { state.tickets.unshift(t); location.hash = `#tickets/${t.id}`; } }) }))),
       tShell));
   }
+  const listOnly = id === 'list';
+  if (listOnly) id = null;
   state.tSelected = id || null;
-  tShell.classList.toggle('show-detail', Boolean(id));
   renderTicketList();
+  if (!id && !listOnly) {
+    // start on the top ticket in the list, never a blank panel
+    const first = tListEl.querySelector('a.tkl-row');
+    if (first) {
+      id = first.getAttribute('href').split('/')[1];
+      state.tSelected = id;
+      history.replaceState(null, '', `#tickets/${id}`);
+      renderTicketList();
+    }
+  }
+  tShell.classList.toggle('show-detail', Boolean(id));
   state.cleanup?.();
   if (!id) {
     tDetailEl.replaceChildren(el('div', { class: 'detail-empty' },
@@ -661,7 +673,7 @@ function renderTickets(id) {
   }
   ticketView(tDetailEl, {
     id, owner: true, me: state.me, contracts: state.contracts,
-    onBack: () => { location.hash = '#tickets'; },
+    onBack: () => { location.hash = '#tickets/list'; },
     onChanged: (t) => { const i = state.tickets.findIndex((x) => x.id === t.id); if (i >= 0) state.tickets[i] = t; renderTicketList(); updateCounts(); },
     onDeleted: () => { state.tickets = state.tickets.filter((t) => t.id !== id); updateCounts(); location.hash = '#tickets'; },
     onRead: () => state.bell?.refresh(),
@@ -694,16 +706,13 @@ function renderTicketList() {
   }
   tListEl.replaceChildren(...rows.map((t) => {
     const c = nameOf(t);
-    return el('li', {}, el('a', { href: `#tickets/${t.id}`, class: `tk-item${t.id === state.tSelected ? ' on' : ''}${t.status === 'open' ? ' new' : ''}` },
-      el('span', { class: 'inq-row' },
-        el('strong', { class: 'inq-name', text: `#${t.number} ${t.title}` }),
-        el('time', { class: 'inq-time mono', text: timeAgo(t.updated_at) })),
-      el('span', { class: 'inq-sub', text: [c?.company || c?.client_name, c?.title].filter(Boolean).join(' · ') || 'No contract' }),
-      el('span', { class: 'inq-row' },
-        el('span', { class: 'tk-item-tags' }, ticketPill(t.status),
-          t.priority === 'urgent' || t.priority === 'high' ? el('span', { class: `tk-tag pr-${t.priority}`, text: T_PRIORITY[t.priority] }) : null,
-          t.sow_added_at ? el('span', { class: 'tk-tag in-sow', text: 'SOW' }) : null),
-        el('span', { class: 'inq-files mono', text: T_KIND[t.kind] }))));
+    return el('li', {}, el('a', { href: `#tickets/${t.id}`, class: `tkl-row tq-row${t.id === state.tSelected ? ' on' : ''}${t.status === 'open' ? ' unread' : ''}` },
+      statusIcon(t.status),
+      el('span', { class: 'tkl-main' },
+        el('strong', { text: t.title }),
+        el('small', {}, el('span', { class: 'mono', text: `#${t.number}` }), ` · ${[c?.company || c?.client_name, c?.title].filter(Boolean).join(' · ') || 'No project'}`),
+        el('small', { class: 'tq-meta' }, `${T_KIND[t.kind]} · ${timeAgo(t.updated_at)}`, t.sow_added_at ? el('span', { class: 'tq-sow', text: 'In scope' }) : null)),
+      el('span', { class: 'tkl-side' }, priorityIcon(t.priority))));
   }));
 }
 
