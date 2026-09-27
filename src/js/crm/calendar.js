@@ -7,28 +7,31 @@
    ===================================================================== */
 import { gsap } from 'gsap';
 import { supabase } from '../supabase.js';
-import { el, REDUCED, EVENT_KINDS, ymd, fmtTime, fmtDate, toast, modal, field, armedButton, icon, meetingName, add } from './util.js';
+import { el, REDUCED, EVENT_KINDS, ymd, fmtTime, fmtDate, toast, modal, field, armedButton, icon, meetingName, add, fill } from './util.js';
 
 const WEEK = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
 export function calendarView(root, { getContracts, onOpenContract, onOpenRequests }) {
   const today = ymd(new Date());
-  const st = { month: startOfMonth(new Date()), selected: today, items: [], events: [] };
+  const st = { month: startOfMonth(new Date()), selected: today, items: [], showLog: false };
 
-  const title = el('h2', { class: 'cal-title' });
+  const title = el('h3', { class: 'cal-title' });
+  const summary = el('p');
   const grid = el('div', { class: 'cal-grid', role: 'grid' });
   const panel = el('aside', { class: 'cal-panel', 'aria-live': 'polite' });
-  root.replaceChildren(el('div', { class: 'cal' },
+  root.replaceChildren(el('div', { class: 'rq cal' },
+    el('header', { class: 'ct-head' }, el('div', {}, el('h2', { text: 'Calendar' }), summary)),
     el('div', { class: 'cal-bar' },
       el('div', { class: 'cal-nav' },
-        el('button', { type: 'button', class: 'cal-btn', 'aria-label': 'Previous month', text: '‹', onclick: () => go(-1) }),
+        el('button', { type: 'button', class: 'cal-btn', 'aria-label': 'Previous month', html: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>', onclick: () => go(-1) }),
         title,
-        el('button', { type: 'button', class: 'cal-btn', 'aria-label': 'Next month', text: '›', onclick: () => go(1) })),
-      el('div', { class: 'cal-tools' },
-        el('button', { type: 'button', class: 'btn btn-ghost btn-sm', text: 'Today', onclick: () => { st.month = startOfMonth(new Date()); st.selected = today; load(); } }),
-        el('button', { type: 'button', class: 'btn btn-primary btn-sm', html: `${icon.plus}<span>New event</span>`, onclick: () => add(st.selected) }))),
-    el('div', { class: 'cal-legend' }, [['event', 'Scheduled'], ['due', 'Due / start'], ['log', 'Logged'], ['request', 'Requests']].map(([k, t]) => el('span', { class: `lg-${k}` }, el('i'), t))),
-    el('div', { class: 'cal-body' }, el('div', { class: 'cal-month' }, el('div', { class: 'cal-week' }, WEEK.map((d) => el('span', { text: d }))), grid), panel)));
+        el('button', { type: 'button', class: 'cal-btn', 'aria-label': 'Next month', html: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>', onclick: () => go(1) }),
+        el('button', { type: 'button', class: 'cal-today', text: 'Today', onclick: () => { st.month = startOfMonth(new Date()); st.selected = today; st.showLog = false; load(); } })),
+      el('div', { class: 'cal-legend' }, [['event', 'Scheduled'], ['due', 'Due / start'], ['request', 'Requests'], ['log', 'Logged']].map(([k, t]) => el('span', { class: `lg-${k}` }, el('i'), t))),
+      el('button', { type: 'button', class: 'btn btn-primary btn-sm tq-new', html: `${icon.plus}<span>New event</span>`, onclick: () => add(st.selected) })),
+    el('div', { class: 'cal-body' },
+      el('div', { class: 'cal-month' }, el('div', { class: 'cal-week' }, WEEK.map((d) => el('span', { text: d }))), grid),
+      panel)));
 
   function go(n) { st.month = new Date(st.month.getFullYear(), st.month.getMonth() + n, 1); load(); }
   const add = (date, extra = {}) => eventModal({ date, ...extra }, { contracts: getContracts(), onSaved: load });
@@ -37,25 +40,38 @@ export function calendarView(root, { getContracts, onOpenContract, onOpenRequest
     const first = new Date(st.month); first.setDate(1 - first.getDay());
     const last = new Date(first); last.setDate(first.getDate() + 42);
     const [from, to] = [first.toISOString(), last.toISOString()];
+    const weekStart = new Date(); weekStart.setHours(0, 0, 0, 0);
+    const weekEnd = new Date(weekStart); weekEnd.setDate(weekEnd.getDate() + 7);
     title.textContent = st.month.toLocaleDateString(undefined, { month: 'long', year: 'numeric' });
 
-    const [ev, act, inq, req] = await Promise.all([
+    const [ev, act, inq, req, week] = await Promise.all([
       supabase.from('events').select('*').gte('starts_at', from).lt('starts_at', to).order('starts_at'),
       supabase.from('activity').select('*').gte('created_at', from).lt('created_at', to).order('created_at'),
       supabase.from('inquiries').select('id, name, company, created_at').gte('created_at', from).lt('created_at', to),
       supabase.from('access_requests').select('id, name, company, created_at').gte('created_at', from).lt('created_at', to),
+      supabase.from('events').select('title, starts_at, all_day').gte('starts_at', new Date().toISOString()).lt('starts_at', weekEnd.toISOString()).order('starts_at'),
     ]);
     const err = ev.error || act.error || inq.error || req.error;
     if (err) toast(`Couldn’t load the calendar: ${err.message}`, 'error');
 
+    // the line under the heading: what's coming up this week
+    const soon = week.data || [];
+    const whenLabel = (e) => {
+      const d = ymd(e.starts_at) === today ? 'today' : new Date(e.starts_at).toLocaleDateString(undefined, { weekday: 'long' });
+      return e.all_day ? d : `${d} at ${fmtTime(e.starts_at)}`;
+    };
+    summary.textContent = soon.length
+      ? `${soon.length} coming up this week · next: ${soon[0].title}, ${whenLabel(soon[0])}`
+      : 'Nothing scheduled in the next 7 days.';
+
     const contracts = getContracts();
     const nameOf = (cid) => contracts.find((c) => c.id === cid)?.title;
     const items = [];
-    for (const e of ev.data || []) items.push({ date: ymd(e.starts_at), cls: `event k-${e.kind}`, title: e.title, time: e.all_day ? '' : fmtTime(e.starts_at), sort: e.starts_at, sub: [EVENT_KINDS[e.kind], nameOf(e.contract_id)].filter(Boolean).join(' · '), event: e });
+    for (const e of ev.data || []) items.push({ date: ymd(e.starts_at), cls: `event k-${e.kind}`, title: e.title, time: e.all_day ? 'All day' : fmtTime(e.starts_at), sort: e.starts_at, sub: [EVENT_KINDS[e.kind], nameOf(e.contract_id)].filter(Boolean).join(' · '), event: e });
     for (const c of contracts) {
       if (['lost'].includes(c.status)) continue;
-      if (c.due_date) items.push({ date: c.due_date, cls: 'due', title: `Due: ${c.title}`, sort: c.due_date + 'T00', sub: c.company || c.client_name || '', contract: c });
-      if (c.start_date) items.push({ date: c.start_date, cls: 'due start', title: `Start: ${c.title}`, sort: c.start_date + 'T00', sub: c.company || c.client_name || '', contract: c });
+      if (c.due_date) items.push({ date: c.due_date, cls: 'due', title: `Due: ${c.title}`, time: 'Due', sort: c.due_date + 'T00', sub: c.company || c.client_name || '', contract: c });
+      if (c.start_date) items.push({ date: c.start_date, cls: 'due start', title: `Start: ${c.title}`, time: 'Start', sort: c.start_date + 'T00', sub: c.company || c.client_name || '', contract: c });
     }
     for (const a of act.data || []) items.push({ date: ymd(a.created_at), cls: 'log', title: a.summary, time: fmtTime(a.created_at), sort: a.created_at, sub: nameOf(a.contract_id) || '', logged: true, contract: contracts.find((c) => c.id === a.contract_id) });
     for (const q of inq.data || []) items.push({ date: ymd(q.created_at), cls: 'request', title: `Inquiry: ${q.name}`, time: fmtTime(q.created_at), sort: q.created_at, sub: q.company || '', logged: true, requests: 'inquiries' });
@@ -77,17 +93,17 @@ export function calendarView(root, { getContracts, onOpenContract, onOpenRequest
       const logged = list.length - shown.length;
       cells.push(el('button', {
         type: 'button', role: 'gridcell', 'data-day': key,
-        class: `cal-day${d.getMonth() !== st.month.getMonth() ? ' out' : ''}${key === today ? ' today' : ''}${key === st.selected ? ' sel' : ''}`,
+        class: `cal-day${d.getMonth() !== st.month.getMonth() ? ' out' : ''}${key === today ? ' today' : ''}${key === st.selected ? ' sel' : ''}${d.getDay() === 0 || d.getDay() === 6 ? ' wknd' : ''}`,
         'aria-label': `${d.toDateString()}, ${list.length} item${list.length === 1 ? '' : 's'}`,
-        onclick: () => { st.selected = key; renderGrid(); renderPanel(); },
+        onclick: () => { st.selected = key; st.showLog = false; renderGrid(); renderPanel(); },
         ondblclick: () => add(key),
       },
         el('span', { class: 'cal-num', text: d.getDate() }),
         el('span', { class: 'cal-chips' },
-          shown.slice(0, 3).map((x) => el('span', { class: `cal-chip ${x.cls}`, text: x.title })),
+          shown.slice(0, 3).map((x) => el('span', { class: `cal-chip ${x.cls}` }, el('i'), el('span', { text: x.title }))),
           shown.length > 3 ? el('span', { class: 'cal-more', text: `+${shown.length - 3} more` }) : null),
-        el('span', { class: 'cal-dots' }, list.slice(0, 5).map((x) => el('i', { class: x.cls }))),
-        logged ? el('span', { class: 'cal-logged mono', title: `${logged} logged`, text: logged }) : null));
+        el('span', { class: 'cal-dots' }, shown.slice(0, 4).map((x) => el('i', { class: x.cls }))),
+        logged ? el('span', { class: 'cal-logged', title: `${logged} update${logged === 1 ? '' : 's'} logged` }) : null));
     }
     grid.replaceChildren(...cells);
   }
@@ -95,21 +111,31 @@ export function calendarView(root, { getContracts, onOpenContract, onOpenRequest
   function renderPanel() {
     const list = st.items.filter((x) => x.date === st.selected);
     const planned = list.filter((x) => !x.logged);
-    const logged = list.filter((x) => x.logged);
+    const logged = list.filter((x) => x.logged).reverse();   // newest first
+    const LOG_PREVIEW = 4;
     const row = (x) => el('li', { class: `cal-item ${x.cls}` },
       el('button', { type: 'button', onclick: () => open(x) },
-        el('i'),
-        el('span', { class: 'cal-item-body' }, el('strong', { text: x.title }), x.sub ? el('small', { text: x.sub }) : null),
-        x.time ? el('time', { class: 'mono', text: x.time }) : null),
-      x.event?.link ? el('a', { class: 'btn btn-primary btn-sm cal-join', href: x.event.link, target: '_blank', rel: 'noopener noreferrer', text: 'Join' }) : null);
-    panel.replaceChildren(
+        el('span', { class: 'cal-item-time mono', text: x.time || '' }),
+        el('span', { class: 'cal-item-body' }, el('strong', { text: x.title }), x.sub ? el('small', { text: x.sub }) : null)),
+      x.event?.link ? el('a', { class: 'hm-join', href: x.event.link, target: '_blank', rel: 'noopener noreferrer', text: 'Join' }) : null);
+    const logRow = (x) => el('li', { class: `cal-log ${x.cls}` },
+      el('button', { type: 'button', onclick: () => open(x) },
+        el('i'), el('span', {}, el('span', { text: x.title }), x.sub ? el('small', { text: ` · ${x.sub}` }) : null),
+        el('time', { class: 'mono', text: x.time })));
+    const shownLog = st.showLog ? logged : logged.slice(0, LOG_PREVIEW);
+    const isToday = st.selected === today;
+    fill(panel,
       el('div', { class: 'cal-panel-head' },
-        el('h3', { text: fmtDate(st.selected, { weekday: 'long', month: 'long', day: 'numeric' }) }),
-        el('button', { type: 'button', class: 'link-btn', text: '+ Add', onclick: () => add(st.selected) })),
-      el('h4', { class: 'mono', text: 'Scheduled' }),
-      planned.length ? el('ul', { class: 'cal-items' }, planned.map(row)) : el('p', { class: 'cal-none', text: 'Nothing scheduled.' }),
-      el('h4', { class: 'mono', text: 'Logged' }),
-      logged.length ? el('ul', { class: 'cal-items' }, logged.map(row)) : el('p', { class: 'cal-none', text: 'Nothing logged this day.' }));
+        el('div', {},
+          el('span', { class: 'cal-panel-kicker mono', text: isToday ? 'Today' : fmtDate(st.selected, { weekday: 'long' }) }),
+          el('h3', { text: fmtDate(st.selected, { month: 'long', day: 'numeric' }) })),
+        el('button', { type: 'button', class: 'cal-add', 'aria-label': 'Add an event on this day', html: icon.plus, onclick: () => add(st.selected) })),
+      planned.length ? el('ul', { class: 'cal-items' }, planned.map(row))
+        : el('div', { class: 'cal-free' }, el('p', { text: 'Nothing scheduled.' }), el('button', { type: 'button', class: 'link-btn', text: 'Add an event', onclick: () => add(st.selected) })),
+      logged.length ? el('div', { class: 'cal-logbox' },
+        el('h4', { class: 'mono', text: `Logged · ${logged.length}` }),
+        el('ul', { class: 'cal-logs' }, shownLog.map(logRow)),
+        logged.length > LOG_PREVIEW ? el('button', { type: 'button', class: 'link-btn cal-more-log', text: st.showLog ? 'Show less' : `Show all ${logged.length}`, onclick: () => { st.showLog = !st.showLog; renderPanel(); } }) : null) : null);
   }
 
   function open(x) {

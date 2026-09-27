@@ -174,7 +174,7 @@ function route() {
   const navKey = v === 'contract' ? 'contracts' : v;
   $$('.crm-nav-link').forEach((a) => a.setAttribute('aria-current', a.dataset.route === navKey ? 'page' : 'false'));
   $('#viewTitle').textContent = TITLES[v];
-  document.querySelector('.crm-top').classList.toggle('has-page-head', ['home', 'contracts', 'requests', 'tickets', 'pending'].includes(v));
+  document.querySelector('.crm-top').classList.toggle('has-page-head', ['home', 'contracts', 'requests', 'tickets', 'pending', 'calendar'].includes(v));
   $('#newContractBtn').querySelector('span').textContent = v === 'pending' ? 'New deal' : 'New contract';
   document.title = `${TITLES[v]} — Williams Systems LLC`;
   window.scrollTo(0, 0);
