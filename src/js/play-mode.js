@@ -27,16 +27,20 @@ export const PLAY = (() => {
 
 /**
  * st      the story's ScrollTrigger
- * points  () => scroll positions of the key points, in order (recomputed on
- *         every step, so resizes are fine). The story's start and end are added.
+ * points  () => the key points, in order (recomputed on every step, so resizes are
+ *         fine): scroll positions, or { y, speed } where speed stretches the step
+ *         that arrives there (see play-speeds.js). The story's start and end are added.
  */
 export function playMode(st, points) {
   if (!PLAY) return;
   let releasing = false;
   let goal = null;                                                              // the stop we're heading to, while a play is running
   const stops = () => {
-    const list = [st.start, ...points(), st.end].map(Math.round).sort((a, b) => a - b);
-    return list.filter((y, i) => i === 0 || y - list[i - 1] > 40);            // drop near-duplicates
+    const list = [st.start, ...points(), st.end]
+      .map((p) => (typeof p === 'number' ? { y: p, speed: 1 } : p))
+      .map((p) => ({ y: Math.round(p.y), speed: p.speed || 1 }))
+      .sort((a, b) => a.y - b.y);
+    return list.filter((p, i) => i === 0 || p.y - list[i - 1].y > 40);        // drop near-duplicates
   };
   // counts as inside from a little above the story (it may start just under the header)
   const inside = () => window.scrollY >= st.start - window.innerHeight * 0.25 && window.scrollY <= st.end + 2;
@@ -46,13 +50,17 @@ export function playMode(st, points) {
     // scrolling again mid-play goes on from where this play is heading, straight away
     const y = goal ?? window.scrollY, list = stops();
     const from = Math.max(y, st.start);                                          // above the start: the first flick plays into the story
-    const target = dir > 0 ? list.find((p) => p > from + 4) : [...list].reverse().find((p) => p < y - 4 && y > st.start + 4);
+    const stop = dir > 0 ? list.find((p) => p.y > from + 4) : [...list].reverse().find((p) => p.y < y - 4 && y > st.start + 4);
     // past either end: let go and carry on scrolling the page normally
-    if (target === undefined) { release(dir); return; }
+    if (stop === undefined) { release(dir); return; }
+    const target = stop.y;
     goal = target;
     const dist = Math.abs(target - window.scrollY);
-    // two rounds of "25% slower" than the quickest version (0.45–1.3 s): about 0.7–2 s a step
-    const duration = gsap.utils.clamp(0.45, 1.3, dist / (window.innerHeight * 2.6)) * 1.25 * 1.25;
+    // two rounds of "25% slower" than the quickest version (0.45–1.3 s): about 0.7–2 s a step,
+    // then stretched per animation (play-speeds.js); going back uses the same speed
+    const back = dir < 0 ? list.find((p) => p.y > target + 4) : null;
+    const speed = (dir > 0 ? stop.speed : back?.speed) || 1;
+    const duration = gsap.utils.clamp(0.45, 1.3, dist / (window.innerHeight * 2.6)) * 1.25 * 1.25 * speed;
     gsap.to(window, {
       scrollTo: { y: target, autoKill: false }, duration, ease: 'power1.inOut', overwrite: true,
       onComplete: () => { goal = null; },

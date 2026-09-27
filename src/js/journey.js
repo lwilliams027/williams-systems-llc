@@ -35,6 +35,7 @@ import { SplitText } from 'gsap/SplitText';
 import { buildFall } from './fall.js';
 import { createFinale } from './finale.js';
 import { playMode, PLAY } from './play-mode.js';
+import { HOME as SPEED } from './play-speeds.js';
 
 gsap.registerPlugin(ScrollTrigger, DrawSVGPlugin, ScrambleTextPlugin, SplitText);
 // phones show and hide their address bar while you scroll; don't re-measure the pinned journey when that happens
@@ -762,20 +763,21 @@ export function initJourney({ reduced = false } = {}) {
     // so the whole page takes about as many scrolls as a normal website.
     const toY = (t) => st.start + (t / master.duration()) * (st.end - st.start);
     const L = master.labels;
+    // [moment, its speed in play-speeds.js]
     const times = [
-      L.fallEnd,                                             // "Software your business runs on."
-      L.strip,                                               // "Everything it takes to ship software."
-      ...readStops,                                          // the services, two at a time
-      L.type + S('type') * 0.95 + S('typeHold') * 0.7,       // "One team. All custom."
-      L.cycle + S('cycle') * 0.5,                            // "Every piece. One build."
-      L.desk,                                                // the website, finished
-      L.unscrew,                                             // the lightbulb: customization
-      L.keyhole,                                             // the padlock: security
-      L.climb - S('riseHold') * 0.3,                         // "From first call to launch."
-      ...steps.map((_, k) => L.climb + k * slot + slot * 0.6), // the five How-we-work steps
-      L.reveal + S('reveal') * 0.9,                          // the finale
+      [L.fallEnd, SPEED.fall],                                          // "Software your business runs on."
+      [L.strip, SPEED.whatWeBuild],                                     // "Everything it takes to ship software."
+      ...readStops.map((t, k) => [t, SPEED[`services${k + 1}`]]),         // the services, two at a time
+      [L.type + S('type') * 0.95 + S('typeHold') * 0.7, SPEED.oneTeam], // "One team. All custom."
+      [L.cycle + S('cycle') * 0.5, SPEED.everyPiece],                   // "Every piece. One build."
+      [L.desk, SPEED.website],                                          // the website, finished
+      [L.unscrew, SPEED.lightbulb],                                     // the lightbulb: customization
+      [L.keyhole, SPEED.security],                                      // the padlock: security
+      [L.climb - S('riseHold') * 0.3, SPEED.howWeWork],                 // "From first call to launch."
+      ...steps.map((_, k) => [L.climb + k * slot + slot * 0.6, SPEED[['discover', 'design', 'build', 'launch', 'support'][k]]]),
+      [L.reveal + S('reveal') * 0.9, SPEED.finale],                     // the finale
     ];
-    return times.map(toY);
+    return times.map(([t, speed]) => ({ y: toY(t), speed }));
   });
 
   // "Skip ↓": straight past the whole story to what's below it (like the Skip pill on the other pages)

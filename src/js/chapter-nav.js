@@ -17,6 +17,7 @@
    ===================================================================== */
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { PLAY, playMode } from './play-mode.js';
+import { pageSpeeds } from './play-speeds.js';
 
 // phones show and hide their address bar while you scroll; don't re-measure every pin when that happens
 ScrollTrigger.config({ ignoreMobileResize: true });
@@ -79,7 +80,7 @@ export function chapterNav(section, tl, timeOf) {
   list.appendChild(end);
 
   // Play mode (?play, for testing): one scroll plays the story to the next chapter
-  if (PLAY) { playMode(tl.scrollTrigger, () => pills.map((_, i) => spot(i))); return; }
+  if (PLAY) { const sp = pageSpeeds(); playMode(tl.scrollTrigger, () => pills.map((_, i) => ({ y: spot(i), speed: sp[i] }))); return; }
 
   if (!touch()) return;
 
