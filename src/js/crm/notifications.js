@@ -98,7 +98,7 @@ export function notificationBell(mount, { me, onOpen, reminders = () => [] }) {
       st.list.unshift(n);
       badgeUpdate();
       if (st.open) render();
-      toast(n.title);
+      if (window.wsPrefs?.popups !== false) toast(n.title);
       if (!REDUCED) gsap.fromTo(btn, { rotate: -14 }, { rotate: 0, duration: 0.8, ease: 'elastic.out(1, 0.3)' });
     })
     .subscribe();

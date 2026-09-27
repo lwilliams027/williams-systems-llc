@@ -24,6 +24,7 @@ import { barChart, chartMotion } from './crm/charts.js';
 import { contractPage, contractForm, SECTIONS, projectHref } from './crm/contract-view.js';
 import { calendarView, eventModal } from './crm/calendar.js';
 import { notificationBell } from './crm/notifications.js';
+import { accountMenu } from './crm/account-menu.js';
 import { ticketView, ticketForm, ticketPill, statusIcon, priorityIcon, T_KIND, T_PRIORITY, T_STATUS, OPEN_STATES } from './crm/tickets.js';
 
 const INQ_STATUSES = [
@@ -77,7 +78,6 @@ async function boot() {
 
 const signOut = () => supabase.auth.signOut();
 $('#signOutBtn').addEventListener('click', signOut);
-$('#signOutSm').addEventListener('click', signOut);
 $('#newContractBtn').addEventListener('click', () => contractForm(
   { status: state.view === 'pending' ? 'proposal' : 'active' },
   { onSaved: (d) => { upsertContract(d); location.hash = projectHref(d); } }));
@@ -93,6 +93,7 @@ async function enterApp(user) {
   renderNav();
   await Promise.all([loadContracts(), loadInquiries(), loadRequests(), loadUpcoming(), loadTickets()]);
   subscribe();
+  accountMenu($('#acctMount'), { me: user, owner: true, onNameChange: (n) => { state.name = n; if (state.view === 'home') renderHome(); } });
   state.bell = notificationBell($('#bellMount'), { me: user, onOpen: openNotification, reminders });
   window.addEventListener('hashchange', route);
   route();

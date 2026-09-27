@@ -10,6 +10,7 @@ import { supabase, isConfigured } from './supabase.js';
 import { el, $, $$, STATUS, LIVE, PENDING, fill, icon } from './crm/util.js';
 import { contractPage, projectHref, SECTIONS } from './crm/contract-view.js';
 import { notificationBell } from './crm/notifications.js';
+import { accountMenu } from './crm/account-menu.js';
 
 $$('[data-year]').forEach((e) => { e.textContent = new Date().getFullYear(); });
 
@@ -30,9 +31,9 @@ async function boot() {
   $('#whoami').textContent = me?.full_name || me?.email || st.me.email;
   const signOut = async () => { await supabase.auth.signOut(); location.assign('login.html'); };
   $('#signOut').addEventListener('click', signOut);
-  $('#signOutSm').addEventListener('click', signOut);
   supabase.auth.onAuthStateChange((event) => { if (event === 'SIGNED_OUT') location.replace('login.html'); });
 
+  st.acct = accountMenu($('#acctMount'), { me: st.me, owner: false, onNameChange: (n) => { $('#whoami').textContent = n; } });
   st.bell = notificationBell($('#bellMount'), { me: st.me, onOpen: openNotification });
 
   await load();
@@ -98,6 +99,7 @@ async function show(c, section, sub) {
 }
 
 async function openNotification(n) {
+  if (n.kind === 'invoice') { st.acct?.openSettings('billing'); return; }
   if (n.ticket_id) {
     const { data: t } = await supabase.from('tickets').select('number, contract_id').eq('id', n.ticket_id).maybeSingle();
     const c = t && st.contracts.find((x) => x.id === t.contract_id);
