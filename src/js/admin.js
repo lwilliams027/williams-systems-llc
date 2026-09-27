@@ -174,7 +174,7 @@ function route() {
   const navKey = v === 'contract' ? 'contracts' : v;
   $$('.crm-nav-link').forEach((a) => a.setAttribute('aria-current', a.dataset.route === navKey ? 'page' : 'false'));
   $('#viewTitle').textContent = TITLES[v];
-  document.querySelector('.crm-top').classList.toggle('has-page-head', ['home', 'contracts', 'requests', 'tickets'].includes(v));
+  document.querySelector('.crm-top').classList.toggle('has-page-head', ['home', 'contracts', 'requests', 'tickets', 'pending'].includes(v));
   $('#newContractBtn').querySelector('span').textContent = v === 'pending' ? 'New deal' : 'New contract';
   document.title = `${TITLES[v]} — Williams Systems LLC`;
   window.scrollTo(0, 0);
@@ -664,16 +664,21 @@ function renderTicketList() {
 /* ------------------------------------------------------------------ */
 function renderPending() {
   const root = $('#view-pending');
+  const all = state.contracts;
+  const pending = all.filter((c) => PENDING.includes(c.status));
+  const sum = (list) => list.reduce((s, c) => s + Number(c.value || 0), 0);
+  const won = all.filter((c) => c.signed_at).length;
+  const lost = all.filter((c) => c.status === 'lost').length;
+  const quiet = pending.filter((c) => (Date.now() - new Date(c.updated_at)) / 86400000 >= 7).length;
+
   const cols = PENDING.map((k) => {
-    const list = state.contracts.filter((c) => c.status === k);
-    const total = list.reduce((s, c) => s + Number(c.value || 0), 0);
-    const col = el('section', { class: 'kb-col', 'data-status': k },
-      el('header', { class: 'kb-head' },
-        el('span', { class: 'kb-dot', style: { background: STATUS_COLOR[k] } }),
-        el('h2', { text: STATUS[k].label }), el('span', { class: 'kb-n mono', text: list.length }),
-        el('b', { class: 'kb-total', text: money(total) })),
-      el('ul', { class: 'kb-list' }, list.map(dealCard)),
-      el('button', { type: 'button', class: 'kb-add', html: `${icon.plus}<span>Add a deal</span>`, onclick: () => contractForm({ status: k }, { onSaved: (d) => { upsertContract(d); renderPending(); } }) }));
+    const list = pending.filter((c) => c.status === k).sort((a, b) => Number(b.value) - Number(a.value));
+    const col = el('section', { class: 'pd-col', 'data-status': k, style: { '--sc': STATUS_COLOR[k] } },
+      el('header', { class: 'pd-col-head' },
+        el('div', { class: 'pd-col-title' }, el('i'), el('h2', { text: STATUS[k].label }), el('span', { class: 'pd-n', text: list.length })),
+        el('b', { class: 'pd-total', text: money(sum(list)) })),
+      list.length ? el('ul', { class: 'pd-list' }, list.map(dealCard)) : el('div', { class: 'pd-drop', text: 'Drop a deal here' }),
+      el('button', { type: 'button', class: 'pd-add', html: `${icon.plus}<span>Add deal</span>`, onclick: () => contractForm({ status: k }, { onSaved: (d) => { upsertContract(d); renderPending(); } }) }));
     col.addEventListener('dragover', (e) => { e.preventDefault(); col.classList.add('over'); });
     col.addEventListener('dragleave', (e) => { if (!col.contains(e.relatedTarget)) col.classList.remove('over'); });
     col.addEventListener('drop', async (e) => {
@@ -684,28 +689,39 @@ function renderPending() {
     });
     return col;
   });
-  const closed = state.contracts.filter((c) => c.closed_at || c.signed_at).sort((a, b) => new Date(b.updated_at) - new Date(a.updated_at)).slice(0, 5);
-  fill(root, 
-    el('p', { class: 'crm-hint', text: 'Drag a deal to move it along. Mark it won when it’s signed: it becomes a live contract and the client is told.' }),
-    el('div', { class: 'kb' }, cols),
-    closed.length ? el('section', { class: 'crm-card wide' },
-      el('div', { class: 'crm-card-head' }, el('h2', { text: 'Recently decided' })),
-      el('ul', { class: 'decided' }, closed.map((c) => el('li', {},
-        el('a', { href: `#contract/${c.id}` }, el('strong', { text: c.title }), el('small', { text: c.company || c.client_name || '' })),
-        statusPill(c.status), el('span', { class: 'mono muted-sm', text: timeAgo(c.updated_at) }))))) : null);
+
+  const decided = all.filter((c) => c.signed_at || c.status === 'lost').sort((a, b) => new Date(b.updated_at) - new Date(a.updated_at)).slice(0, 5);
+  fill(root, el('div', { class: 'rq' },
+    el('header', { class: 'ct-head' }, el('div', {},
+      el('h2', { text: 'Pending deals' }),
+      el('p', { text: pending.length
+        ? [`${money(sum(pending))} in the pipeline`, `${pending.length} deal${pending.length === 1 ? '' : 's'}`, won + lost ? `${Math.round((won / (won + lost)) * 100)}% win rate` : null, quiet ? `${quiet} gone quiet` : null].filter(Boolean).join(' · ')
+        : 'No deals waiting on a signature. New proposals start here.' }))),
+    el('p', { class: 'pd-hint', text: 'Drag a deal between stages. Mark it Won when it’s signed: it becomes a live project and the client is told.' }),
+    el('div', { class: 'pd-board' }, cols),
+    decided.length ? el('section', { class: 'hm-card' },
+      el('header', { class: 'hm-card-head' }, el('h2', { text: 'Recently decided' }), el('a', { class: 'hm-more', href: '#contracts', text: 'Contracts →' })),
+      el('ul', { class: 'hm-list' }, decided.map((c) => el('li', {}, el('a', { class: 'hm-proj pd-decided', href: projectHref(c) },
+        el('span', { class: 'hm-av', text: initials(c.company || c.client_name || c.title) }),
+        el('span', { class: 'hm-proj-main' }, el('strong', { text: c.title }), el('small', { text: [c.company, c.client_name].filter(Boolean).join(' · ') || '—' })),
+        statusPill(c.status),
+        el('span', { class: 'hm-proj-meta' }, el('b', { class: 'mono', text: price(c) }), el('small', { text: timeAgo(c.updated_at) }))))))) : null));
 }
 
 function dealCard(c) {
   const days = Math.max(0, Math.floor((Date.now() - new Date(c.updated_at)) / 86400000));
-  const move = el('select', { class: 'kb-move', 'aria-label': `Stage for ${c.title}`, onclick: (e) => e.stopPropagation(), onchange: async (e) => { await saveContract(c.id, { status: e.target.value }, `Moved to ${STATUS[e.target.value].label}`); renderPending(); } },
+  const move = el('select', { class: 'pd-move', 'aria-label': `Move ${c.title} to another stage`, title: 'Move to…', onchange: async (e) => { await saveContract(c.id, { status: e.target.value }, `Moved to ${STATUS[e.target.value].label}`); renderPending(); } },
     Object.entries(STATUS).map(([k, v]) => el('option', { value: k, text: v.label, selected: k === c.status ? true : null })));
-  const li = el('li', { class: `kb-card${days >= 7 ? ' quiet' : ''}`, draggable: 'true', 'data-id': c.id },
-    el('a', { href: `#contract/${c.id}`, class: 'kb-title', text: c.title }),
-    el('span', { class: 'kb-who', text: [c.company, c.client_name].filter(Boolean).join(' · ') || c.client_email || 'No client yet' }),
-    el('div', { class: 'kb-row' }, el('b', { text: price(c) }), el('span', { class: 'mono', title: 'Since the last change', text: days ? `${days}d in stage` : 'today' })),
-    el('div', { class: 'kb-actions' },
-      el('button', { type: 'button', class: 'btn btn-primary btn-sm', text: 'Won', title: 'Signed: make it a live contract', onclick: async () => { await saveContract(c.id, { status: 'active' }, `${c.title} is live`); renderPending(); } }),
-      armedButton('Lost', 'Sure?', async () => { await saveContract(c.id, { status: 'lost' }, 'Marked lost'); renderPending(); }, 'btn btn-ghost btn-sm'),
+  const li = el('li', { class: `pd-card${days >= 7 ? ' quiet' : ''}`, draggable: 'true', 'data-id': c.id },
+    el('a', { class: 'pd-card-top', href: projectHref(c) },
+      el('span', { class: 'hm-av', text: initials(c.company || c.client_name || c.title) }),
+      el('span', { class: 'pd-card-main' }, el('strong', { text: c.title }), el('small', { text: [c.company, c.client_name].filter(Boolean).join(' · ') || c.client_email || 'No client yet' }))),
+    el('div', { class: 'pd-card-mid' },
+      el('b', { class: 'pd-price', text: price(c) }),
+      el('span', { class: `pd-age${days >= 7 ? ' warn' : ''}`, title: 'Time since the last change', text: days ? `${days}d in stage` : 'Today' })),
+    el('div', { class: 'pd-card-actions' },
+      el('button', { type: 'button', class: 'pd-won', text: 'Won', title: 'Signed: make it a live project', onclick: async () => { await saveContract(c.id, { status: 'active' }, `${c.title} is live`); renderPending(); } }),
+      armedButton('Lost', 'Sure?', async () => { await saveContract(c.id, { status: 'lost' }, 'Marked lost'); renderPending(); }, 'pd-lost'),
       move));
   li.addEventListener('dragstart', (e) => { e.dataTransfer.setData('text/plain', c.id); e.dataTransfer.effectAllowed = 'move'; li.classList.add('dragging'); });
   li.addEventListener('dragend', () => li.classList.remove('dragging'));

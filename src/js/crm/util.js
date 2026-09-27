@@ -15,7 +15,10 @@ export function el(tag, props = {}, ...children) {
     if (k === 'class') node.setAttribute('class', v);
     else if (k === 'text') node.textContent = v;
     else if (k === 'html') node.innerHTML = v; // only ever used with static icon markup
-    else if (k === 'style' && typeof v === 'object') Object.assign(node.style, v);
+    else if (k === 'style' && typeof v === 'object') {
+      // CSS variables (--x) need setProperty; plain assignment ignores them
+      for (const [p, val] of Object.entries(v)) { if (p.startsWith('--')) node.style.setProperty(p, val); else node.style[p] = val; }
+    }
     else if (k.startsWith('on') && typeof v === 'function') node.addEventListener(k.slice(2), v);
     else node.setAttribute(k, v === true ? '' : String(v));
   }

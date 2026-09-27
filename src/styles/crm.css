@@ -959,3 +959,72 @@ a.ct-row:hover .ct-go { color: var(--text); transform: translateX(2px); }
 
 .tq-card .tk-detail .cv-title h1 { font-size: clamp(1.4rem, 2vw, 1.8rem); letter-spacing: -0.02em; }
 @media (min-width: 1100.02px) { .tq-card .tk-detail .cv-back { display: none; } }
+
+/* =====================================================================
+   Pending deals — premium board
+   ===================================================================== */
+#view-pending { padding-top: clamp(24px, 4vw, 44px); }
+.pd-hint { color: var(--text-3); font-size: 0.86rem; margin-top: -8px; }
+.pd-board { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; align-items: start; }
+.pd-col {
+  position: relative; display: flex; flex-direction: column; gap: 12px; padding: 16px; min-height: 280px;
+  border-radius: 20px; border: 1px solid var(--line-solid); overflow: hidden;
+  background: linear-gradient(180deg, color-mix(in srgb, var(--sc) 7%, transparent), transparent 140px), var(--ink-2);
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+.pd-col::before { content: ""; position: absolute; inset: 0 0 auto; height: 2px; background: linear-gradient(90deg, var(--sc), transparent 85%); opacity: 0.9; }
+.pd-col.over { border-color: var(--sc); box-shadow: 0 0 0 3px color-mix(in srgb, var(--sc) 20%, transparent); }
+.pd-col-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 2px 4px 6px; }
+.pd-col-title { display: flex; align-items: center; gap: 9px; min-width: 0; }
+.pd-col-title i { width: 8px; height: 8px; border-radius: 50%; background: var(--sc); box-shadow: 0 0 0 4px color-mix(in srgb, var(--sc) 18%, transparent); flex: none; }
+.pd-col-title h2 { font-family: var(--font-display); font-size: 0.98rem; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.pd-n { font: 600 0.66rem var(--font-body); color: var(--text-2); background: var(--surface-2); border-radius: 99px; padding: 2px 8px; }
+.pd-total { font-family: var(--font-display); font-weight: 600; font-size: 1.05rem; letter-spacing: -0.01em; font-variant-numeric: tabular-nums; }
+.pd-list { display: flex; flex-direction: column; gap: 10px; }
+.pd-drop { flex: 1; min-height: 120px; display: grid; place-items: center; border-radius: 14px; border: 1px dashed var(--line-2); color: var(--text-3); font-size: 0.86rem; }
+.pd-col.over .pd-drop { border-color: var(--sc); color: var(--text); }
+.pd-add { display: flex; align-items: center; justify-content: center; gap: 6px; padding: 9px; border-radius: 12px; color: var(--text-3); font-size: 0.86rem; transition: color 0.15s, background 0.15s; }
+.pd-add:hover { color: var(--text); background: rgba(255, 255, 255, 0.04); }
+.pd-add svg { width: 14px; height: 14px; }
+
+.pd-card {
+  display: flex; flex-direction: column; gap: 12px; padding: 14px; border-radius: 16px; cursor: grab;
+  background: var(--surface); border: 1px solid var(--line-solid);
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.04) inset, 0 10px 24px -18px rgba(0, 0, 0, 0.8);
+  transition: border-color 0.15s, transform 0.15s;
+}
+.pd-card:hover { border-color: var(--line-2); }
+.pd-card.dragging { opacity: 0.45; transform: rotate(-1deg); }
+.pd-card.quiet { box-shadow: inset 3px 0 0 var(--warn), 0 10px 24px -18px rgba(0, 0, 0, 0.8); }
+.pd-card-top { display: flex; align-items: center; gap: 12px; min-width: 0; }
+.pd-card-top .hm-av { width: 34px; height: 34px; border-radius: 10px; font-size: 0.72rem; flex: none; }
+.pd-card-main { display: flex; flex-direction: column; gap: 1px; min-width: 0; }
+.pd-card-main strong { font-weight: 600; font-size: 0.95rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.pd-card-top:hover strong { color: var(--accent-fg); }
+.pd-card-main small { color: var(--text-3); font-size: 0.8rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.pd-card-mid { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; }
+.pd-price { font-family: var(--font-display); font-size: 1.25rem; font-weight: 600; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; }
+.pd-age { color: var(--text-3); font-size: 0.76rem; }
+.pd-age.warn { color: var(--warn); }
+.pd-card-actions { display: flex; align-items: center; gap: 6px; padding-top: 12px; border-top: 1px solid var(--line-solid); }
+.pd-won, .pd-lost { font-size: 0.8rem; font-weight: 600; padding: 6px 12px; border-radius: 99px; transition: background 0.15s, color 0.15s; }
+.pd-won { color: #0B2A18; background: var(--ok); }
+.pd-won:hover { background: #5BE89A; }
+.pd-lost { color: var(--text-2); background: var(--ink-2); border: 1px solid var(--line-2); }
+.pd-lost:hover { color: var(--text); }
+.pd-lost[data-armed] { color: #fff; background: #D93A3A; border-color: #D93A3A; }
+.pd-move { margin-left: auto; max-width: 132px; font: inherit; font-size: 0.78rem; color: var(--text-3); background: transparent; border: 1px solid transparent; border-radius: 8px; padding: 5px 4px; cursor: pointer; }
+.pd-move:hover, .pd-move:focus { color: var(--text); border-color: var(--line-2); outline: none; }
+.pd-decided { grid-template-columns: 38px minmax(0, 1fr) auto 120px; }
+
+@media (max-width: 1100px) {
+  .pd-board { grid-template-columns: 1fr; }
+  .pd-col { min-height: 0; }
+  .pd-drop { min-height: 64px; }
+}
+@media (max-width: 899.98px) {
+  .crm-top.has-page-head .crm-view-title { visibility: visible; }
+  #view-pending .ct-head h2 { display: none; }
+  .pd-decided { grid-template-columns: 38px minmax(0, 1fr) auto; }
+  .pd-decided .hm-proj-meta { display: none; }
+}
