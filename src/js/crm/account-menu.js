@@ -35,7 +35,7 @@ export function accountMenu(mount, { me, owner = false, onNameChange } = {}) {
           el('span', { class: 'acct-role', text: owner ? 'Owner' : 'Client' }))),
       el('div', { class: 'acct-group' },
         item(ICO.settings, 'Account settings', () => settings('profile')),
-        item(ICO.card, 'Billing & payments', () => settings('billing')),
+        owner ? item(ICO.card, 'Finances', () => { location.hash = '#finances'; }) : item(ICO.card, 'Billing & payments', () => settings('billing')),
         item(ICO.site, 'Back to website', () => location.assign('./'))),
       el('div', { class: 'acct-group' },
         item(ICO.out, 'Sign out', async () => { await supabase.auth.signOut(); location.assign('login.html'); }, 'danger')));

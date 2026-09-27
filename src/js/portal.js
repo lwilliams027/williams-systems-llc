@@ -1,7 +1,8 @@
 /* =====================================================================
    Client portal — each of the client's projects is its own workspace:
    Overview (scope, status, deliverables, dates), Tickets (requests with
-   files), Chat with Landon, Schedule (with Join links), and Files.
+   files), Schedule (with Join links), Files and Billing; messages with
+   Landon live in the corner messenger.
    The sections sit in a left sidebar, like the owner dashboard.
    Addresses look like portal.html#/booking-website/tickets/12.
    Row-level security means a client only ever receives their own data.
@@ -10,6 +11,7 @@ import { supabase, isConfigured } from './supabase.js';
 import { el, $, $$, STATUS, LIVE, PENDING, fill, icon } from './crm/util.js';
 import { contractPage, projectHref, SECTIONS } from './crm/contract-view.js';
 import { notificationBell } from './crm/notifications.js';
+import { messenger } from './crm/chat-bubble.js';
 import { accountMenu } from './crm/account-menu.js';
 
 $$('[data-year]').forEach((e) => { e.textContent = new Date().getFullYear(); });
@@ -37,12 +39,13 @@ async function boot() {
   st.bell = notificationBell($('#bellMount'), { me: st.me, onOpen: openNotification });
 
   await load();
+  st.msgr = messenger({ me: st.me, owner: false, getContracts: () => st.contracts, onRead: () => st.bell?.refresh() });
   window.addEventListener('hashchange', route);
   route();
 
   // a new project (or one just linked to this account) shows up live
   supabase.channel(`portal-${st.me.id}`)
-    .on('postgres_changes', { event: '*', schema: 'public', table: 'contracts' }, async () => { await load(); renderNav(); })
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'contracts' }, async () => { await load(); renderNav(); st.msgr?.refresh(); })
     .subscribe();
 }
 
@@ -92,6 +95,8 @@ async function show(c, section, sub) {
   const token = (st.token = Symbol('show'));
   const stop = await contractPage($('#portalMain'), {
     slug: c.slug, section, sub, owner: false, me: st.me,
+    openChat: (cid) => st.msgr?.open(cid),
+    getContracts: () => st.contracts,
     onRead: () => st.bell?.refresh(),
     onCounts: (_, counts) => { if (JSON.stringify(counts) !== JSON.stringify(st.counts)) { st.counts = counts; renderNav(); } },
   });
@@ -99,14 +104,19 @@ async function show(c, section, sub) {
 }
 
 async function openNotification(n) {
-  if (n.kind === 'invoice') { st.acct?.openSettings('billing'); return; }
+  if (n.kind === 'invoice') {
+    const c = st.contracts.find((x) => x.id === n.contract_id);
+    if (c) location.hash = projectHref(c, 'billing'); else st.acct?.openSettings('billing');
+    return;
+  }
   if (n.ticket_id) {
     const { data: t } = await supabase.from('tickets').select('number, contract_id').eq('id', n.ticket_id).maybeSingle();
     const c = t && st.contracts.find((x) => x.id === t.contract_id);
     if (c) { location.hash = projectHref(c, 'tickets', t.number); return; }
   }
   const c = n.contract_id && st.contracts.find((x) => x.id === n.contract_id);
-  if (c) location.hash = projectHref(c, n.kind === 'message' ? 'chat' : n.kind === 'event' ? 'schedule' : 'overview');
+  if (c && n.kind === 'message') { st.msgr?.open(c.id); return; }
+  if (c) location.hash = projectHref(c, n.kind === 'event' ? 'schedule' : 'overview');
 }
 
 function empty() {

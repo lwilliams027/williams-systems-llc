@@ -534,3 +534,14 @@ $$;
 drop trigger if exists events_after on public.events;
 create trigger events_after after insert or update on public.events
   for each row execute function public.event_after();
+
+-- ---------- Chat read receipts: the recipient marks messages read ----------
+alter table public.contract_messages add column if not exists read_at timestamptz;
+create index if not exists contract_messages_unread_idx on public.contract_messages (contract_id) where read_at is null;
+
+drop policy if exists "Recipients mark messages read" on public.contract_messages;
+create policy "Recipients mark messages read" on public.contract_messages
+  for update to authenticated
+  using ((public.is_admin() or public.my_contract(contract_id)) and sender_id is distinct from auth.uid())
+  with check ((public.is_admin() or public.my_contract(contract_id)) and sender_id is distinct from auth.uid());
+grant update (read_at) on public.contract_messages to authenticated;

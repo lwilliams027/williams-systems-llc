@@ -19,8 +19,8 @@ import {
   toast, armedButton, modal, field, icon, initials, EVENT_KINDS, ymd, day, fill, add, richText, meetingName, formatBytes,
 } from './util.js';
 import { ticketRows, ticketForm, ticketView, fileList, OPEN_STATES } from './tickets.js';
-import { chatBubble } from './chat-bubble.js';
 import { calendarView } from './calendar.js';
+import { billingView, holdFor, holdBanner } from './billing.js';
 
 const SITE = new URL('./', location.href).href;
 export const SECTIONS = [
@@ -28,6 +28,7 @@ export const SECTIONS = [
   ['tickets', 'Tickets'],
   ['schedule', 'Schedule'],
   ['files', 'Files'],
+  ['billing', 'Billing'],
 ];
 export const projectHref = (c, section = 'overview', sub) =>
   `#/${c.slug || c.id}${section === 'overview' ? '' : `/${section}`}${sub ? `/${sub}` : ''}`;
@@ -52,24 +53,27 @@ export async function contractPage(root, opts) {
     return () => {};
   }
   const id = c.data.id;
-  const [msgs, evs, acts, tks, fds] = await Promise.all([
+  const [msgs, evs, acts, tks, fds, invs] = await Promise.all([
     { data: [] },
     supabase.from('events').select('*').eq('contract_id', id).order('starts_at'),
     section === 'overview' ? supabase.from('activity').select('*').eq('contract_id', id).order('created_at', { ascending: false }).limit(60) : { data: [] },
     supabase.from('tickets').select('*').eq('contract_id', id).order('updated_at', { ascending: false }),
     supabase.from('project_folders').select('*').eq('contract_id', id),
+    supabase.from('invoices').select('*').eq('status', 'sent'),
   ]);
-  const s = { c: c.data, msgs: msgs.data || [], evs: evs.data || [], acts: acts.data || [], tks: tks.data || [], folders: fds.data || [] };
+  const s = { c: c.data, msgs: msgs.data || [], evs: evs.data || [], acts: acts.data || [], tks: tks.data || [], folders: fds.data || [], invs: invs.data || [] };
+  const allContracts = () => { const list = opts.getContracts?.() || []; return list.some((x) => x.id === id) ? list : [...list, s.c]; };
+  const onHold = () => holdFor(s.c, allContracts(), s.invs);
   const href = (sec, sub) => projectHref(s.c, sec, sub);
   opts.onFolders?.(s.c, s.folders, section === 'files' ? opts.sub || null : undefined);
-  const chatBox = chatBubble({ contract: s.c, owner, me: opts.me, onRead: opts.onRead });
-  if (wantChat) setTimeout(() => chatBox.open(), 50);
+  const openChat = () => opts.openChat?.(id);
+  if (wantChat) setTimeout(openChat, 60);
 
   const head = el('div');
   const tabs = el('nav', { class: 'cv-tabs', 'aria-label': 'Project sections' });
   const body = el('div', { class: `cv-body cv-${section}` });
   const rail = el('aside', { class: 'pv-rail', 'aria-label': owner ? 'Client and project details' : 'Your project details' });
-  const withRail = !['tickets', 'schedule'].includes(section);   // these two need the full width
+  const withRail = !['tickets', 'schedule', 'billing'].includes(section);   // these two need the full width
   fill(root, el('article', { class: `cv${owner ? ' is-owner' : ''}` }, head, tabs, withRail ? el('div', { class: 'pv' }, body, rail) : body));
 
   const save = async (patch, msg) => {
@@ -94,7 +98,8 @@ export async function contractPage(root, opts) {
     fill(head, el('header', { class: 'cv-head pv-head' },
       el('p', { class: 'cv-kicker mono', text: c.company || c.client_name || (owner ? 'No client yet' : 'Your project') }),
       el('h1', { text: c.title }),
-      el('p', { class: `pv-line${dueClass(c) ? ' late' : ''}`, text: line })));
+      el('p', { class: `pv-line${dueClass(c) ? ' late' : ''}`, text: line })),
+      section === 'billing' ? null : holdBanner(onHold(), { owner, contracts: allContracts() }));
     renderTabs();
     renderRail();
   }
@@ -125,7 +130,7 @@ export async function contractPage(root, opts) {
         person.phone ? el('li', {}, el('a', { href: `tel:+1${person.phone.replace(/\D/g, '')}`, text: person.phone })) : null) : null,
       portal,
       el('div', { class: 'pv-actions' },
-        el('button', { type: 'button', class: 'btn btn-primary btn-sm', text: owner ? 'Message' : 'Message Landon', onclick: () => chatBox.open() }),
+        el('button', { type: 'button', class: 'btn btn-primary btn-sm', text: owner ? 'Message' : 'Message Landon', onclick: openChat }),
         person.email ? el('a', { class: 'btn btn-ghost btn-sm', href: `mailto:${person.email}`, text: 'Email' }) : null));
 
     const stage = owner
@@ -176,6 +181,16 @@ export async function contractPage(root, opts) {
     if (section === 'tickets') return ticketsSection();
     if (section === 'schedule') return scheduleSection();
     if (section === 'files') return filesSection();
+    if (section === 'billing') return billingSection();
+  }
+
+  /* =====================================================================
+     Billing
+     ===================================================================== */
+  let bill = null;
+  function billingSection() {
+    bill?.destroy();
+    bill = billingView(body, { contracts: [s.c], allContracts: allContracts(), owner });
   }
 
   /* =====================================================================
@@ -337,7 +352,9 @@ export async function contractPage(root, opts) {
   /* =====================================================================
      Tickets
      ===================================================================== */
-  const newTicket = () => ticketForm({ contracts: [s.c], contractId: id, owner, onCreated: (t) => { s.tks.unshift(t); location.hash = href('tickets', t.number); } });
+  const newTicket = () => (!owner && onHold().length
+    ? toast('Your account is on hold for a past-due bill, so new requests are paused until it’s paid.', 'error')
+    : ticketForm({ contracts: [s.c], contractId: id, owner, onCreated: (t) => { s.tks.unshift(t); location.hash = href('tickets', t.number); } }));
   let stopTicket = null;
   let tkFilter = 'open';
   function ticketList(selected) {
@@ -876,9 +893,13 @@ export async function contractPage(root, opts) {
       if (section === 'overview' && !scopeEditing) overview();
       if (section === 'schedule') cal?.reload();
     })
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'invoices' }, async () => {
+      const { data } = await supabase.from('invoices').select('*').eq('status', 'sent');
+      s.invs = data || []; renderHead();
+    })
     .subscribe();
 
-  return () => { stopTicket?.(); chatBox.destroy(); supabase.removeChannel(channel); };
+  return () => { stopTicket?.(); bill?.destroy(); supabase.removeChannel(channel); };
 }
 
 const dueClass = (c) => (c.due_date && !['complete', 'lost'].includes(c.status) && new Date(c.due_date + 'T23:59:59') < new Date() ? 'cv-late' : '');

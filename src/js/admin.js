@@ -9,6 +9,7 @@
      Tickets    client requests with files and a thread; add one to the SOW
      Pending    deals not signed yet, as a board you can drag across
      Calendar   everything scheduled and everything logged, by day
+     Finances   invoices, who owes what, expenses and profit
      Bell       notifications (live) and reminders
 
    Everything is saved to Supabase and streams in live via Realtime.
@@ -25,6 +26,9 @@ import { contractPage, contractForm, SECTIONS, projectHref } from './crm/contrac
 import { calendarView, eventModal } from './crm/calendar.js';
 import { notificationBell } from './crm/notifications.js';
 import { accountMenu } from './crm/account-menu.js';
+import { messenger } from './crm/chat-bubble.js';
+import { financesView } from './crm/finances.js';
+import { pastDueDays, causesHold, clientKey, clientName, HOLD_DAYS } from './crm/billing.js';
 import { ticketView, ticketForm, ticketPill, statusIcon, priorityIcon, T_KIND, T_PRIORITY, T_STATUS, OPEN_STATES } from './crm/tickets.js';
 
 const INQ_STATUSES = [
@@ -42,8 +46,9 @@ const NAV = [
   ['tickets', 'Tickets', icon.tickets],
   ['pending', 'Pending', icon.pending],
   ['calendar', 'Calendar', icon.calendar],
+  ['finances', 'Finances', icon.finances],
 ];
-const TITLES = { home: 'Home', contracts: 'Contracts', contract: 'Contract', requests: 'Requests', tickets: 'Tickets', pending: 'Pending deals', calendar: 'Calendar' };
+const TITLES = { home: 'Home', contracts: 'Contracts', contract: 'Contract', requests: 'Requests', tickets: 'Tickets', pending: 'Pending deals', calendar: 'Calendar', finances: 'Finances' };
 const STATUS_COLOR = { proposal: '#7CB7FF', negotiating: '#A06BFF', awaiting_signature: '#F5B84B', active: '#3DDC84', on_hold: '#8A93A6', complete: '#2E9BFF', lost: '#FF6B6B' };
 
 const state = {
@@ -52,7 +57,7 @@ const state = {
   inquiries: [],
   requests: [],
   upcoming: [],
-  tickets: [], tFilter: 'active', tQuery: '', tSelected: null, projCounts: {}, projFolders: {},
+  invoices: [], tickets: [], tFilter: 'active', tQuery: '', tSelected: null, projCounts: {}, projFolders: {}, filesOpen: new Set(),
   // inquiries inbox
   selectedId: null, filter: 'all', query: '', notes: [],
   // contracts list
@@ -91,8 +96,9 @@ async function enterApp(user) {
   });
   $('#appView').hidden = false;
   renderNav();
-  await Promise.all([loadContracts(), loadInquiries(), loadRequests(), loadUpcoming(), loadTickets()]);
+  await Promise.all([loadContracts(), loadInquiries(), loadRequests(), loadUpcoming(), loadTickets(), loadInvoices()]);
   subscribe();
+  state.msgr = messenger({ me: user, owner: true, getContracts: () => state.contracts, onRead: () => state.bell?.refresh() });
   accountMenu($('#acctMount'), { me: user, owner: true, onNameChange: (n) => { state.name = n; if (state.view === 'home') renderHome(); } });
   state.bell = notificationBell($('#bellMount'), { me: user, onOpen: openNotification, reminders });
   window.addEventListener('hashchange', route);
@@ -148,11 +154,23 @@ function renderProjectsNav() {
         el('i', { class: `crm-proj-dot st-${c.status}` }), el('span', { text: c.title }), n ? el('b', { class: 'crm-proj-n', title: `${n} new ticket${n === 1 ? '' : 's'}`, text: n }) : null),
       on ? el('ul', { class: 'crm-proj-sub' }, SECTIONS.map(([k, label]) => {
         const cnt = (state.projCounts[c.id] || {})[k];
-        const tree = k === 'files' ? folderTree(c) : null;
-        return el('li', {},
-          el('a', { href: projectHref(c, k), 'aria-current': (curSection || 'overview') === k && !(k === 'files' && (state.projFolders[c.id] || {}).cur) ? 'page' : 'false' },
-            el('span', { class: 'crm-sub-ico', html: icon[k] }), el('span', { class: 'crm-sub-label', text: label }),
-            cnt ? el('b', { class: `crm-proj-n${k === 'tickets' ? '' : ' soft'}`, text: cnt }) : null),
+        // Files: the folder tree stays folded until you click the arrow, or while you're in Files
+        const hasFolders = k === 'files' && (state.projFolders[c.id]?.folders || []).length > 0;
+        const treeOpen = hasFolders && (curSection === 'files' || state.filesOpen.has(c.id));
+        const tree = treeOpen ? folderTree(c) : null;
+        const link = el('a', { href: projectHref(c, k), 'aria-current': (curSection || 'overview') === k && !(k === 'files' && (state.projFolders[c.id] || {}).cur) ? 'page' : 'false' },
+          el('span', { class: 'crm-sub-ico', html: icon[k] }), el('span', { class: 'crm-sub-label', text: label }),
+          cnt ? el('b', { class: `crm-proj-n${k === 'tickets' ? '' : ' soft'}`, text: cnt }) : null);
+        return el('li', { class: hasFolders ? 'has-tree' : null },
+          hasFolders ? el('div', { class: 'crm-sub-row' }, link,
+            el('button', { type: 'button', class: `crm-tree-toggle${treeOpen ? ' open' : ''}`, 'aria-label': treeOpen ? 'Hide folders' : 'Show folders', 'aria-expanded': String(treeOpen), title: treeOpen ? 'Hide folders' : 'Show folders',
+              html: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>',
+              onclick: (e) => {
+                e.preventDefault();
+                if (curSection === 'files') { location.hash = projectHref(c, 'overview'); state.filesOpen.delete(c.id); return; }
+                if (state.filesOpen.has(c.id)) state.filesOpen.delete(c.id); else state.filesOpen.add(c.id);
+                renderProjectsNav();
+              } })) : link,
           tree);
       })) : null);
   };
@@ -170,8 +188,9 @@ function updateCounts() {
     requests: state.inquiries.filter((q) => q.status === 'new').length + state.requests.filter((r) => r.status === 'new').length,
     pending: state.contracts.filter((c) => PENDING.includes(c.status)).length,
     tickets: state.tickets.filter((t) => t.status === 'open').length,
+    finances: state.invoices.filter((i) => pastDueDays(i) > 0).length,
   };
-  $$('[data-count]').forEach((e) => { const v = n[e.dataset.count]; e.textContent = v || ''; e.hidden = !v; e.classList.toggle('hot', ['requests', 'tickets'].includes(e.dataset.count) && v > 0); });
+  $$('[data-count]').forEach((e) => { const v = n[e.dataset.count]; e.textContent = v || ''; e.hidden = !v; e.classList.toggle('hot', ['requests', 'tickets', 'finances'].includes(e.dataset.count) && v > 0); });
   const sub = { inbox: state.inquiries.filter((q) => q.status === 'new').length, access: state.requests.filter((r) => r.status === 'new').length };
   $$('[data-subcount]').forEach((e) => { e.textContent = sub[e.dataset.subcount] || ''; });
   const rq = $('#rqSummary');
@@ -200,7 +219,7 @@ function route() {
   const navKey = v === 'contract' ? 'contracts' : v;
   $$('.crm-nav-link').forEach((a) => a.setAttribute('aria-current', a.dataset.route === navKey ? 'page' : 'false'));
   $('#viewTitle').textContent = TITLES[v];
-  document.querySelector('.crm-top').classList.toggle('has-page-head', ['home', 'contracts', 'requests', 'tickets', 'pending', 'calendar'].includes(v));
+  document.querySelector('.crm-top').classList.toggle('has-page-head', ['home', 'contracts', 'requests', 'tickets', 'pending', 'calendar', 'finances'].includes(v));
   $('#newContractBtn').querySelector('span').textContent = v === 'pending' ? 'New deal' : 'New contract';
   document.title = `${TITLES[v]} — Williams Systems LLC`;
   window.scrollTo(0, 0);
@@ -211,6 +230,10 @@ function route() {
   else if (v === 'requests') switchRequests(arg === 'accounts' ? 'access' : 'inbox');
   else if (v === 'tickets') renderTickets(arg);
   else if (v === 'pending') renderPending();
+  else if (v === 'finances') {
+    if (!state.finances) state.finances = financesView($('#view-finances'), { getContracts: () => state.contracts, projectHref });
+    else state.finances.reload();
+  }
   else if (v === 'calendar') {
     if (!state.calendar) {
       state.calendar = calendarView($('#view-calendar'), {
@@ -239,6 +262,8 @@ async function routeProject([slug, section = 'overview', sub]) {
   const token = (state.routeToken = Symbol('route'));
   const stop = await contractPage($('#view-contract'), {
     slug, section, sub, owner: true, me: state.me,
+    openChat: (cid) => state.msgr?.open(cid),
+    getContracts: () => state.contracts,
     onFolders: (c, folders, cur) => {
       const prev = state.projFolders[c.id];
       const next = { folders, cur: cur === undefined ? (prev ? null : null) : cur };
@@ -261,7 +286,7 @@ async function routeProject([slug, section = 'overview', sub]) {
 function openNotification(n) {
   if (n.href) { location.hash = n.href; return; }
   const proj = n.contract_id && state.contracts.find((c) => c.id === n.contract_id);
-  if (n.kind === 'message' && proj && !n.ticket_id) { location.hash = projectHref(proj, 'chat'); return; }
+  if (n.kind === 'message' && proj && !n.ticket_id) { state.msgr?.open(proj.id); return; }
   if (n.ticket_id) location.hash = `#tickets/${n.ticket_id}`;
   else if (n.contract_id) location.hash = `#contract/${n.contract_id}`;
   else if (n.target === 'accounts') location.hash = '#requests/accounts';
@@ -277,6 +302,7 @@ async function loadContracts() {
   if (error) return toast(`Couldn’t load contracts: ${error.message}`, 'error');
   state.contracts = data;
   updateCounts();
+  state.msgr?.refresh();
 }
 
 function upsertContract(c) {
@@ -291,6 +317,12 @@ async function saveContract(id, patch, msg) {
   upsertContract(data);
   if (msg) toast(msg);
   return data;
+}
+
+async function loadInvoices() {
+  const { data } = await supabase.from('invoices').select('*').eq('status', 'sent');
+  state.invoices = data || [];
+  updateCounts();
 }
 
 async function loadRequests() {
@@ -326,6 +358,7 @@ function subscribe() {
       if (state.view === 'home') renderHome();
     }))
     .on('postgres_changes', { event: '*', schema: 'public', table: 'events' }, async () => { await loadUpcoming(); if (state.view === 'home') renderHome(); state.bell?.update(); })
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'invoices' }, () => soon(async () => { await loadInvoices(); if (state.view === 'home') renderHome(); }))
     .on('postgres_changes', { event: '*', schema: 'public', table: 'access_requests' }, async () => { await loadRequests(); if (!$('#accessView').hidden) loadAccess(); })
     .on('postgres_changes', { event: '*', schema: 'public', table: 'inquiries' }, (payload) => {
       if (payload.eventType === 'INSERT') {
@@ -365,6 +398,22 @@ function reminders() {
     if (t.priority === 'urgent' || t.priority === 'high' || age >= 24) {
       out.push({ kind: 'reminder', title: `Ticket #${t.number}: ${t.title}`, body: `${T_PRIORITY[t.priority]} priority · waiting ${age >= 24 ? `${Math.floor(age / 24)}d` : `${age}h`}`, ticket_id: t.id });
     }
+  }
+  // money: a hold beats everything; otherwise flag bills that are late
+  const byClient = new Map();
+  for (const i of state.invoices) {
+    const days = pastDueDays(i);
+    const c = state.contracts.find((x) => x.id === i.contract_id);
+    if (!days || !c) continue;
+    const k = clientKey(c);
+    const g = byClient.get(k) || { c, days: 0, amt: 0, hold: false, n: 0 };
+    g.days = Math.max(g.days, days); g.amt += Number(i.amount); g.hold ||= causesHold(i); g.n += 1;
+    byClient.set(k, g);
+  }
+  for (const g of [...byClient.values()].sort((a, b) => b.days - a.days)) {
+    out.push({ kind: 'reminder', title: g.hold ? `On hold: ${clientName(g.c)}` : `Past due: ${clientName(g.c)}`,
+      body: g.hold ? `${money(g.amt)} unpaid over ${HOLD_DAYS} days · no production until paid` : `${money(g.amt)} · ${g.days} day${g.days === 1 ? '' : 's'} late${g.days > HOLD_DAYS - 15 ? ` · hold in ${HOLD_DAYS - g.days}d` : ''}`,
+      contract_id: g.c.id, href: projectHref(g.c, 'billing') });
   }
   for (const e of state.meetingRequests || []) {
     const proj = state.contracts.find((c) => c.id === e.contract_id);
