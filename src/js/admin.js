@@ -2,9 +2,11 @@
    Owner dashboard — a small CRM for Williams Systems LLC.
 
      Home       charts and analytics, live contracts, what needs attention
-     Contracts  every contract and its status; each opens its own page
-                (scope of work, deliverables, dates, timeline, client chat)
+     Contracts  every contract and its status
+     Projects   in the sidebar: each contract is its own workspace at
+                #/<project>/<section> (Overview, Tickets, Chat, Schedule, Files)
      Requests   project inquiries from the website + account requests
+     Tickets    client requests with files and a thread; add one to the SOW
      Pending    deals not signed yet, as a board you can drag across
      Calendar   everything scheduled and everything logged, by day
      Bell       notifications (live) and reminders
@@ -19,9 +21,10 @@ import {
   timeAgo, dueText, daysFrom, ymd, toast, armedButton, icon, EVENT_KINDS, fill,
 } from './crm/util.js';
 import { barChart, lineChart, donut, hBars } from './crm/charts.js';
-import { contractPage, contractForm } from './crm/contract-view.js';
+import { contractPage, contractForm, SECTIONS, projectHref } from './crm/contract-view.js';
 import { calendarView, eventModal } from './crm/calendar.js';
 import { notificationBell } from './crm/notifications.js';
+import { ticketView, ticketForm, ticketPill, T_KIND, T_PRIORITY, T_STATUS, OPEN_STATES } from './crm/tickets.js';
 
 const INQ_STATUSES = [
   ['new', 'New'],
@@ -35,10 +38,11 @@ const NAV = [
   ['home', 'Home', icon.home],
   ['contracts', 'Contracts', icon.contracts],
   ['requests', 'Requests', icon.requests],
+  ['tickets', 'Tickets', icon.tickets],
   ['pending', 'Pending', icon.pending],
   ['calendar', 'Calendar', icon.calendar],
 ];
-const TITLES = { home: 'Home', contracts: 'Contracts', contract: 'Contract', requests: 'Requests', pending: 'Pending deals', calendar: 'Calendar' };
+const TITLES = { home: 'Home', contracts: 'Contracts', contract: 'Contract', requests: 'Requests', tickets: 'Tickets', pending: 'Pending deals', calendar: 'Calendar' };
 const STATUS_COLOR = { proposal: '#7CB7FF', negotiating: '#A06BFF', awaiting_signature: '#F5B84B', active: '#3DDC84', on_hold: '#8A93A6', complete: '#2E9BFF', lost: '#FF6B6B' };
 
 const state = {
@@ -47,6 +51,7 @@ const state = {
   inquiries: [],
   requests: [],
   upcoming: [],
+  tickets: [], tFilter: 'active', tQuery: '', tSelected: null,
   // inquiries inbox
   selectedId: null, filter: 'all', query: '', notes: [],
   // contracts list
@@ -75,14 +80,14 @@ $('#signOutBtn').addEventListener('click', signOut);
 $('#signOutSm').addEventListener('click', signOut);
 $('#newContractBtn').addEventListener('click', () => contractForm(
   { status: state.view === 'pending' ? 'proposal' : 'active' },
-  { onSaved: (d) => { upsertContract(d); location.hash = `#contract/${d.id}`; } }));
+  { onSaved: (d) => { upsertContract(d); location.hash = projectHref(d); } }));
 
 async function enterApp(user) {
   state.me = user;
   $('#userEmail').textContent = user.email;
   $('#appView').hidden = false;
   renderNav();
-  await Promise.all([loadContracts(), loadInquiries(), loadRequests(), loadUpcoming()]);
+  await Promise.all([loadContracts(), loadInquiries(), loadRequests(), loadUpcoming(), loadTickets()]);
   subscribe();
   state.bell = notificationBell($('#bellMount'), { me: user, onOpen: openNotification, reminders });
   window.addEventListener('hashchange', route);
@@ -97,7 +102,36 @@ function renderNav() {
   $('#crmNav').replaceChildren(...NAV.map(([key, label, svg]) =>
     el('a', { href: `#${key}`, class: 'crm-nav-link', 'data-route': key },
       el('span', { class: 'crm-nav-ico', html: svg }), el('span', { class: 'crm-nav-label', text: label }), el('span', { class: 'crm-nav-count', 'data-count': key }))));
+  if (!$('#crmProjects')) $('#crmNav').after(el('nav', { class: 'crm-projects', id: 'crmProjects', 'aria-label': 'Projects' }));
+  renderProjectsNav();
   updateCounts();
+}
+
+/** Every live or pending contract gets its own workspace in the sidebar. */
+function renderProjectsNav() {
+  const box = $('#crmProjects');
+  if (!box) return;
+  const order = (c) => (LIVE.includes(c.status) ? 0 : PENDING.includes(c.status) ? 1 : 2);
+  const list = state.contracts.filter((c) => c.status !== 'lost' && c.status !== 'complete').sort((a, b) => order(a) - order(b) || a.title.localeCompare(b.title));
+  const done = state.contracts.filter((c) => c.status === 'complete');
+  const [curSlug, curSection] = state.project || [];
+  const openTickets = (c) => state.tickets.filter((t) => t.contract_id === c.id && t.status === 'open').length;
+  const item = (c) => {
+    const on = c.slug === curSlug;
+    const n = openTickets(c);
+    return el('li', { class: on ? 'on' : '' },
+      el('a', { href: projectHref(c), class: 'crm-proj', 'aria-current': on && (!curSection || curSection === 'overview') ? 'page' : 'false', title: c.title },
+        el('i', { class: `crm-proj-dot st-${c.status}` }), el('span', { text: c.title }), n ? el('b', { class: 'crm-proj-n', title: `${n} new ticket${n === 1 ? '' : 's'}`, text: n }) : null),
+      on ? el('ul', { class: 'crm-proj-sub' }, SECTIONS.map(([k, label]) => el('li', {},
+        el('a', { href: projectHref(c, k), 'aria-current': (curSection || 'overview') === k ? 'page' : 'false' }, label,
+          k === 'tickets' && n ? el('b', { class: 'crm-proj-n', text: n }) : null)))) : null);
+  };
+  fill(box, 
+    el('div', { class: 'crm-projects-head' }, el('span', { text: 'Projects' }),
+      el('button', { type: 'button', class: 'crm-projects-add', 'aria-label': 'New project', title: 'New project', html: icon.plus, onclick: () => $('#newContractBtn').click() })),
+    list.length ? el('ul', { class: 'crm-proj-list' }, list.map(item)) : el('p', { class: 'crm-projects-empty', text: 'Projects appear here as you create contracts.' }),
+    done.length ? el('details', { class: 'crm-proj-done', open: done.some((c) => c.slug === curSlug) ? true : null },
+      el('summary', { text: `Complete (${done.length})` }), el('ul', { class: 'crm-proj-list' }, done.map(item))) : null);
 }
 
 function updateCounts() {
@@ -105,16 +139,25 @@ function updateCounts() {
     contracts: state.contracts.filter((c) => LIVE.includes(c.status)).length,
     requests: state.inquiries.filter((q) => q.status === 'new').length + state.requests.filter((r) => r.status === 'new').length,
     pending: state.contracts.filter((c) => PENDING.includes(c.status)).length,
+    tickets: state.tickets.filter((t) => t.status === 'open').length,
   };
-  $$('[data-count]').forEach((e) => { const v = n[e.dataset.count]; e.textContent = v || ''; e.hidden = !v; e.classList.toggle('hot', e.dataset.count === 'requests' && v > 0); });
+  $$('[data-count]').forEach((e) => { const v = n[e.dataset.count]; e.textContent = v || ''; e.hidden = !v; e.classList.toggle('hot', ['requests', 'tickets'].includes(e.dataset.count) && v > 0); });
   const sub = { inbox: state.inquiries.filter((q) => q.status === 'new').length, access: state.requests.filter((r) => r.status === 'new').length };
   $$('[data-subcount]').forEach((e) => { e.textContent = sub[e.dataset.subcount] || ''; });
+  renderProjectsNav();
   state.bell?.update();
 }
 
 function route() {
-  const [view, arg] = (location.hash.slice(1) || 'home').split('/');
+  const hash = location.hash.slice(1) || 'home';
+  if (hash.startsWith('/')) return routeProject(hash.slice(1).split('/').map(decodeURIComponent));
+  state.project = null;
+  const [view, arg] = hash.split('/');
   if (view === 'access') return location.replace('#requests/accounts');
+  if (view === 'contract' && arg) {
+    const c = state.contracts.find((x) => x.id === arg);
+    if (c) return location.replace(projectHref(c));
+  }
   const v = TITLES[view] ? view : 'home';
   state.cleanup?.(); state.cleanup = null;
   state.view = v;
@@ -128,8 +171,9 @@ function route() {
 
   if (v === 'home') renderHome();
   else if (v === 'contracts') renderContracts();
-  else if (v === 'contract') openContract(arg);
+  else if (v === 'contract') location.replace('#contracts');
   else if (v === 'requests') switchRequests(arg === 'accounts' ? 'access' : 'inbox');
+  else if (v === 'tickets') renderTickets(arg);
   else if (v === 'pending') renderPending();
   else if (v === 'calendar') {
     if (!state.calendar) {
@@ -140,13 +184,38 @@ function route() {
       });
     } else state.calendar.reload();
   }
-  if (!REDUCED && v !== 'contract' && v !== 'requests') {
+  if (!REDUCED && !['contract', 'requests', 'tickets'].includes(v)) {
     gsap.from(`#view-${v} > *`, { y: 12, autoAlpha: 0, duration: 0.4, stagger: 0.04, ease: 'power3.out', clearProps: 'all' });
   }
 }
 
+/** A project workspace: #/<slug>/<section>/<sub> */
+async function routeProject([slug, section = 'overview', sub]) {
+  state.cleanup?.(); state.cleanup = null;
+  state.view = 'contract';
+  state.project = [slug, section];
+  for (const id of Object.keys(TITLES)) $(`#view-${id}`).hidden = id !== 'contract';
+  $$('.crm-nav-link').forEach((a) => a.setAttribute('aria-current', 'false'));
+  const c = state.contracts.find((x) => x.slug === slug);
+  $('#viewTitle').textContent = c ? c.title : 'Project';
+  document.title = `${c ? c.title : 'Project'} — Williams Systems LLC`;
+  $('#newContractBtn').querySelector('span').textContent = 'New contract';
+  renderProjectsNav();
+  window.scrollTo(0, 0);
+  const token = (state.routeToken = Symbol('route'));
+  const stop = await contractPage($('#view-contract'), {
+    slug, section, sub, owner: true, me: state.me,
+    onChanged: (d) => { upsertContract(d); if (d.slug !== slug) history.replaceState(null, '', projectHref(d, section, sub)); },
+    onDeleted: () => { state.contracts = state.contracts.filter((x) => x.slug !== slug); updateCounts(); location.hash = '#contracts'; },
+    onRead: () => state.bell?.refresh(),
+    addEvent: (init) => eventModal(init, { contracts: state.contracts, onSaved: () => { loadUpcoming(); state.calendar?.reload(); } }),
+  });
+  if (state.routeToken === token) state.cleanup = stop; else stop();
+}
+
 function openNotification(n) {
-  if (n.contract_id) location.hash = `#contract/${n.contract_id}`;
+  if (n.ticket_id) location.hash = `#tickets/${n.ticket_id}`;
+  else if (n.contract_id) location.hash = `#contract/${n.contract_id}`;
   else if (n.target === 'accounts') location.hash = '#requests/accounts';
   else if (n.target === 'requests') location.hash = '#requests';
   else if (n.target === 'calendar') location.hash = '#calendar';
@@ -199,6 +268,11 @@ function subscribe() {
       if (state.view === 'contracts') renderContracts();
       if (state.view === 'pending') renderPending();
     }))
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'tickets' }, () => soon(async () => {
+      await loadTickets();
+      if (state.view === 'tickets') renderTicketList();
+      if (state.view === 'home') renderHome();
+    }))
     .on('postgres_changes', { event: '*', schema: 'public', table: 'events' }, async () => { await loadUpcoming(); if (state.view === 'home') renderHome(); state.bell?.update(); })
     .on('postgres_changes', { event: '*', schema: 'public', table: 'access_requests' }, async () => { await loadRequests(); if (!$('#accessView').hidden) loadAccess(); })
     .on('postgres_changes', { event: '*', schema: 'public', table: 'inquiries' }, (payload) => {
@@ -231,6 +305,13 @@ function reminders() {
     }
     if (LIVE.includes(c.status) && c.due_date && daysFrom(c.due_date) < 0) {
       out.push({ kind: 'reminder', title: `Overdue: ${c.title}`, body: dueText(c), contract_id: c.id });
+    }
+  }
+  for (const t of state.tickets) {
+    if (t.status !== 'open') continue;
+    const age = Math.floor((Date.now() - new Date(t.updated_at)) / 3600000);
+    if (t.priority === 'urgent' || t.priority === 'high' || age >= 24) {
+      out.push({ kind: 'reminder', title: `Ticket #${t.number}: ${t.title}`, body: `${T_PRIORITY[t.priority]} priority · waiting ${age >= 24 ? `${Math.floor(age / 24)}d` : `${age}h`}`, ticket_id: t.id });
     }
   }
   const today = ymd(new Date());
@@ -312,7 +393,7 @@ function renderHome() {
     card('Live contracts', contractTable(live.slice(0, 6), { compact: true, empty: 'No live contracts yet. When a deal is signed it shows up here.' }), { wide: true, link: [`View all ${live.length ? `(${live.length})` : ''} →`, '#contracts'] }),
     el('div', { class: 'crm-cards two' },
       card('Needs attention', attention.length ? el('ul', { class: 'attn' }, attention.slice(0, 6).map((r) => el('li', {},
-        el('a', { href: r.contract_id ? `#contract/${r.contract_id}` : '#calendar' }, el('strong', { text: r.title }), el('small', { text: r.body })))))
+        el('a', { href: r.ticket_id ? `#tickets/${r.ticket_id}` : r.contract_id ? `#contract/${r.contract_id}` : '#calendar' }, el('strong', { text: r.title }), el('small', { text: r.body })))))
         : el('p', { class: 'crm-empty', text: 'Nothing overdue, nothing gone quiet. Nice.' })),
       card('Coming up', next.length ? el('ul', { class: 'agenda' }, next.map((e) => el('li', { class: `k-${e.kind}` },
         el('span', { class: 'agenda-date' }, el('b', { text: new Date(e.starts_at).getDate() }), el('small', { text: new Date(e.starts_at).toLocaleDateString(undefined, { weekday: 'short' }) })),
@@ -365,16 +446,93 @@ function contractTable(rows, { compact = false, empty = 'Nothing here.' } = {}) 
       compact ? null : el('td', { 'data-label': 'Updated', class: 'muted-sm', text: timeAgo(c.updated_at) })))));
 }
 
-async function openContract(id) {
-  if (!id) { location.hash = '#contracts'; return; }
-  state.cleanup = await contractPage($('#view-contract'), {
-    id, owner: true, me: state.me,
-    onBack: () => { location.hash = '#contracts'; },
-    onChanged: (c) => { upsertContract(c); $('#viewTitle').textContent = 'Contract'; },
-    onDeleted: () => { state.contracts = state.contracts.filter((c) => c.id !== id); updateCounts(); location.hash = '#contracts'; },
+/* ------------------------------------------------------------------ */
+/*  Tickets                                                            */
+/* ------------------------------------------------------------------ */
+const T_FILTERS = [
+  ['active', 'Active', (t) => OPEN_STATES.includes(t.status)],
+  ['open', 'New', (t) => t.status === 'open'],
+  ['waiting', 'Waiting on client', (t) => t.status === 'waiting'],
+  ['done', 'Resolved', (t) => ['resolved', 'closed'].includes(t.status)],
+  ['all', 'All', () => true],
+];
+const PRIO_RANK = { urgent: 0, high: 1, normal: 2, low: 3 };
+
+async function loadTickets() {
+  const { data, error } = await supabase.from('tickets').select('*').order('updated_at', { ascending: false });
+  if (error) return toast(`Couldn’t load tickets: ${error.message}`, 'error');
+  state.tickets = data;
+  updateCounts();
+}
+
+const tListEl = el('ul', { class: 'tk-list' });
+const tDetailEl = el('section', { class: 'tk-detail' });
+let tShell;
+
+function renderTickets(id) {
+  const root = $('#view-tickets');
+  if (!tShell) {
+    const search = el('input', { type: 'search', class: 'search', placeholder: 'Search tickets…', 'aria-label': 'Search tickets' });
+    search.addEventListener('input', () => { state.tQuery = search.value.trim().toLowerCase(); renderTicketList(); });
+    tShell = el('div', { class: 'tk-shell' },
+      el('aside', { class: 'tk-side' },
+        el('div', { class: 'tk-tools' },
+          el('div', { class: 'tk-tools-row' }, search,
+            el('button', { type: 'button', class: 'btn btn-ghost btn-sm', text: '+ New', onclick: () => ticketForm({ contracts: state.contracts, owner: true, onCreated: (t) => { state.tickets.unshift(t); location.hash = `#tickets/${t.id}`; } }) })),
+          el('div', { class: 'tabs', role: 'tablist', id: 'tkTabs' })),
+        tListEl),
+      tDetailEl);
+    root.replaceChildren(tShell);
+  }
+  state.tSelected = id || null;
+  tShell.classList.toggle('show-detail', Boolean(id));
+  renderTicketList();
+  state.cleanup?.();
+  if (!id) {
+    tDetailEl.replaceChildren(el('div', { class: 'detail-empty' },
+      el('span', { class: 'tk-empty-ico', html: icon.tickets }),
+      el('p', { text: state.tickets.length ? 'Pick a ticket to read it, reply, or add it to the scope of work.' : 'No tickets yet. When a client sends a request from their project page, it lands here.' })));
+    return;
+  }
+  ticketView(tDetailEl, {
+    id, owner: true, me: state.me, contracts: state.contracts,
+    onBack: () => { location.hash = '#tickets'; },
+    onChanged: (t) => { const i = state.tickets.findIndex((x) => x.id === t.id); if (i >= 0) state.tickets[i] = t; renderTicketList(); updateCounts(); },
+    onDeleted: () => { state.tickets = state.tickets.filter((t) => t.id !== id); updateCounts(); location.hash = '#tickets'; },
     onRead: () => state.bell?.refresh(),
-    addEvent: (init) => eventModal(init, { contracts: state.contracts, onSaved: () => { loadUpcoming(); state.calendar?.reload(); } }),
-  });
+  }).then((stop) => { if (state.tSelected === id) state.cleanup = stop; else stop(); });
+}
+
+function renderTicketList() {
+  const tabs = $('#tkTabs');
+  if (!tabs) return;
+  tabs.replaceChildren(...T_FILTERS.map(([k, label, test]) => el('button', {
+    type: 'button', role: 'tab', class: 'tab', 'aria-selected': String(state.tFilter === k),
+    onclick: () => { state.tFilter = k; renderTicketList(); },
+  }, label, el('span', { class: 'tab-count', text: state.tickets.filter(test).length }))));
+  const test = T_FILTERS.find((x) => x[0] === state.tFilter)[2];
+  const q = state.tQuery;
+  const nameOf = (t) => state.contracts.find((c) => c.id === t.contract_id);
+  const rows = state.tickets.filter(test)
+    .filter((t) => !q || [t.title, t.body, `#${t.number}`, nameOf(t)?.title, nameOf(t)?.client_name, nameOf(t)?.company].some((x) => x && x.toLowerCase().includes(q)))
+    .sort((a, b) => (OPEN_STATES.includes(a.status) && OPEN_STATES.includes(b.status) ? PRIO_RANK[a.priority] - PRIO_RANK[b.priority] : 0) || new Date(b.updated_at) - new Date(a.updated_at));
+  if (!rows.length) {
+    tListEl.replaceChildren(el('li', { class: 'list-empty', text: state.tickets.length ? 'Nothing here.' : 'No tickets yet.' }));
+    return;
+  }
+  tListEl.replaceChildren(...rows.map((t) => {
+    const c = nameOf(t);
+    return el('li', {}, el('a', { href: `#tickets/${t.id}`, class: `tk-item${t.id === state.tSelected ? ' on' : ''}${t.status === 'open' ? ' new' : ''}` },
+      el('span', { class: 'inq-row' },
+        el('strong', { class: 'inq-name', text: `#${t.number} ${t.title}` }),
+        el('time', { class: 'inq-time mono', text: timeAgo(t.updated_at) })),
+      el('span', { class: 'inq-sub', text: [c?.company || c?.client_name, c?.title].filter(Boolean).join(' · ') || 'No contract' }),
+      el('span', { class: 'inq-row' },
+        el('span', { class: 'tk-item-tags' }, ticketPill(t.status),
+          t.priority === 'urgent' || t.priority === 'high' ? el('span', { class: `tk-tag pr-${t.priority}`, text: T_PRIORITY[t.priority] }) : null,
+          t.sow_added_at ? el('span', { class: 'tk-tag in-sow', text: 'SOW' }) : null),
+        el('span', { class: 'inq-files mono', text: T_KIND[t.kind] }))));
+  }));
 }
 
 /* ------------------------------------------------------------------ */
@@ -602,7 +760,7 @@ function dealFromInquiry(q) {
     onSaved: async (d) => {
       upsertContract(d);
       if (q.status === 'new') await updateStatus(q, 'in_progress', false);
-      location.hash = `#contract/${d.id}`;
+      location.hash = projectHref(d);
     },
   });
 }
@@ -820,7 +978,7 @@ function renderRequests() {
         deal ? el('a', { class: 'btn btn-ghost btn-sm', href: `#contract/${deal.id}`, text: 'Open deal →' })
           : el('button', { class: 'btn btn-ghost btn-sm', type: 'button', text: 'Create deal', onclick: () => contractForm(
             { title: `Project for ${r.company || r.name}`, client_name: r.name, client_email: r.email, company: r.company, scope: r.message, status: 'proposal', request_id: r.id },
-            { title: 'Turn this request into a deal', onSaved: (d) => { upsertContract(d); location.hash = `#contract/${d.id}`; } }) }),
+            { title: 'Turn this request into a deal', onSaved: (d) => { upsertContract(d); location.hash = projectHref(d); } }) }),
         r.status === 'new' ? el('button', { class: 'btn btn-ghost btn-sm', type: 'button', text: 'Decline', onclick: () => setRequest(r, 'declined') }) : null));
   }));
   $('#requestEmpty').hidden = access.requests.length > 0;

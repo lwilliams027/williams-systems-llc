@@ -473,3 +473,151 @@ body.admin ol, body.admin ul { list-style: none; margin: 0; padding: 0; }
   .crm-view-title { font-size: 1.15rem; }
   .chat-msg { max-width: 94%; }
 }
+
+/* =====================================================================
+   Projects in the sidebar
+   ===================================================================== */
+.crm-side { overflow-y: auto; scrollbar-width: thin; }
+.crm-projects { display: flex; flex-direction: column; gap: 4px; padding-top: 14px; border-top: 1px solid var(--line-solid); }
+.crm-projects-head { display: flex; align-items: center; justify-content: space-between; padding: 0 12px 4px; font: 500 0.66rem var(--font-mono); letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-3); }
+.crm-projects-add { width: 24px; height: 24px; border-radius: 7px; display: grid; place-items: center; color: var(--text-3); }
+.crm-projects-add:hover { color: var(--text); background: var(--surface); }
+.crm-projects-add svg { width: 14px; height: 14px; }
+.crm-projects-empty { padding: 4px 12px; color: var(--text-3); font-size: 0.8rem; }
+.crm-proj-list { display: flex; flex-direction: column; gap: 1px; }
+.crm-proj { display: flex; align-items: center; gap: 10px; padding: 7px 12px; border-radius: 9px; color: var(--text-2); font-size: 0.88rem; }
+.crm-proj span { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.crm-proj:hover { background: rgba(255, 255, 255, 0.04); color: var(--text); }
+.crm-proj-list li.on > .crm-proj { color: var(--text); background: var(--surface); }
+.crm-proj-dot { width: 8px; height: 8px; border-radius: 3px; flex: none; background: var(--pc, var(--text-3)); }
+.crm-proj-n { font: 600 0.62rem var(--font-mono); color: #fff; background: var(--accent); border-radius: 99px; padding: 1px 6px; }
+.crm-proj-sub { margin: 2px 0 6px 21px !important; padding-left: 10px !important; border-left: 1px solid var(--line-2); display: flex; flex-direction: column; gap: 1px; }
+.crm-proj-sub a { display: flex; align-items: center; justify-content: space-between; padding: 5px 10px; border-radius: 8px; color: var(--text-3); font-size: 0.84rem; }
+.crm-proj-sub a:hover { color: var(--text); background: rgba(255, 255, 255, 0.03); }
+.crm-proj-sub a[aria-current="page"] { color: var(--text); background: var(--accent-soft); box-shadow: inset 2px 0 0 var(--accent); }
+.crm-proj-done summary { cursor: pointer; padding: 6px 12px; color: var(--text-3); font-size: 0.8rem; }
+
+/* ---------- project section tabs ---------- */
+.cv-tabs { display: flex; gap: 4px; border-bottom: 1px solid var(--line-solid); overflow-x: auto; scrollbar-width: none; margin-top: -4px; }
+.cv-tabs::-webkit-scrollbar { display: none; }
+.cv-tab { position: relative; display: inline-flex; align-items: center; gap: 7px; padding: 10px 14px; color: var(--text-3); font-weight: 500; font-size: 0.92rem; white-space: nowrap; }
+.cv-tab:hover { color: var(--text); }
+.cv-tab[aria-current="page"] { color: var(--text); }
+.cv-tab[aria-current="page"]::after { content: ""; position: absolute; left: 10px; right: 10px; bottom: -1px; height: 2px; border-radius: 2px; background: linear-gradient(90deg, #2E9BFF, #A06BFF); }
+.cv-tab-n { font: 600 0.64rem var(--font-mono); padding: 1px 7px; border-radius: 99px; background: var(--surface-2); color: var(--text-2); }
+.cv-body { display: flex; flex-direction: column; gap: 20px; min-width: 0; }
+.cv-chat.full .chat-list { max-height: none; height: calc(100dvh - var(--top-h) - 360px); min-height: 320px; }
+.portal .cv-chat.full .chat-list { height: calc(100dvh - 420px); }
+.chat-list.mini { max-height: none; min-height: 0; overflow: visible; }
+.cv-from-ticket { font-size: 0.72rem; color: var(--accent-fg); padding: 2px 7px; border-radius: 6px; background: var(--accent-soft); }
+.cv-ev-notes { color: var(--text-3); margin-top: 2px; white-space: pre-wrap; }
+.cv-join, .cal-join { flex: none; }
+.cal-item { display: flex; align-items: center; gap: 6px; }
+.cal-item > button { flex: 1; min-width: 0; }
+.rt-link { color: var(--accent-fg); text-decoration: underline; text-underline-offset: 2px; overflow-wrap: anywhere; }
+.chat-msg.mine .rt-link { color: #fff; }
+.cv-file-group { display: flex; flex-direction: column; gap: 10px; padding-top: 6px; }
+.cv-file-group + .cv-file-group { border-top: 1px solid var(--line-solid); padding-top: 16px; }
+.cv-file-group-h { display: flex; gap: 10px; align-items: baseline; font-weight: 600; }
+.cv-file-group-h .mono { color: var(--text-3); font-size: 0.78rem; font-weight: 500; }
+.cv-file-group-h:hover { color: var(--accent-fg); }
+
+/* =====================================================================
+   Tickets
+   ===================================================================== */
+.tk-pill { display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; font: 500 0.64rem var(--font-mono); letter-spacing: 0.06em; text-transform: uppercase; padding: 4px 9px; border-radius: 999px; color: var(--pc); background: color-mix(in srgb, var(--pc) 13%, transparent); border: 1px solid color-mix(in srgb, var(--pc) 35%, transparent); }
+.tk-pill::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+.tk-open { --pc: #7CB7FF; } .tk-in_progress { --pc: #A06BFF; } .tk-waiting { --pc: #F5B84B; } .tk-resolved { --pc: #3DDC84; } .tk-closed { --pc: #8A93A6; }
+.tk-tag { font-size: 0.78rem; color: var(--text-2); padding: 3px 9px; border-radius: 8px; background: var(--surface-2); }
+.tk-tag.pr-high { color: #F5B84B; background: rgba(245, 184, 75, 0.12); }
+.tk-tag.pr-urgent { color: #FF8A8A; background: rgba(255, 107, 107, 0.14); }
+.tk-tag.pr-low { color: var(--text-3); }
+.tk-tag.in-sow { color: var(--ok); background: rgba(61, 220, 132, 0.12); }
+.tk-sow-done { color: var(--ok); font-size: 0.88rem; font-weight: 600; padding: 0 6px; }
+.tk { display: flex; flex-direction: column; gap: 18px; min-width: 0; }
+.tk-about .cv-card { gap: 12px; }
+.tk-convo { gap: 10px; }
+.tk-thread { max-height: 520px; }
+.tk-sys { align-self: center; display: flex; flex-direction: column; align-items: center; gap: 8px; max-width: 90%; }
+.tk-sys > span { font-size: 0.76rem; color: var(--text-3); padding: 4px 12px; border-radius: 99px; background: var(--surface); border: 1px solid var(--line-solid); text-align: center; }
+.tk-compose { display: flex; flex-direction: column; gap: 8px; }
+.tk-compose .tk-drop { padding: 0; border: 0; background: none; flex-direction: row; align-items: center; flex-wrap: wrap; }
+.tk-compose .tk-drop > small { display: none; }
+
+.tk-files { display: flex; flex-wrap: wrap; gap: 8px; }
+.tk-file { display: flex; align-items: center; gap: 10px; padding: 6px 12px 6px 6px; border-radius: 12px; background: var(--surface); border: 1px solid var(--line-solid); max-width: 280px; }
+.tk-file:hover { border-color: var(--line-2); background: var(--surface-2); }
+.tk-file[aria-disabled="true"] { pointer-events: none; opacity: 0.6; }
+.chat-msg.mine .tk-file { background: color-mix(in srgb, var(--accent) 16%, var(--surface)); }
+.tk-thumb { width: 40px; height: 40px; flex: none; border-radius: 8px; overflow: hidden; display: grid; place-items: center; background: var(--surface-2); }
+.tk-thumb img { width: 100%; height: 100%; object-fit: cover; }
+.tk-ext { font: 600 0.62rem var(--font-mono); text-transform: uppercase; color: var(--accent-fg); }
+.tk-file-info { display: flex; flex-direction: column; min-width: 0; }
+.tk-file-name { font-size: 0.86rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.tk-file-info small { color: var(--text-3); font-size: 0.72rem; }
+
+.tk-drop { display: flex; flex-direction: column; align-items: flex-start; gap: 8px; padding: 14px; border: 1px dashed var(--line-2); border-radius: 12px; background: var(--ink); transition: border-color 0.15s, background 0.15s; }
+.tk-drop.over { border-color: var(--accent); background: var(--accent-soft); }
+.tk-drop > small { color: var(--text-3); font-size: 0.78rem; }
+.tk-attach { display: inline-flex; align-items: center; gap: 6px; }
+.tk-attach svg { width: 15px; height: 15px; }
+.tk-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.tk-chips li { display: flex; align-items: center; gap: 6px; padding: 4px 6px 4px 10px; border-radius: 8px; background: var(--surface-2); font-size: 0.8rem; }
+.tk-chips button { width: 20px; height: 20px; border-radius: 6px; color: var(--text-3); line-height: 1; }
+.tk-chips button:hover { color: var(--bad); }
+
+.tk-rows { display: flex; flex-direction: column; gap: 6px; }
+.tk-rows button { width: 100%; display: flex; align-items: center; gap: 12px; text-align: left; padding: 10px 12px; border-radius: 12px; background: var(--surface); border: 1px solid transparent; }
+.tk-rows button:hover { background: var(--surface-2); }
+.tk-rows button.on { border-color: var(--accent); background: var(--accent-soft); }
+.tk-num { color: var(--text-3); font-size: 0.76rem; flex: none; }
+.tk-row-body { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+.tk-row-body strong { font-size: 0.92rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.tk-row-body small { color: var(--text-3); font-size: 0.78rem; }
+.tk-clip { width: 16px; height: 16px; color: var(--text-3); flex: none; }
+.tk-clip svg { width: 100%; height: 100%; }
+
+/* ticket list + open ticket, side by side */
+.tk-split { display: grid; grid-template-columns: minmax(280px, 380px) minmax(0, 1fr); gap: 20px; align-items: start; }
+.tk-pane-list { position: sticky; top: calc(var(--top-h) + 16px); max-height: calc(100dvh - var(--top-h) - 32px); overflow-y: auto; }
+.tk-pane { min-width: 0; }
+.tk-pane > .detail-empty, .tk-detail > .detail-empty { min-height: 360px; border: 1px dashed var(--line-2); border-radius: 16px; }
+.tk-empty-ico { width: 40px; height: 40px; color: var(--text-3); }
+.tk-empty-ico svg { width: 100%; height: 100%; }
+
+/* dashboard-wide Tickets page */
+.crm-tickets { padding: 0; }
+.tk-shell { display: grid; grid-template-columns: minmax(300px, 400px) minmax(0, 1fr); min-height: calc(100dvh - var(--top-h)); }
+.tk-side { border-right: 1px solid var(--line-solid); background: var(--ink); display: flex; flex-direction: column; position: sticky; top: var(--top-h); height: calc(100dvh - var(--top-h)); }
+.tk-tools { padding: 16px; display: flex; flex-direction: column; gap: 12px; border-bottom: 1px solid var(--line-solid); }
+.tk-tools-row { display: flex; gap: 8px; }
+.tk-list { flex: 1; overflow-y: auto; }
+.tk-item { display: flex; flex-direction: column; gap: 6px; padding: 14px 16px; border-bottom: 1px solid var(--line-solid); border-left: 3px solid transparent; }
+.tk-item:hover { background: var(--ink-2); }
+.tk-item.on { background: var(--surface); border-left-color: var(--accent); }
+.tk-item.new .inq-name::before { content: ""; display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: var(--accent); margin-right: 8px; vertical-align: middle; }
+.tk-item-tags { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+.tk-item-tags .tk-tag { font-size: 0.7rem; padding: 2px 7px; }
+.tk-detail { padding: clamp(16px, 3vw, 32px); min-width: 0; }
+
+.crm-modal-card.xl { width: min(100%, 900px); }
+.ev-invite { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; padding: 12px; border-radius: 12px; background: var(--surface); }
+.ev-invite > span { color: var(--text-3); font-size: 0.86rem; margin-right: 4px; }
+.ev-preview { white-space: pre-wrap; font: 0.84rem/1.6 var(--font-body); color: var(--text-2); background: var(--ink); border: 1px solid var(--line-2); border-radius: 12px; padding: 14px; max-height: 260px; overflow: auto; }
+
+@media (max-width: 1100px) {
+  .tk-split { grid-template-columns: 1fr; }
+  .tk-split .tk-pane-list { position: static; max-height: none; }
+  .tk-split.show-detail .tk-pane-list { display: none; }
+  .tk-split:not(.show-detail) .tk-pane { display: none; }
+  .tk-shell { grid-template-columns: 1fr; }
+  .tk-shell.show-detail .tk-side { display: none; }
+  .tk-shell:not(.show-detail) .tk-detail { display: none; }
+  .tk-side { position: static; height: auto; border-right: 0; }
+}
+@media (max-width: 899.98px) {
+  .crm-projects { display: none; }
+  .crm-nav-link { padding: 6px 2px; font-size: 0.6rem; }
+  .cv-chat.full .chat-list { height: calc(100dvh - 430px); min-height: 280px; }
+  .tk-shell { min-height: 0; }
+}

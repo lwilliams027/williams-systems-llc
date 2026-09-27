@@ -31,6 +31,31 @@ const kids = (list) => list.flat(Infinity).filter((k) => k != null && k !== fals
 export const fill = (node, ...list) => node.replaceChildren(...kids(list));
 export const add = (node, ...list) => node.append(...kids(list));
 
+/** Text with its web links made clickable (built from nodes, so nothing is ever parsed as HTML). */
+export function richText(str = '', tag = 'span', props = {}) {
+  const node = el(tag, props);
+  const re = /\bhttps?:\/\/[^\s<>"']+[^\s<>"'.,;:!?)\]]/gi;
+  let last = 0;
+  for (const m of str.matchAll(re)) {
+    node.append(str.slice(last, m.index));
+    node.append(el('a', { href: m[0], target: '_blank', rel: 'noopener noreferrer', class: 'rt-link', text: m[0] }));
+    last = m.index + m[0].length;
+  }
+  node.append(str.slice(last));
+  return node;
+}
+
+/** Zoom / Meet / Teams / other, for a meeting link's button label. */
+export function meetingName(url = '') {
+  if (/zoom\.us/i.test(url)) return 'Zoom';
+  if (/meet\.google/i.test(url)) return 'Google Meet';
+  if (/teams\.(microsoft|live)/i.test(url)) return 'Teams';
+  if (/webex/i.test(url)) return 'Webex';
+  return 'meeting';
+}
+
+export const formatBytes = (n = 0) => (n < 1024 ? `${n} B` : n < 1048576 ? `${Math.round(n / 1024)} KB` : `${(n / 1048576).toFixed(1)} MB`);
+
 /* ---------- deal stages ---------- */
 export const STATUS = {
   proposal:           { label: 'Proposal',           group: 'pending' },
@@ -146,6 +171,7 @@ export const icon = {
   requests: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-6l-2 3h-4l-2-3H2"/><path d="M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/></svg>',
   pending: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="5" height="16" rx="1.5"/><rect x="10" y="4" width="5" height="11" rx="1.5"/><rect x="17" y="4" width="4" height="7" rx="1.5"/></svg>',
   calendar: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>',
+  tickets: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8a2 2 0 0 0 2-2h14a2 2 0 0 0 2 2v2a2 2 0 0 0 0 4v2a2 2 0 0 0-2 2H5a2 2 0 0 0-2-2v-2a2 2 0 0 0 0-4z"/><path d="M13 6v2M13 11v2M13 16v2"/></svg>',
   bell: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg>',
   send: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m22 2-7 20-4-9-9-4z"/><path d="M22 2 11 13"/></svg>',
   plus: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>',

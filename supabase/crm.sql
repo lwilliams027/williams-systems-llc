@@ -424,3 +424,36 @@ begin
     end if;
   end loop;
 end $$;
+
+-- ---------- Meeting links on events (Zoom, Google Meet, Teams…) ----------
+alter table public.events add column if not exists link text
+  check (link is null or (char_length(link) <= 500 and link ~* '^https://'));
+
+-- ---------- Project addresses: every contract gets a short name for its URL (#/booking-website) ----------
+alter table public.contracts add column if not exists slug text;
+create unique index if not exists contracts_slug_idx on public.contracts (slug);
+
+create or replace function public.contracts_slug()
+returns trigger
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare base text; candidate text; n int := 1;
+begin
+  if new.slug is not null and tg_op = 'UPDATE' and new.slug = old.slug then return new; end if;
+  base := trim(both '-' from regexp_replace(lower(coalesce(nullif(new.slug, ''), new.title)), '[^a-z0-9]+', '-', 'g'));
+  base := left(coalesce(nullif(base, ''), 'project'), 60);
+  candidate := base;
+  while exists (select 1 from public.contracts c where c.slug = candidate and c.id <> new.id) loop
+    n := n + 1; candidate := base || '-' || n;
+  end loop;
+  new.slug := candidate;
+  return new;
+end;
+$$;
+drop trigger if exists contracts_slug on public.contracts;
+create trigger contracts_slug before insert or update of slug on public.contracts
+  for each row execute function public.contracts_slug();
+update public.contracts set slug = null where slug is null;  -- fills in any missing
+

@@ -36,7 +36,7 @@ if (!ref) fail('No project ref (.supabase-temp.json). Run npm run provision firs
 if (!backupKey) fail('No backup key (.backup-token). Start the backup server once: npm run backup:server');
 
 const TABLES = ['admins', 'profiles', 'invites', 'access_requests', 'inquiries', 'inquiry_notes',
-  'contracts', 'contract_messages', 'events', 'activity', 'notifications'];
+  'contracts', 'contract_messages', 'events', 'activity', 'notifications', 'tickets', 'ticket_messages'];
 const sha256 = (buf) => createHash('sha256').update(buf).digest('hex');
 
 async function api(path, { method = 'GET', body } = {}) {
