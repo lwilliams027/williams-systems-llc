@@ -153,7 +153,7 @@ export async function ticketView(root, opts) {
   box.addEventListener('input', () => { box.style.height = 'auto'; box.style.height = `${Math.min(box.scrollHeight, 160)}px`; });
 
   fill(root, el('article', { class: 'tk' }, head, about, el('section', { class: 'tk-convo cv-card' },
-    el('div', { class: 'cv-card-head' }, el('h2', { text: 'Conversation' }), el('span', { class: 'live on mono' }, el('i'), 'Live')), list, form)));
+    el('div', { class: 'cv-card-head' }, el('h2', { text: 'Conversation' })), list, form)));
 
   const contractOf = () => (opts.contracts || []).find((c) => c.id === s.t.contract_id);
 

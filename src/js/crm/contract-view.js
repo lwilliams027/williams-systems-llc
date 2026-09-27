@@ -61,7 +61,9 @@ export async function contractPage(root, opts) {
   const head = el('div');
   const tabs = el('nav', { class: 'cv-tabs', 'aria-label': 'Project sections' });
   const body = el('div', { class: `cv-body cv-${section}` });
-  fill(root, el('article', { class: `cv${owner ? ' is-owner' : ''}` }, head, tabs, body));
+  const rail = el('aside', { class: 'pv-rail', 'aria-label': owner ? 'Client and project details' : 'Your project details' });
+  const withRail = section !== 'tickets';
+  fill(root, el('article', { class: `cv${owner ? ' is-owner' : ''}` }, head, tabs, withRail ? el('div', { class: 'pv' }, body, rail) : body));
 
   const save = async (patch, msg) => {
     const { data, error } = await supabase.from('contracts').update(patch).eq('id', id).select().single();
@@ -74,30 +76,83 @@ export async function contractPage(root, opts) {
   };
 
   /* ---------- header + section tabs ---------- */
+  const STAGE_WORDS = { proposal: 'Proposal', negotiating: 'Negotiating', awaiting_signature: 'Awaiting signature', active: 'In progress', on_hold: 'On hold', complete: 'Complete', lost: 'Lost' };
   function renderHead() {
     const c = s.c;
-    const who = [c.company, c.client_name].filter(Boolean).join(' · ') || c.client_email || 'No client yet';
-    const actions = owner ? el('div', { class: 'cv-actions' },
-      el('select', { class: 'status-select', 'aria-label': 'Status', onchange: (e) => save({ status: e.target.value }, `Status set to ${STATUS[e.target.value].label}`) },
-        Object.entries(STATUS).map(([k, v]) => el('option', { value: k, selected: k === c.status ? true : null, text: v.label }))),
-      el('button', { type: 'button', class: 'btn btn-ghost btn-sm', text: 'Edit details', onclick: () => contractForm(c, { onSaved: (d) => { s.c = d; renderHead(); renderSection(); opts.onChanged?.(d); } }) }),
-      !c.client_id && c.client_email ? el('button', { type: 'button', class: 'btn btn-ghost btn-sm', text: 'Invite to portal', onclick: () => inviteClient(c.client_email) }) : null,
-      armedButton('Delete', 'Click again to delete', async () => {
+    const line = [
+      STAGE_WORDS[c.status],
+      ['active', 'on_hold'].includes(c.status) ? `${c.progress}% done` : null,
+      c.due_date && !['complete', 'lost'].includes(c.status) ? dueText(c) : null,
+    ].filter(Boolean).join(' · ');
+    fill(head, el('header', { class: 'cv-head pv-head' },
+      el('p', { class: 'cv-kicker mono', text: c.company || c.client_name || (owner ? 'No client yet' : 'Your project') }),
+      el('h1', { text: c.title }),
+      el('p', { class: `pv-line${dueClass(c) ? ' late' : ''}`, text: line })));
+    renderTabs();
+    renderRail();
+  }
+
+  /* ---------- the sidebar: client (or, for clients, their contact) + project facts ---------- */
+  function renderRail() {
+    if (!withRail) return;
+    const c = s.c;
+    const person = owner
+      ? { name: c.client_name || c.client_email || 'No client yet', sub: c.company || (c.client_email && c.client_name ? null : ''), email: c.client_email }
+      : { name: 'Landon Williams', sub: 'Williams Systems LLC', email: 'lwilliams@williamssystems.dev', phone: '(810) 214-5388' };
+    const portal = owner
+      ? (c.client_id
+        ? el('p', { class: 'pv-portal ok' }, el('i'), 'Portal active')
+        : c.client_email
+          ? el('div', { class: 'pv-portal-row' }, el('p', { class: 'pv-portal warn' }, el('i'), 'Hasn’t signed up yet'),
+            el('button', { type: 'button', class: 'link-btn pv-invite', text: 'Invite', onclick: () => inviteClient(c.client_email) }))
+          : el('p', { class: 'pv-portal' }, el('i'), 'No email on file'))
+      : null;
+
+    const client = el('section', { class: 'pv-card' },
+      el('h2', { class: 'pv-h', text: owner ? 'Client' : 'Your contact' }),
+      el('div', { class: 'pv-person' },
+        el('span', { class: 'hm-av', text: initials(person.name) }),
+        el('div', {}, el('strong', { text: person.name }), person.sub ? el('small', { text: person.sub }) : null)),
+      person.email || person.phone ? el('ul', { class: 'pv-contact' },
+        person.email ? el('li', {}, el('a', { href: `mailto:${person.email}`, text: person.email })) : null,
+        person.phone ? el('li', {}, el('a', { href: `tel:+1${person.phone.replace(/\D/g, '')}`, text: person.phone })) : null) : null,
+      portal,
+      el('div', { class: 'pv-actions' },
+        el('a', { class: 'btn btn-primary btn-sm', href: href('chat'), text: owner ? 'Message' : 'Message Landon' }),
+        person.email ? el('a', { class: 'btn btn-ghost btn-sm', href: `mailto:${person.email}`, text: 'Email' }) : null));
+
+    const stage = owner
+      ? el('select', { class: 'pv-select', 'aria-label': 'Stage', onchange: (e) => save({ status: e.target.value }, `Moved to ${STATUS[e.target.value].label}`) },
+        Object.entries(STATUS).map(([k, v]) => el('option', { value: k, selected: k === c.status ? true : null, text: STAGE_WORDS[k] || v.label })))
+      : el('span', { text: STAGE_WORDS[c.status] });
+    const bar = el('div', { class: 'pv-progress' },
+      el('div', { class: 'pv-progress-top' }, el('span', { text: 'Progress' }), el('b', { text: `${c.progress}%` })),
+      el('div', { class: 'hm-bar' }, el('i', { style: { width: `${c.progress}%` } })));
+    if (owner) {
+      const range = el('input', { type: 'range', min: 0, max: 100, step: 5, value: c.progress, 'aria-label': 'Progress' });
+      range.addEventListener('input', () => { bar.querySelector('b').textContent = `${range.value}%`; bar.querySelector('.hm-bar i').style.width = `${range.value}%`; });
+      range.addEventListener('change', () => save({ progress: Number(range.value) }, 'Progress saved'));
+      bar.append(range);
+    }
+    const facts = el('section', { class: 'pv-card' },
+      el('h2', { class: 'pv-h', text: 'Project' }),
+      el('dl', { class: 'pv-facts' },
+        el('div', {}, el('dt', { text: 'Stage' }), el('dd', {}, stage)),
+        el('div', {}, el('dt', { text: 'Price' }), el('dd', { class: 'mono', text: price(c) })),
+        el('div', {}, el('dt', { text: 'Billing' }), el('dd', { text: c.billing === 'monthly' ? 'Monthly plan' : 'One-time project' })),
+        el('div', {}, el('dt', { text: 'Start' }), el('dd', { text: fmtDate(c.start_date) })),
+        el('div', {}, el('dt', { text: 'Due' }), el('dd', { class: dueClass(c), text: fmtDate(c.due_date) }))),
+      bar,
+      owner ? el('div', { class: 'pv-manage' },
+      el('button', { type: 'button', class: 'link-btn', text: 'Edit details', onclick: () => contractForm(c, { onSaved: (d) => { s.c = d; renderHead(); renderSection(); opts.onChanged?.(d); } }) }),
+      armedButton('Delete project', 'Click again to delete', async () => {
         const { error } = await supabase.from('contracts').delete().eq('id', id);
         if (error) return toast(`Couldn’t delete: ${error.message}`, 'error');
         toast('Contract deleted');
         opts.onDeleted?.();
-      }, 'btn btn-ghost btn-sm danger')) : null;
+      }, 'link-btn danger')) : null);
 
-    fill(head, el('header', { class: 'cv-head' },
-      el('div', { class: 'cv-head-row' },
-        el('div', { class: 'cv-title' },
-          el('p', { class: 'cv-kicker mono', text: who }),
-          el('h1', { text: c.title }),
-          el('div', { class: 'cv-meta' }, statusPill(c.status), el('span', { text: price(c) }), el('span', { class: dueClass(c), text: dueText(c) }),
-            owner && !c.client_id ? el('span', { class: 'cv-warn', text: c.client_email ? 'Client hasn’t made an account yet' : 'No client email' }) : null)),
-        actions)));
-    renderTabs();
+    fill(rail, client, facts);
   }
 
   function renderTabs() {
@@ -123,13 +178,15 @@ export async function contractPage(root, opts) {
   function overview() {
     Object.assign(slots, {
       stages: el('div'), scope: el('section', { class: 'cv-card' }), items: el('section', { class: 'cv-card' }),
-      details: el('section', { class: 'cv-card' }), events: el('section', { class: 'cv-card' }),
-      timeline: el('section', { class: 'cv-card' }), tickets: el('section', { class: 'cv-card' }), chat: el('section', { class: 'cv-card' }),
+      events: el('section', { class: 'cv-card' }), timeline: el('section', { class: 'cv-card' }),
+      tickets: el('section', { class: 'cv-card' }), chat: el('section', { class: 'cv-card' }),
     });
-    fill(body, slots.stages, el('div', { class: 'cv-grid' },
-      el('div', { class: 'cv-main' }, slots.scope, slots.items, slots.timeline),
-      el('div', { class: 'cv-side' }, slots.details, slots.chat, slots.tickets, slots.events)));
-    renderStages(); renderScope(); renderItems(); renderDetails(); renderTimeline(); renderMiniTickets(); renderMiniChat(); renderEvents(slots.events, true);
+    fill(body,
+      el('section', { class: 'cv-card pv-stage' }, slots.stages),
+      slots.scope, slots.items,
+      el('div', { class: 'pv-duo' }, slots.events, slots.tickets),
+      slots.chat, slots.timeline);
+    renderStages(); renderScope(); renderItems(); renderTimeline(); renderMiniTickets(); renderMiniChat(); renderEvents(slots.events, true);
   }
 
   function renderStages() {
@@ -186,34 +243,15 @@ export async function contractPage(root, opts) {
       owner ? el('div', { class: 'cv-add' }, input, el('button', { type: 'button', class: 'btn btn-ghost btn-sm', text: 'Add', onclick: addItem })) : null);
   }
 
-  function renderDetails() {
-    const c = s.c;
-    const rows = [
-      ['Status', statusPill(c.status)],
-      ['Price', price(c)],
-      ['Billing', c.billing === 'monthly' ? 'Monthly plan' : 'One-time project'],
-      ['Start', fmtDate(c.start_date)],
-      ['Due', fmtDate(c.due_date)],
-      c.client_email && owner ? ['Client', c.client_email] : null,
-    ].filter(Boolean);
-    const bar = el('div', { class: 'cv-progress' },
-      el('div', { class: 'cv-progress-top' }, el('span', { text: 'Progress' }), el('b', { text: `${c.progress}%` })),
-      el('div', { class: 'cv-bar' }, el('i', { style: { width: `${c.progress}%` } })));
-    if (owner) {
-      const range = el('input', { type: 'range', min: 0, max: 100, step: 5, value: c.progress, 'aria-label': 'Progress' });
-      range.addEventListener('input', () => { bar.querySelector('b').textContent = `${range.value}%`; bar.querySelector('.cv-bar i').style.width = `${range.value}%`; });
-      range.addEventListener('change', () => save({ progress: Number(range.value) }, 'Progress saved'));
-      bar.append(range);
-    }
-    fill(slots.details, el('div', { class: 'cv-card-head' }, el('h2', { text: 'Details' })),
-      el('dl', { class: 'cv-dl' }, rows.map(([k, v]) => el('div', {}, el('dt', { text: k }), el('dd', {}, v)))), bar);
-  }
-
+  let showAllHistory = false;
   function renderTimeline() {
-    fill(slots.timeline, el('div', { class: 'cv-card-head' }, el('h2', { text: 'Timeline' })),
-      s.acts.length ? el('ol', { class: 'cv-timeline' }, s.acts.map((a) => el('li', { class: `t-${a.kind}` },
+    const PREVIEW = 5;
+    const list = showAllHistory ? s.acts : s.acts.slice(0, PREVIEW);
+    fill(slots.timeline, el('div', { class: 'cv-card-head' }, el('h2', { text: 'History' }), s.acts.length ? el('span', { class: 'cv-count mono', text: s.acts.length }) : null),
+      s.acts.length ? el('ol', { class: 'cv-timeline' }, list.map((a) => el('li', { class: `t-${a.kind}` },
         el('i', {}), el('span', { text: a.summary }), el('time', { class: 'mono', datetime: a.created_at, title: new Date(a.created_at).toLocaleString(), text: timeAgo(a.created_at) }))))
-        : el('p', { class: 'cv-empty', text: 'Updates will show up here.' }));
+        : el('p', { class: 'cv-empty', text: 'Updates will show up here.' }),
+      s.acts.length > PREVIEW ? el('button', { type: 'button', class: 'link-btn cal-more-log', text: showAllHistory ? 'Show less' : `Show all ${s.acts.length}`, onclick: () => { showAllHistory = !showAllHistory; renderTimeline(); } }) : null);
   }
 
   function renderMiniTickets() {
@@ -292,7 +330,7 @@ export async function contractPage(root, opts) {
     box.addEventListener('keydown', (e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send(); } });
     box.addEventListener('input', () => { box.style.height = 'auto'; box.style.height = `${Math.min(box.scrollHeight, 160)}px`; });
     fill(body, el('section', { class: 'cv-card cv-chat full' },
-      el('div', { class: 'cv-card-head' }, el('h2', { text: owner ? `Chat with ${s.c.client_name?.split(' ')[0] || 'the client'}` : 'Chat with Landon' }), el('span', { class: 'live on mono' }, el('i'), 'Live')),
+      el('div', { class: 'cv-card-head' }, el('h2', { text: owner ? `Chat with ${s.c.client_name?.split(' ')[0] || 'the client'}` : 'Chat with Landon' })),
       chatList,
       el('form', { class: 'chat-form', onsubmit: (e) => { e.preventDefault(); send(); } }, box, sendBtn),
       el('p', { class: 'chat-note', text: owner && !s.c.client_id ? 'The client will see this chat once they have an account.' : 'For a change or a bug, a ticket keeps it tracked. Links you paste become clickable.' })));
@@ -389,7 +427,7 @@ export async function contractPage(root, opts) {
     })
     .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'contracts', filter: `id=eq.${id}` }, ({ new: c2 }) => {
       s.c = c2; renderHead();
-      if (section === 'overview') { renderStages(); renderScope(); renderItems(); renderDetails(); }
+      if (section === 'overview') { renderStages(); renderScope(); renderItems(); }
     })
     .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'activity', filter: `contract_id=eq.${id}` }, ({ new: a }) => {
       if (section !== 'overview' || s.acts.some((x) => x.id === a.id)) return;

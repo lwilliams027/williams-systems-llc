@@ -205,7 +205,7 @@ async function routeProject([slug, section = 'overview', sub]) {
   $$('.crm-nav-link').forEach((a) => a.setAttribute('aria-current', 'false'));
   const c = state.contracts.find((x) => x.slug === slug);
   $('#viewTitle').textContent = c ? c.title : 'Project';
-  document.querySelector('.crm-top').classList.remove('has-page-head');
+  document.querySelector('.crm-top').classList.add('has-page-head');
   document.title = `${c ? c.title : 'Project'} — Williams Systems LLC`;
   $('#newContractBtn').querySelector('span').textContent = 'New contract';
   renderProjectsNav();
@@ -300,7 +300,7 @@ function subscribe() {
       }
       updateCounts();
     })
-    .subscribe((status) => { $('#liveBadge').classList.toggle('on', status === 'SUBSCRIBED'); });
+    .subscribe();
 }
 
 /** Things worth a nudge, worked out from what's loaded. */
