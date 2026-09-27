@@ -133,7 +133,9 @@ begin
     || '&metadata[invoice_id]=' || inv.id
     || '&payment_intent_data[metadata][invoice_id]=' || inv.id
     || '&payment_intent_data[description]=' || public.stripe_enc(format('Williams Systems LLC · Invoice #%s%s', inv.number, coalesce(' · ' || c.title, '')))
-    || '&restrictions[completed_sessions][limit]=1';
+    || '&restrictions[completed_sessions][limit]=1'
+    -- custom development is a professional service, which Stripe's Managed Payments (merchant of record) doesn't cover
+    || '&managed_payments[enabled]=false';
   if site like 'https://%' and c.id is not null then
     body := body || '&after_completion[type]=redirect&after_completion[redirect][url]='
       || public.stripe_enc(site || 'portal.html?paid=1#/' || coalesce(c.slug, c.id::text) || '/billing');
