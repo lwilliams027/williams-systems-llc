@@ -351,7 +351,8 @@ export function initJourney({ reduced = false } = {}) {
   const vw = window.innerWidth;
   const readStops = [];   // play mode: extra pauses so each service and statement can be read
   const panelStarts = [];
-  $$('.build-panel', track).forEach((panel) => {
+  const panels = $$('.build-panel', track);
+  panels.forEach((panel) => {
     const f = gsap.utils.clamp(0, 0.9, (panel.offsetLeft - vw * 0.8) / travel());
     const at = master.labels.strip + f * S('strip');
     panelStarts.push(at);
@@ -361,20 +362,25 @@ export function initJourney({ reduced = false } = {}) {
     master
       // (play mode draws each card faster, so it's finished before the next one starts and every stop is clean)
       .fromTo($$('.build-icon path, .build-icon rect', panel), { drawSVG: '0%' },
-        { drawSVG: '100%', duration: (PLAY ? 0.09 : 0.2) * S('strip'), stagger: (PLAY ? 0.005 : 0.012) * S('strip'), ease: 'power1.inOut' }, at)
+        { drawSVG: '100%', duration: (PLAY ? 0.035 : 0.2) * S('strip'), stagger: (PLAY ? 0.002 : 0.012) * S('strip'), ease: 'power1.inOut' }, at)
       // Short and with no reveal delay: the letters lock in almost immediately, left to right.
       .to(name, { scrambleText: { text: name.dataset.text, chars: 'upperCase', speed: 1, revealDelay: 0 },
-        duration: 0.06 * S('strip') }, at)
+        duration: (PLAY ? 0.03 : 0.06) * S('strip') }, at)
       .fromTo($$('p, .chips, .build-num', panel), { autoAlpha: 0, y: 16 },
-        { autoAlpha: 1, y: 0, duration: (PLAY ? 0.06 : 0.12) * S('strip'), stagger: (PLAY ? 0.01 : 0.02) * S('strip'), ease: 'power2.out' }, at + (PLAY ? 0.03 : 0.06) * S('strip'));
+        { autoAlpha: 1, y: 0, duration: (PLAY ? 0.025 : 0.12) * S('strip'), stagger: (PLAY ? 0.004 : 0.02) * S('strip'), ease: 'power2.out' }, at + (PLAY ? 0.012 : 0.06) * S('strip'));
   });
 
-  // Play-mode stops in the strip: two services at a time (Front end + Back end, SaaS + Mobile, Cloud + AI),
-  // just before the next card starts drawing, so both cards on screen are complete.
+  // Play-mode stops in the strip: three services at a time on a computer (Front end + Back end + SaaS, then
+  // Mobile + Cloud + AI), one at a time on a phone; the group centered, once its last card has finished
+  // drawing and before the next one starts.
+  const GROUP = vw < 700 ? 1 : 3;
+  const centerAt = (panel) => master.labels.strip + gsap.utils.clamp(0, 1, (panel.offsetLeft + panel.offsetWidth / 2 - vw / 2) / travel()) * S('strip');
   panelStarts.forEach((at, i) => {
-    if (i % 2 === 0 && i < panelStarts.length - 1) return;                 // stop after every second card
+    if (i % GROUP !== GROUP - 1 && i < panelStarts.length - 1) return;     // stop after each group
     const next = panelStarts[i + 1];
-    readStops.push(next !== undefined ? Math.max(at + 0.12 * S('strip'), next - 0.005 * S('strip')) : at + 0.14 * S('strip'));
+    let t = Math.max(centerAt(panels[i - Math.floor(GROUP / 2)]), at + 0.05 * S('strip'));  // middle card centered, last one drawn
+    if (next !== undefined) t = Math.min(t, next - 0.005 * S('strip'));  // …and the next one not started yet
+    readStops.push(t);
   });
 
   /* ---- 3 · the editor grows out of the strip, then types ------------- */

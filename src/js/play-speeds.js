@@ -22,9 +22,9 @@ function shape(...pts) {
 export const HOME = {
   fall:        1.15, // the logo falls in → "Software your business runs on."
   whatWeBuild: 1.1, // → "Everything it takes to ship software."
-  services1:   1,   // → Front end + Back end & APIs
-  services2:   1,   // → SaaS platforms + Mobile apps
-  services3:   1,   // → Cloud & DevOps + Personalized AI
+  services1:   1,   // → Front end + Back end & APIs + SaaS platforms (on a phone: Front end)
+  services2:   1,   // → Mobile apps + Cloud & DevOps + Personalized AI (on a phone: Back end)
+  // on a phone each card is its own stop: services3–services6 are SaaS, Mobile, Cloud, AI
   // the editor (project.config.js) zooms in and types → "One team. All custom."
   // ~1.9 s in all: the typing takes ~1 s (zoom and statement ~0.4 s each).
   // (The typing is the middle 38%–67% of this step.)
