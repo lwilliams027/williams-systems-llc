@@ -34,7 +34,7 @@ export function barChart(data, { format = String, empty = 'Nothing yet' } = {}) 
     svg.append(el('text', { x: x + bw * 0.3, y: H - 8, class: 'chart-axis', 'text-anchor': 'middle', text: d.label }));
   });
   if (!REDUCED && chartMotion.on) gsap.from(svg.querySelectorAll('.chart-bar'), { scaleY: 0, transformOrigin: '50% 100%', duration: 0.7, stagger: 0.05, ease: 'power3.out' });
-  const wrap = el('div', { class: 'chart' }, svg);
+  const wrap = el('div', { class: 'cx-chart' }, svg);
   if (!data.some((d) => d.value)) wrap.append(el('p', { class: 'chart-empty', text: empty }));
   return wrap;
 }
@@ -67,7 +67,7 @@ export function lineChart(data, { format = String, empty = 'Nothing yet' } = {})
     gsap.fromTo(path, { strokeDasharray: len, strokeDashoffset: len }, { strokeDashoffset: 0, duration: 1.1, ease: 'power2.out' });
     gsap.from(svg.querySelector('.chart-area'), { autoAlpha: 0, duration: 1, delay: 0.3 });
   }
-  const wrap = el('div', { class: 'chart' }, svg);
+  const wrap = el('div', { class: 'cx-chart' }, svg);
   if (!data.some((d) => d.value)) wrap.append(el('p', { class: 'chart-empty', text: empty }));
   return wrap;
 }

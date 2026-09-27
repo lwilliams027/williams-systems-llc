@@ -18,9 +18,9 @@ import { gsap } from 'gsap';
 import { supabase, isConfigured, BUCKET } from './supabase.js';
 import {
   el, $, $$, REDUCED, STATUS, PENDING, LIVE, statusPill, money, moneyShort, price, fmtDate, fmtTime,
-  timeAgo, dueText, daysFrom, ymd, toast, armedButton, icon, EVENT_KINDS, fill,
+  timeAgo, dueText, daysFrom, ymd, toast, armedButton, icon, EVENT_KINDS, fill, initials,
 } from './crm/util.js';
-import { barChart, lineChart, donut, hBars, chartMotion } from './crm/charts.js';
+import { barChart, chartMotion } from './crm/charts.js';
 import { contractPage, contractForm, SECTIONS, projectHref } from './crm/contract-view.js';
 import { calendarView, eventModal } from './crm/calendar.js';
 import { notificationBell } from './crm/notifications.js';
@@ -85,6 +85,10 @@ $('#newContractBtn').addEventListener('click', () => contractForm(
 async function enterApp(user) {
   state.me = user;
   $('#userEmail').textContent = user.email;
+  supabase.from('profiles').select('full_name').eq('id', user.id).maybeSingle().then(({ data }) => {
+    state.name = data?.full_name || '';
+    if (state.view === 'home') renderHome();
+  });
   $('#appView').hidden = false;
   renderNav();
   await Promise.all([loadContracts(), loadInquiries(), loadRequests(), loadUpcoming(), loadTickets()]);
@@ -327,17 +331,16 @@ function renderHome() {
   const live = all.filter((c) => LIVE.includes(c.status));
   const pending = all.filter((c) => PENDING.includes(c.status));
   const sum = (list) => list.reduce((s, c) => s + Number(c.value || 0), 0);
-  const mrr = sum(live.filter((c) => c.billing === 'monthly'));
+  const monthly = live.filter((c) => c.billing === 'monthly');
   const won = all.filter((c) => c.signed_at).length;
   const lost = all.filter((c) => c.status === 'lost').length;
+  const openTickets = state.tickets.filter((t) => OPEN_STATES.includes(t.status));
+  const newTickets = openTickets.filter((t) => t.status === 'open').length;
   const weekAgo = Date.now() - 7 * 86400000;
   const newReqs = [...state.inquiries, ...state.requests].filter((r) => new Date(r.created_at) > weekAgo).length;
-
-  const hour = new Date().getHours();
-  const hello = hour < 12 ? 'Good morning' : hour < 18 ? 'Good afternoon' : 'Good evening';
-
-  const kpi = (label, value, sub, tone = '') => el('div', { class: `kpi ${tone}` },
-    el('span', { class: 'kpi-label', text: label }), el('b', { class: 'kpi-value', text: value }), el('small', { text: sub }));
+  const plural = (n, one, many = `${one}s`) => `${n} ${n === 1 ? one : many}`;
+  const projectOf = (id) => state.contracts.find((c) => c.id === id);
+  const linkTo = (c) => (c ? projectHref(c) : '#contracts');
 
   // revenue by month: one-time projects count in the month they're signed,
   // monthly plans count every month they're running
@@ -354,48 +357,95 @@ function renderHome() {
     }
     months.push({ label: d.toLocaleDateString(undefined, { month: 'short' }), value: v });
   }
+  const thisMonth = months.at(-1).value, lastMonth = months.at(-2).value;
+  const change = lastMonth ? Math.round(((thisMonth - lastMonth) / lastMonth) * 100) : null;
 
-  const weeks = [];
-  for (let i = 7; i >= 0; i--) {
-    const end = new Date(); end.setHours(24, 0, 0, 0); end.setDate(end.getDate() - i * 7);
-    const start = new Date(end); start.setDate(start.getDate() - 7);
-    const n = [...state.inquiries, ...state.requests].filter((r) => { const t = new Date(r.created_at); return t >= start && t < end; }).length;
-    weeks.push({ label: start.toLocaleDateString(undefined, { month: 'numeric', day: 'numeric' }), value: n });
-  }
+  /* ---------- greeting + one-line summary ---------- */
+  const hour = new Date().getHours();
+  const hello = hour < 12 ? 'Good morning' : hour < 18 ? 'Good afternoon' : 'Good evening';
+  const first = (state.name || '').split(' ')[0];
+  const today = ymd(new Date());
+  const todays = state.upcoming.filter((e) => ymd(e.starts_at) === today);
+  const summary = [
+    live.length ? plural(live.length, 'live project') : 'No live projects yet',
+    newTickets ? plural(newTickets, 'new ticket') : null,
+    todays.length ? `${todays[0].title}${todays[0].all_day ? ' today' : ` at ${fmtTime(todays[0].starts_at)}`}${todays.length > 1 ? ` +${todays.length - 1} more` : ''}` : 'nothing scheduled today',
+  ].filter(Boolean).join(' · ');
 
-  const byStatus = Object.keys(STATUS).map((k) => ({ label: STATUS[k].label, value: all.filter((c) => c.status === k).length, color: STATUS_COLOR[k] })).filter((d) => d.value);
-  const pipeline = PENDING.map((k) => { const l = pending.filter((c) => c.status === k); return { label: STATUS[k].label, value: sum(l), sub: `${l.length} deal${l.length === 1 ? '' : 's'}` }; });
+  /* ---------- the four numbers that matter ---------- */
+  const stat = (label, value, sub, href) => el('a', { class: 'hm-stat', href },
+    el('span', { class: 'hm-stat-label', text: label }),
+    el('b', { class: 'hm-stat-value', text: value }),
+    el('small', { text: sub }));
+  const stats = el('section', { class: 'hm-stats', 'aria-label': 'Key numbers' },
+    stat('Live projects', String(live.length), live.length ? `${money(sum(live.filter((c) => c.billing !== 'monthly')))} in project work` : 'Signed contracts show here', '#contracts'),
+    stat('Monthly recurring', money(sum(monthly)), monthly.length ? plural(monthly.length, 'monthly plan') : 'No monthly plans yet', '#contracts'),
+    stat('Pipeline', moneyShort(sum(pending)), `${plural(pending.length, 'deal')}${won + lost ? ` · ${Math.round((won / (won + lost)) * 100)}% win rate` : ''}`, '#pending'),
+    stat('Open tickets', String(openTickets.length), newTickets ? `${newTickets} new · ${plural(newReqs, 'request')} this week` : `${plural(newReqs, 'request')} this week`, '#tickets'));
 
-  const card = (title, body, { wide = false, link } = {}) => el('section', { class: `crm-card${wide ? ' wide' : ''}` },
-    el('div', { class: 'crm-card-head' }, el('h2', { text: title }), link ? el('a', { href: link[1], class: 'crm-more', text: link[0] }) : null), body);
+  /* ---------- cards ---------- */
+  const card = (title, body, { link, extra, cls = '' } = {}) => el('section', { class: `hm-card ${cls}` },
+    el('header', { class: 'hm-card-head' }, el('h2', { text: title }), extra || null, link ? el('a', { href: link[1], class: 'hm-more', text: link[0] }) : null),
+    body);
+  const quiet = (text) => el('p', { class: 'hm-quiet', text });
+
+  const revenue = card('Revenue', barChart(months, { format: money, empty: 'Signed contracts will chart here' }), {
+    cls: 'hm-revenue',
+    extra: el('div', { class: 'hm-figure' },
+      el('b', { text: money(thisMonth) }),
+      el('small', {}, 'this month', change != null && isFinite(change) ? el('em', { class: change >= 0 ? 'up' : 'down', text: ` ${change >= 0 ? '▲' : '▼'} ${Math.abs(change)}%` }) : null)),
+  });
+
+  const projects = card('Live projects', live.length
+    ? el('ul', { class: 'hm-list' }, live.slice(0, 6).map((c) => {
+      const late = c.due_date && daysFrom(c.due_date) < 0;
+      const tks = state.tickets.filter((t) => t.contract_id === c.id && t.status === 'open').length;
+      return el('li', {}, el('a', { href: projectHref(c), class: 'hm-proj' },
+        el('span', { class: 'hm-av', text: initials(c.company || c.client_name || c.title) }),
+        el('span', { class: 'hm-proj-main' }, el('strong', { text: c.title }), el('small', { text: [c.company, c.client_name].filter(Boolean).join(' · ') || 'No client yet' })),
+        el('span', { class: 'hm-proj-prog', title: `${c.progress}% done` }, el('span', { class: 'hm-bar' }, el('i', { style: { width: `${c.progress}%` } })), el('small', { class: 'mono', text: `${c.progress}%` })),
+        el('span', { class: 'hm-proj-meta' }, el('b', { class: 'mono', text: price(c) }),
+          el('small', { class: late ? 'late' : '', text: c.due_date ? dueText(c) : c.status === 'on_hold' ? 'On hold' : 'Ongoing' })),
+        tks ? el('span', { class: 'hm-badge', title: `${tks} new ticket${tks === 1 ? '' : 's'}`, text: tks }) : null));
+    }))
+    : quiet('No live projects yet. When a deal is signed, it shows up here.'),
+  { link: live.length > 6 ? [`All ${live.length} →`, '#contracts'] : ['Contracts →', '#contracts'] });
 
   const attention = reminders();
-  const next = state.upcoming.filter((e) => new Date(e.starts_at) >= new Date(new Date().setHours(0, 0, 0, 0))).slice(0, 6);
+  const needs = card('Needs attention', attention.length
+    ? el('ul', { class: 'hm-attn' }, attention.slice(0, 5).map((r) => el('li', {},
+      el('a', { href: r.ticket_id ? `#tickets/${r.ticket_id}` : r.contract_id ? linkTo(projectOf(r.contract_id)) : '#calendar' },
+        el('i', { class: `hm-dot ${r.kind === 'event' ? 'ev' : r.ticket_id ? 'tk' : 'warn'}` }),
+        el('span', {}, el('strong', { text: r.title }), el('small', { text: r.body }))))))
+    : el('p', { class: 'hm-clear' }, el('i', { class: 'hm-dot ok' }), 'All clear. Nothing overdue or waiting on you.'));
 
-  root.replaceChildren(
-    el('div', { class: 'home-hello' },
-      el('h2', { text: `${hello}.` }),
-      el('p', { text: new Date().toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric' }) })),
-    el('div', { class: 'kpis' },
-      kpi('Live contracts', String(live.length), `${money(sum(live.filter((c) => c.billing !== 'monthly')))} in projects`),
-      kpi('Monthly recurring', money(mrr), `${live.filter((c) => c.billing === 'monthly').length} monthly plan${live.filter((c) => c.billing === 'monthly').length === 1 ? '' : 's'}`, 'accent'),
-      kpi('Pending pipeline', moneyShort(sum(pending)), `${pending.length} deal${pending.length === 1 ? '' : 's'} not signed yet`),
-      kpi('New requests', String(newReqs), 'in the last 7 days'),
-      kpi('Win rate', won + lost ? `${Math.round((won / (won + lost)) * 100)}%` : '—', `${won} won · ${lost} lost`)),
-    el('div', { class: 'crm-cards' },
-      card('Revenue by month', barChart(months, { format: money, empty: 'Signed contracts will chart here' }), { wide: true }),
-      card('Contracts by status', byStatus.length ? donut(byStatus, { center: String(all.length), sub: all.length === 1 ? 'contract' : 'contracts' }) : el('p', { class: 'crm-empty', text: 'No contracts yet.' })),
-      card('Pipeline by stage', hBars(pipeline, { format: money }), { link: ['Open board →', '#pending'] }),
-      card('Requests per week', lineChart(weeks, { empty: 'Website inquiries and account requests will chart here' }), { wide: true, link: ['Requests →', '#requests'] })),
-    card('Live contracts', contractTable(live.slice(0, 6), { compact: true, empty: 'No live contracts yet. When a deal is signed it shows up here.' }), { wide: true, link: [`View all ${live.length ? `(${live.length})` : ''} →`, '#contracts'] }),
-    el('div', { class: 'crm-cards two' },
-      card('Needs attention', attention.length ? el('ul', { class: 'attn' }, attention.slice(0, 6).map((r) => el('li', {},
-        el('a', { href: r.ticket_id ? `#tickets/${r.ticket_id}` : r.contract_id ? `#contract/${r.contract_id}` : '#calendar' }, el('strong', { text: r.title }), el('small', { text: r.body })))))
-        : el('p', { class: 'crm-empty', text: 'Nothing overdue, nothing gone quiet. Nice.' })),
-      card('Coming up', next.length ? el('ul', { class: 'agenda' }, next.map((e) => el('li', { class: `k-${e.kind}` },
-        el('span', { class: 'agenda-date' }, el('b', { text: new Date(e.starts_at).getDate() }), el('small', { text: new Date(e.starts_at).toLocaleDateString(undefined, { weekday: 'short' }) })),
-        el('span', { class: 'agenda-body' }, el('strong', { text: e.title }), el('small', { text: `${EVENT_KINDS[e.kind]}${e.all_day ? '' : ` · ${fmtTime(e.starts_at)}`}${e.contract_id ? ` · ${state.contracts.find((c) => c.id === e.contract_id)?.title || ''}` : ''}` })))))
-        : el('p', { class: 'crm-empty', text: 'Nothing on the calendar for the next two weeks.' }), { link: ['Calendar →', '#calendar'] })));
+  const next = state.upcoming.filter((e) => new Date(e.starts_at) >= new Date(new Date().setHours(0, 0, 0, 0))).slice(0, 4);
+  const upcoming = card('Coming up', next.length
+    ? el('ul', { class: 'hm-agenda' }, next.map((e) => el('li', { class: `k-${e.kind}` },
+      el('span', { class: 'hm-date' }, el('small', { text: new Date(e.starts_at).toLocaleDateString(undefined, { weekday: 'short' }) }), el('b', { text: new Date(e.starts_at).getDate() })),
+      el('span', { class: 'hm-agenda-main' }, el('strong', { text: e.title }),
+        el('small', { text: [e.all_day ? EVENT_KINDS[e.kind] : fmtTime(e.starts_at), projectOf(e.contract_id)?.title].filter(Boolean).join(' · ') })),
+      e.link ? el('a', { class: 'hm-join', href: e.link, target: '_blank', rel: 'noopener noreferrer', text: 'Join' }) : null)))
+    : quiet('Nothing in the next two weeks.'), { link: ['Calendar →', '#calendar'] });
+
+  const pipeline = card('Pipeline', el('ul', { class: 'hm-pipe' }, PENDING.map((k) => {
+    const l = pending.filter((c) => c.status === k);
+    const max = Math.max(1, ...PENDING.map((s2) => sum(pending.filter((c) => c.status === s2))));
+    return el('li', {},
+      el('div', { class: 'hm-pipe-top' }, el('span', {}, el('i', { style: { background: STATUS_COLOR[k] } }), STATUS[k].label), el('b', { class: 'mono', text: money(sum(l)) })),
+      el('div', { class: 'hm-pipe-track' }, el('i', { style: { width: `${(sum(l) / max) * 100}%`, background: STATUS_COLOR[k] } })),
+      el('small', { text: plural(l.length, 'deal') }));
+  })), { link: ['Board →', '#pending'] });
+
+  fill(root, el('div', { class: 'hm' },
+    el('header', { class: 'hm-hello' },
+      el('p', { class: 'hm-date mono', text: new Date().toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric' }) }),
+      el('h2', {}, `${hello}${first ? ', ' : '.'}`, first ? el('span', { class: 'hm-name', text: `${first}.` }) : null),
+      el('p', { class: 'hm-summary', text: summary })),
+    stats,
+    el('div', { class: 'hm-grid' },
+      el('div', { class: 'hm-col' }, revenue, projects),
+      el('div', { class: 'hm-col' }, needs, upcoming, pipeline))));
   chartMotion.on = false;   // later visits and live refreshes don't replay the chart animation
 }
 
