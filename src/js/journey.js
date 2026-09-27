@@ -758,11 +758,23 @@ export function initJourney({ reduced = false } = {}) {
 
   // Play mode (?play, for testing): one scroll plays to the next chapter, and each "How we work" step is its own stop
   playMode(st, () => {
+    // Only the moments worth reading (about 16): transitions in between just play through,
+    // so the whole page takes about as many scrolls as a normal website.
     const toY = (t) => st.start + (t / master.duration()) * (st.end - st.start);
-    const times = [...Object.values(master.labels), ...readStops,
-      master.labels.type + S('type') * 0.95 + S('typeHold') * 0.7,   // "One team. All custom." fully up
-      master.labels.cycle + S('cycle') * 0.5];                        // "Every piece. One build." mid-turn
-    for (let k = 1; k < steps.length; k++) times.push(master.labels.climb + k * slot);
+    const L = master.labels;
+    const times = [
+      L.fallEnd,                                             // "Software your business runs on."
+      L.strip,                                               // "Everything it takes to ship software."
+      ...readStops,                                          // the services, two at a time
+      L.type + S('type') * 0.95 + S('typeHold') * 0.7,       // "One team. All custom."
+      L.cycle + S('cycle') * 0.5,                            // "Every piece. One build."
+      L.desk,                                                // the website, finished
+      L.unscrew,                                             // the lightbulb: customization
+      L.keyhole,                                             // the padlock: security
+      L.climb - S('riseHold') * 0.3,                         // "From first call to launch."
+      ...steps.map((_, k) => L.climb + k * slot + slot * 0.6), // the five How-we-work steps
+      L.reveal + S('reveal') * 0.9,                          // the finale
+    ];
     return times.map(toY);
   });
 
