@@ -457,3 +457,80 @@ create trigger contracts_slug before insert or update of slug on public.contract
   for each row execute function public.contracts_slug();
 update public.contracts set slug = null where slug is null;  -- fills in any missing
 
+
+-- ---------- Clients can request events (meetings, calls) on their projects ----------
+-- A request is an event with status 'requested'; the owner confirms or declines it.
+alter table public.events add column if not exists status text not null default 'confirmed'
+  check (status in ('confirmed', 'requested', 'declined'));
+
+drop policy if exists "Clients request events" on public.events;
+create policy "Clients request events" on public.events
+  for insert to authenticated
+  with check (contract_id is not null and public.my_contract(contract_id) and status = 'requested' and created_by = auth.uid());
+drop policy if exists "Clients cancel their requests" on public.events;
+create policy "Clients cancel their requests" on public.events
+  for delete to authenticated
+  using (created_by = auth.uid() and status = 'requested' and contract_id is not null and public.my_contract(contract_id));
+
+-- a client's insert is always just a request: no links, no confirmed events
+create or replace function public.events_before()
+returns trigger
+language plpgsql
+security definer
+set search_path = ''
+as $$
+begin
+  if not public.is_admin() then
+    new.status = 'requested';
+    new.created_by = auth.uid();
+    new.link = null;
+    if new.kind not in ('meeting', 'call') then new.kind = 'meeting'; end if;
+  end if;
+  return new;
+end;
+$$;
+drop trigger if exists events_before on public.events;
+create trigger events_before before insert on public.events
+  for each row execute function public.events_before();
+
+-- who hears about what
+create or replace function public.event_after()
+returns trigger
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare
+  c public.contracts;
+  whenx text;
+begin
+  if new.contract_id is null then return new; end if;
+  select * into c from public.contracts where id = new.contract_id;
+  whenx := to_char(new.starts_at at time zone 'America/Detroit', 'Dy, Mon FMDD')
+           || case when new.all_day then '' else to_char(new.starts_at at time zone 'America/Detroit', ' · FMHH12:MI AM') end;
+
+  if tg_op = 'INSERT' then
+    if new.status = 'requested' then
+      insert into public.activity (contract_id, kind, summary) values (c.id, 'event', 'Requested: ' || new.title || ' · ' || to_char(new.starts_at at time zone 'America/Detroit', 'Mon FMDD'));
+      perform public.notify_owners('event', 'Meeting request · ' || new.title, coalesce(c.client_name, 'Client') || ' · ' || whenx, c.id, 'calendar');
+    else
+      insert into public.activity (contract_id, kind, summary) values (c.id, 'event', 'Scheduled: ' || new.title || ' · ' || to_char(new.starts_at at time zone 'America/Detroit', 'Mon FMDD'));
+      perform public.notify_user(c.client_id, 'event', 'Scheduled: ' || new.title, whenx, c.id, 'contract');
+    end if;
+    return new;
+  end if;
+
+  -- an answer to a request
+  if old.status = 'requested' and new.status = 'confirmed' then
+    insert into public.activity (contract_id, kind, summary) values (c.id, 'event', 'Confirmed: ' || new.title || ' · ' || to_char(new.starts_at at time zone 'America/Detroit', 'Mon FMDD'));
+    perform public.notify_user(c.client_id, 'event', 'Confirmed: ' || new.title, whenx, c.id, 'contract');
+  elsif old.status = 'requested' and new.status = 'declined' then
+    insert into public.activity (contract_id, kind, summary) values (c.id, 'event', 'Declined: ' || new.title);
+    perform public.notify_user(c.client_id, 'event', 'Couldn’t make it: ' || new.title, 'Landon will suggest another time in the chat.', c.id, 'contract');
+  end if;
+  return new;
+end;
+$$;
+drop trigger if exists events_after on public.events;
+create trigger events_after after insert or update on public.events
+  for each row execute function public.event_after();

@@ -1427,3 +1427,12 @@ a.ov-stat:hover { background: rgba(255, 255, 255, 0.025); }
 .ev-details .pv-facts dd { max-width: 70%; }
 .ev-notes { white-space: pre-wrap; color: var(--text-2); line-height: 1.6; padding: 12px 14px; border-radius: 12px; background: var(--ink); }
 @media (max-width: 1280px) { .cal-scoped .cal-body { grid-template-columns: 1fr; } }
+
+/* requested (not yet confirmed) events */
+.cal .cal-chip.requested { background: transparent; box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--kc, var(--accent)) 55%, transparent); border-style: dashed; }
+.cal .cal-chip.requested span::before { content: "Requested · "; color: var(--text-3); }
+.cal .cal-item.requested { background: transparent; box-shadow: inset 0 0 0 1px var(--line-2), inset 3px 0 0 var(--warn); }
+.cal .cal-item.requested strong::after { content: " · requested"; color: var(--warn); font-weight: 500; font-size: 0.8rem; }
+.ev-request { display: flex; flex-direction: column; gap: 4px; padding: 12px 14px; border-radius: 12px; background: rgba(245, 184, 75, 0.1); box-shadow: inset 3px 0 0 var(--warn); }
+.ev-request strong { color: var(--warn); font-size: 0.92rem; }
+.ev-request span { color: var(--text-2); font-size: 0.86rem; }

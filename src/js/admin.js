@@ -231,6 +231,7 @@ async function routeProject([slug, section = 'overview', sub]) {
 }
 
 function openNotification(n) {
+  if (n.href) { location.hash = n.href; return; }
   const proj = n.contract_id && state.contracts.find((c) => c.id === n.contract_id);
   if (n.kind === 'message' && proj && !n.ticket_id) { location.hash = projectHref(proj, 'chat'); return; }
   if (n.ticket_id) location.hash = `#tickets/${n.ticket_id}`;
@@ -273,8 +274,12 @@ async function loadRequests() {
 async function loadUpcoming() {
   const from = new Date(); from.setHours(0, 0, 0, 0);
   const to = new Date(from); to.setDate(to.getDate() + 14);
-  const { data } = await supabase.from('events').select('*').gte('starts_at', from.toISOString()).lt('starts_at', to.toISOString()).order('starts_at');
-  state.upcoming = data || [];
+  const [{ data }, { data: asks }] = await Promise.all([
+    supabase.from('events').select('*').gte('starts_at', from.toISOString()).lt('starts_at', to.toISOString()).neq('status', 'declined').order('starts_at'),
+    supabase.from('events').select('*').eq('status', 'requested').gte('starts_at', new Date().toISOString()).order('starts_at'),
+  ]);
+  state.upcoming = (data || []).filter((e) => e.status === 'confirmed');
+  state.meetingRequests = asks || [];
 }
 
 let refreshTimer;
@@ -332,6 +337,11 @@ function reminders() {
     if (t.priority === 'urgent' || t.priority === 'high' || age >= 24) {
       out.push({ kind: 'reminder', title: `Ticket #${t.number}: ${t.title}`, body: `${T_PRIORITY[t.priority]} priority · waiting ${age >= 24 ? `${Math.floor(age / 24)}d` : `${age}h`}`, ticket_id: t.id });
     }
+  }
+  for (const e of state.meetingRequests || []) {
+    const proj = state.contracts.find((c) => c.id === e.contract_id);
+    out.push({ kind: 'event', title: `Meeting request: ${e.title}`, body: [proj?.client_name || proj?.title, `${fmtDate(e.starts_at, { weekday: 'short', month: 'short', day: 'numeric' })} · ${fmtTime(e.starts_at)}`].filter(Boolean).join(' · '),
+      contract_id: e.contract_id, href: proj ? projectHref(proj, 'schedule') : '#calendar' });
   }
   const today = ymd(new Date());
   for (const e of state.upcoming) {
@@ -432,7 +442,7 @@ function renderHome() {
   const attention = reminders();
   const needs = card('Needs attention', attention.length
     ? el('ul', { class: 'hm-attn' }, attention.slice(0, 5).map((r) => el('li', {},
-      el('a', { href: r.ticket_id ? `#tickets/${r.ticket_id}` : r.contract_id ? linkTo(projectOf(r.contract_id)) : '#calendar' },
+      el('a', { href: r.href || (r.ticket_id ? `#tickets/${r.ticket_id}` : r.contract_id ? linkTo(projectOf(r.contract_id)) : '#calendar') },
         el('i', { class: `hm-dot ${r.kind === 'event' ? 'ev' : r.ticket_id ? 'tk' : 'warn'}` }),
         el('span', {}, el('strong', { text: r.title }), el('small', { text: r.body }))))))
     : el('p', { class: 'hm-clear' }, el('i', { class: 'hm-dot ok' }), 'All clear. Nothing overdue or waiting on you.'));

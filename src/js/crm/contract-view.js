@@ -200,7 +200,7 @@ export async function contractPage(root, opts) {
     const pace = timePct == null || closed || PENDING.includes(c.status) ? null
       : c.progress >= timePct - 10 ? ['on', 'On track'] : c.progress >= timePct - 25 ? ['tight', 'Cutting it close'] : ['behind', 'Behind schedule'];
     const openT = s.tks.filter((t) => OPEN_STATES.includes(t.status));
-    const upcoming = s.evs.filter((e) => new Date(e.starts_at) >= today0);
+    const upcoming = s.evs.filter((e) => e.status !== 'declined' && new Date(e.starts_at) >= today0);
 
     /* ---------- the four numbers ---------- */
     const ring = (() => {
@@ -239,7 +239,7 @@ export async function contractPage(root, opts) {
     let track;
     if (start && due && due > start) {
       const pos = (d) => clamp(((d - start) / (due - start)) * 100, 0, 100);
-      const inRange = s.evs.filter((e) => { const d = new Date(e.starts_at); return d >= start && d <= new Date(due.getTime() + DAY); });
+      const inRange = s.evs.filter((e) => { const d = new Date(e.starts_at); return e.status === 'confirmed' && d >= start && d <= new Date(due.getTime() + DAY); });
       track = el('div', { class: 'ov-track' },
         el('div', { class: 'ov-track-bar' },
           el('i', { class: 'ov-track-used', style: { width: `${timePct}%` } }),
@@ -280,7 +280,7 @@ export async function contractPage(root, opts) {
     const soon = card('Coming up', upcoming.length
       ? el('ul', { class: 'ov-events' }, upcoming.slice(0, 3).map((e) => el('li', { class: `k-${e.kind}` },
         el('span', { class: 'hm-date' }, el('small', { text: new Date(e.starts_at).toLocaleDateString(undefined, { month: 'short' }) }), el('b', { text: new Date(e.starts_at).getDate() })),
-        el('span', { class: 'ov-ev-main' }, el('strong', { text: e.title }), el('small', { text: e.all_day ? EVENT_KINDS[e.kind] : `${new Date(e.starts_at).toLocaleDateString(undefined, { weekday: 'short' })} · ${fmtTime(e.starts_at)}` })),
+        el('span', { class: 'ov-ev-main' }, el('strong', { text: e.title }), el('small', { text: `${e.all_day ? EVENT_KINDS[e.kind] : `${new Date(e.starts_at).toLocaleDateString(undefined, { weekday: 'short' })} · ${fmtTime(e.starts_at)}`}${e.status === 'requested' ? ' · requested' : ''}` })),
         e.link ? el('a', { class: 'hm-join', href: e.link, target: '_blank', rel: 'noopener noreferrer', text: 'Join' }) : null)))
       : el('p', { class: 'ov-quiet', text: 'Nothing scheduled.' }), { link: ['Schedule →', href('schedule')] });
 

@@ -13,6 +13,7 @@ const WEEK = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
 export function calendarView(root, { getContracts, onOpenContract, onOpenRequests, contractId = null, owner = true }) {
   const scoped = Boolean(contractId);   // a single project's calendar (inside the project page)
+  const canRequest = scoped && !owner;   // clients can ask for meetings/calls on their project
   const today = ymd(new Date());
   const st = { month: startOfMonth(new Date()), selected: today, items: [], showLog: false };
 
@@ -29,13 +30,16 @@ export function calendarView(root, { getContracts, onOpenContract, onOpenRequest
         el('button', { type: 'button', class: 'cal-btn', 'aria-label': 'Next month', html: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>', onclick: () => go(1) }),
         el('button', { type: 'button', class: 'cal-today', text: 'Today', onclick: () => { st.month = startOfMonth(new Date()); st.selected = today; st.showLog = false; load(); } })),
       el('div', { class: 'cal-legend' }, (scoped ? [['event', 'Scheduled'], ['due', 'Start / due'], ['log', 'Updates']] : [['event', 'Scheduled'], ['due', 'Due / start'], ['request', 'Requests'], ['log', 'Logged']]).map(([k, t]) => el('span', { class: `lg-${k}` }, el('i'), t))),
-      owner ? el('button', { type: 'button', class: 'btn btn-primary btn-sm tq-new', html: `${icon.plus}<span>New event</span>`, onclick: () => add(st.selected) }) : null),
+      owner || canRequest ? el('button', { type: 'button', class: 'btn btn-primary btn-sm tq-new', html: `${icon.plus}<span>${owner ? 'New event' : 'Request a meeting'}</span>`, onclick: () => add(st.selected) }) : null),
     el('div', { class: 'cal-body' },
       el('div', { class: 'cal-month' }, el('div', { class: 'cal-week' }, WEEK.map((d) => el('span', { text: d }))), grid),
       panel)));
 
   function go(n) { st.month = new Date(st.month.getFullYear(), st.month.getMonth() + n, 1); load(); }
-  const add = (date, extra = {}) => { if (owner) eventModal({ date, ...(contractId ? { contract_id: contractId } : {}), ...extra }, { contracts: getContracts(), onSaved: load }); };
+  const add = (date, extra = {}) => {
+    if (owner) eventModal({ date, ...(contractId ? { contract_id: contractId } : {}), ...extra }, { contracts: getContracts(), onSaved: load });
+    else if (canRequest) requestModal({ date, contractId, onSaved: load });
+  };
 
   async function load() {
     const first = new Date(st.month); first.setDate(1 - first.getDay());
@@ -70,7 +74,12 @@ export function calendarView(root, { getContracts, onOpenContract, onOpenRequest
     const contracts = getContracts().filter((c) => !contractId || c.id === contractId);
     const nameOf = (cid) => contracts.find((c) => c.id === cid)?.title;
     const items = [];
-    for (const e of ev.data || []) items.push({ date: ymd(e.starts_at), cls: `event k-${e.kind}`, title: e.title, time: e.all_day ? 'All day' : fmtTime(e.starts_at), sort: e.starts_at, sub: [EVENT_KINDS[e.kind], scoped ? null : nameOf(e.contract_id)].filter(Boolean).join(' · '), event: e });
+    for (const e of ev.data || []) {
+      if (e.status === 'declined') continue;
+      const req = e.status === 'requested';
+      items.push({ date: ymd(e.starts_at), cls: `event k-${e.kind}${req ? ' requested' : ''}`, title: e.title, time: e.all_day ? 'All day' : fmtTime(e.starts_at), sort: e.starts_at,
+        sub: [req ? (owner ? 'Requested by the client' : 'Waiting for Landon to confirm') : EVENT_KINDS[e.kind], scoped ? null : nameOf(e.contract_id)].filter(Boolean).join(' · '), event: e });
+    }
     for (const c of contracts) {
       if (['lost'].includes(c.status)) continue;
       if (c.due_date) items.push({ date: c.due_date, cls: 'due', title: `Due: ${c.title}`, time: 'Due', sort: c.due_date + 'T00', sub: c.company || c.client_name || '', contract: c });
@@ -99,7 +108,7 @@ export function calendarView(root, { getContracts, onOpenContract, onOpenRequest
         class: `cal-day${d.getMonth() !== st.month.getMonth() ? ' out' : ''}${key === today ? ' today' : ''}${key === st.selected ? ' sel' : ''}${d.getDay() === 0 || d.getDay() === 6 ? ' wknd' : ''}`,
         'aria-label': `${d.toDateString()}, ${list.length} item${list.length === 1 ? '' : 's'}`,
         onclick: () => { st.selected = key; st.showLog = false; renderGrid(); renderPanel(); },
-        ondblclick: owner ? () => add(key) : null,
+        ondblclick: owner || canRequest ? () => add(key) : null,
       },
         el('span', { class: 'cal-num', text: d.getDate() }),
         el('span', { class: 'cal-chips' },
@@ -132,9 +141,9 @@ export function calendarView(root, { getContracts, onOpenContract, onOpenRequest
         el('div', {},
           el('span', { class: 'cal-panel-kicker mono', text: isToday ? 'Today' : fmtDate(st.selected, { weekday: 'long' }) }),
           el('h3', { text: fmtDate(st.selected, { month: 'long', day: 'numeric' }) })),
-        owner ? el('button', { type: 'button', class: 'cal-add', 'aria-label': 'Add an event on this day', html: icon.plus, onclick: () => add(st.selected) }) : null),
+        owner || canRequest ? el('button', { type: 'button', class: 'cal-add', 'aria-label': owner ? 'Add an event on this day' : 'Request a meeting on this day', title: owner ? 'Add an event' : 'Request a meeting', html: icon.plus, onclick: () => add(st.selected) }) : null),
       planned.length ? el('ul', { class: 'cal-items' }, planned.map(row))
-        : el('div', { class: 'cal-free' }, el('p', { text: 'Nothing scheduled.' }), owner ? el('button', { type: 'button', class: 'link-btn', text: 'Add an event', onclick: () => add(st.selected) }) : null),
+        : el('div', { class: 'cal-free' }, el('p', { text: 'Nothing scheduled.' }), owner || canRequest ? el('button', { type: 'button', class: 'link-btn', text: owner ? 'Add an event' : 'Request a meeting', onclick: () => add(st.selected) }) : null),
       logged.length ? el('div', { class: 'cal-logbox' },
         el('h4', { class: 'mono', text: `Logged · ${logged.length}` }),
         el('ul', { class: 'cal-logs' }, shownLog.map(logRow)),
@@ -142,7 +151,7 @@ export function calendarView(root, { getContracts, onOpenContract, onOpenRequest
   }
 
   function open(x) {
-    if (x.event) return owner ? eventModal(x.event, { contracts: getContracts(), onSaved: load }) : eventDetails(x.event, getContracts());
+    if (x.event) return owner ? eventModal(x.event, { contracts: getContracts(), onSaved: load }) : eventDetails(x.event, getContracts(), { onChanged: load });
     if (x.contract && !scoped) return onOpenContract?.(x.contract.id);
     if (x.requests) return onOpenRequests?.(x.requests);
   }
@@ -179,7 +188,11 @@ export function eventModal(initial = {}, { contracts = [], onSaved } = {}) {
   if (initial.notes) notes.value = initial.notes;
   const msg = el('p', { class: 'crm-form-msg', role: 'alert', hidden: true });
 
-  add(f, 
+  const isRequest = initial.status === 'requested';
+  add(f,
+    isRequest ? el('div', { class: 'ev-request' },
+      el('strong', { text: 'The client asked for this.' }),
+      el('span', { text: 'Adjust the time or add a meeting link if you like, then confirm. They’ll be notified either way.' })) : null,
     field('Title', titleIn),
     el('div', { class: 'crm-form-row' }, field('Type', kind), field('Date', date)),
     el('label', { class: 'crm-check' }, allDay, el('span', { text: 'All day' })),
@@ -193,14 +206,19 @@ export function eventModal(initial = {}, { contracts = [], onSaved } = {}) {
       el('a', { class: 'btn btn-ghost btn-sm', href: inviteMailto(initial, contracts), text: 'Email invite' }),
       el('button', { type: 'button', class: 'btn btn-ghost btn-sm', text: 'Calendar file (.ics)', onclick: () => downloadIcs(initial, contracts) })),
     el('div', { class: 'crm-form-actions' },
-      isNew ? null : armedButton('Delete', 'Click again to delete', async () => {
+      isNew || isRequest ? null : armedButton('Delete', 'Click again to delete', async () => {
         const { error } = await supabase.from('events').delete().eq('id', initial.id);
         if (error) return toast(`Couldn’t delete: ${error.message}`, 'error');
         m.close(); toast('Event deleted'); onSaved?.();
       }, 'btn btn-ghost danger'),
-      el('button', { type: 'submit', class: 'btn btn-primary', text: isNew ? 'Add to calendar' : 'Save' })));
+      isRequest ? armedButton('Decline', 'Click again to decline', async () => {
+        const { error } = await supabase.from('events').update({ status: 'declined' }).eq('id', initial.id);
+        if (error) return toast(`Couldn’t decline: ${error.message}`, 'error');
+        m.close(); toast('Declined. The client was told.'); onSaved?.();
+      }, 'btn btn-ghost danger') : null,
+      el('button', { type: 'submit', class: 'btn btn-primary', text: isNew ? 'Add to calendar' : isRequest ? 'Confirm' : 'Save' })));
 
-  const m = modal(isNew ? 'New event' : 'Edit event', f);
+  const m = modal(isNew ? 'New event' : isRequest ? 'Meeting request' : 'Edit event', f);
   f.addEventListener('submit', async (e) => {
     e.preventDefault();
     const say = (t) => { msg.textContent = t; msg.hidden = !t; };
@@ -213,6 +231,7 @@ export function eventModal(initial = {}, { contracts = [], onSaved } = {}) {
       ends_at: !allDay.checked && t2.value ? at(t2.value) : null,
       contract_id: contract.value || null, notes: notes.value.trim() || null,
       link: link.value.trim() || null,
+      ...(isRequest ? { status: 'confirmed' } : {}),
     };
     if (row.link && !/^https:\/\/\S+$/i.test(row.link)) return say('The meeting link should start with https://');
     if (row.ends_at && row.ends_at < row.starts_at) return say('It ends before it starts.');
@@ -220,7 +239,7 @@ export function eventModal(initial = {}, { contracts = [], onSaved } = {}) {
     const { data: saved, error } = await q.select().single();
     if (error) return say(error.message);
     m.close();
-    toast(isNew ? 'Added to the calendar' : 'Event saved');
+    toast(isNew ? 'Added to the calendar' : isRequest ? 'Confirmed. The client was told.' : 'Event saved');
     onSaved?.();
     if (isNew && (saved.link || saved.contract_id)) sendPrompt(saved, contracts);
   });
@@ -304,15 +323,61 @@ function sendPrompt(e, contracts) {
 /* =====================================================================
    One event, read-only (clients): when, where to join, notes, add to calendar
    ===================================================================== */
-export function eventDetails(e, contracts = []) {
+export function eventDetails(e, contracts = [], { onChanged } = {}) {
   const c = contracts.find((x) => x.id === e.contract_id);
-  modal(e.title, el('div', { class: 'crm-form ev-details' },
+  const pending = e.status === 'requested';
+  const m = modal(e.title, el('div', { class: 'crm-form ev-details' },
+    pending ? el('div', { class: 'ev-request' }, el('strong', { text: 'Waiting for Landon to confirm' }), el('span', { text: 'You’ll get a notification when it’s confirmed, or if another time works better.' })) : null,
     el('dl', { class: 'pv-facts' },
       el('div', {}, el('dt', { text: 'When' }), el('dd', { text: whenText(e) })),
       el('div', {}, el('dt', { text: 'Type' }), el('dd', { text: EVENT_KINDS[e.kind] || e.kind })),
       c ? el('div', {}, el('dt', { text: 'Project' }), el('dd', { text: c.title })) : null),
     e.notes ? el('p', { class: 'ev-notes', text: e.notes }) : null,
     el('div', { class: 'crm-form-actions' },
-      el('button', { type: 'button', class: 'btn btn-ghost', text: 'Add to my calendar', onclick: () => downloadIcs(e, contracts) }),
-      e.link ? el('a', { class: 'btn btn-primary', href: e.link, target: '_blank', rel: 'noopener noreferrer', text: `Join ${meetingName(e.link) === 'meeting' ? 'the meeting' : meetingName(e.link)}` }) : null)));
+      pending ? armedButton('Cancel request', 'Click again to cancel', async () => {
+        const { error } = await supabase.from('events').delete().eq('id', e.id);
+        if (error) return toast(`Couldn’t cancel: ${error.message}`, 'error');
+        m.close(); toast('Request cancelled'); onChanged?.();
+      }, 'btn btn-ghost danger') : el('button', { type: 'button', class: 'btn btn-ghost', text: 'Add to my calendar', onclick: () => downloadIcs(e, contracts) }),
+      !pending && e.link ? el('a', { class: 'btn btn-primary', href: e.link, target: '_blank', rel: 'noopener noreferrer', text: `Join ${meetingName(e.link) === 'meeting' ? 'the meeting' : meetingName(e.link)}` }) : null)));
+}
+
+/* =====================================================================
+   Request a meeting (clients): what, when works, a note. Landon confirms.
+   ===================================================================== */
+export function requestModal({ date, contractId, onSaved } = {}) {
+  const f = el('form', { class: 'crm-form', novalidate: true });
+  const title = el('input', { name: 'title', maxlength: 160, placeholder: 'e.g. Review the new pages' });
+  const kind = el('select', { name: 'kind' }, el('option', { value: 'meeting', text: 'Video meeting' }), el('option', { value: 'call', text: 'Phone call' }));
+  const day = el('input', { type: 'date', name: 'date', value: date && date >= ymd(new Date()) ? date : ymd(new Date(Date.now() + 86400000)), min: ymd(new Date()) });
+  const time = el('input', { type: 'time', name: 'time', value: '10:00' });
+  const notes = el('textarea', { name: 'notes', rows: 3, maxlength: 4000, placeholder: 'What would you like to go over? Other times that work for you?' });
+  const msg = el('p', { class: 'crm-form-msg', role: 'alert', hidden: true });
+  add(f,
+    el('p', { text: 'Pick a time that works for you. Landon will confirm it (or suggest another), and you’ll get a notification.' }),
+    field('What’s it about?', title),
+    el('div', { class: 'crm-form-row' }, field('Type', kind), field('Day', day), field('Time', time)),
+    field('Notes', notes),
+    msg,
+    el('div', { class: 'crm-form-actions' }, el('button', { type: 'submit', class: 'btn btn-primary', text: 'Send request' })));
+  const m = modal('Request a meeting', f);
+  f.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const say = (t) => { msg.textContent = t; msg.hidden = !t; };
+    if (!title.value.trim()) return say('Say briefly what it’s about.');
+    if (!day.value) return say('Pick a day.');
+    const starts = new Date(`${day.value}T${time.value || '10:00'}`);
+    if (starts < new Date()) return say('Pick a time in the future.');
+    const btn = f.querySelector('button[type=submit]'); btn.disabled = true;
+    const { error } = await supabase.from('events').insert({
+      title: title.value.trim(), kind: kind.value, starts_at: starts.toISOString(), all_day: false,
+      contract_id: contractId, notes: notes.value.trim() || null, status: 'requested',
+    });
+    btn.disabled = false;
+    if (error) return say(error.message);
+    m.close();
+    toast('Request sent. Landon will confirm it.');
+    onSaved?.();
+  });
+  return m;
 }
