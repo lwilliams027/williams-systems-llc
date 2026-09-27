@@ -55,7 +55,7 @@ const state = {
   // inquiries inbox
   selectedId: null, filter: 'all', query: '', notes: [],
   // contracts list
-  cFilter: 'live', cQuery: '',
+  cFilter: 'live', cQuery: '', cSort: 'updated',
   view: null, cleanup: null, calendar: null, bell: null, channel: null,
 };
 
@@ -169,6 +169,7 @@ function route() {
   const navKey = v === 'contract' ? 'contracts' : v;
   $$('.crm-nav-link').forEach((a) => a.setAttribute('aria-current', a.dataset.route === navKey ? 'page' : 'false'));
   $('#viewTitle').textContent = TITLES[v];
+  document.querySelector('.crm-top').classList.toggle('has-page-head', ['home', 'contracts'].includes(v));
   $('#newContractBtn').querySelector('span').textContent = v === 'pending' ? 'New deal' : 'New contract';
   document.title = `${TITLES[v]} — Williams Systems LLC`;
   window.scrollTo(0, 0);
@@ -199,6 +200,7 @@ async function routeProject([slug, section = 'overview', sub]) {
   $$('.crm-nav-link').forEach((a) => a.setAttribute('aria-current', 'false'));
   const c = state.contracts.find((x) => x.slug === slug);
   $('#viewTitle').textContent = c ? c.title : 'Project';
+  document.querySelector('.crm-top').classList.remove('has-page-head');
   document.title = `${c ? c.title : 'Project'} — Williams Systems LLC`;
   $('#newContractBtn').querySelector('span').textContent = 'New contract';
   renderProjectsNav();
@@ -459,39 +461,100 @@ const C_FILTERS = [
   ['lost', 'Lost', (c) => c.status === 'lost'],
   ['all', 'All', () => true],
 ];
+const C_SORTS = [
+  ['updated', 'Recently updated', (a, b) => new Date(b.updated_at) - new Date(a.updated_at)],
+  ['due', 'Due soonest', (a, b) => (a.due_date || '9999').localeCompare(b.due_date || '9999')],
+  ['value', 'Highest price', (a, b) => Number(b.value) - Number(a.value)],
+  ['name', 'Name', (a, b) => a.title.localeCompare(b.title)],
+];
+const C_GROUPS = [['Live', LIVE], ['Pending', PENDING], ['Complete', ['complete']], ['Lost', ['lost']]];
+let cShell = null;
 
 function renderContracts() {
   const root = $('#view-contracts');
-  const test = C_FILTERS.find((f) => f[0] === state.cFilter)[2];
-  const q = state.cQuery.toLowerCase();
-  const rows = state.contracts.filter(test).filter((c) => !q || [c.title, c.client_name, c.client_email, c.company].some((s) => s && s.toLowerCase().includes(q)));
-  const search = el('input', { type: 'search', class: 'search', placeholder: 'Search contracts, clients…', 'aria-label': 'Search contracts', value: state.cQuery });
-  search.addEventListener('input', () => { state.cQuery = search.value; const pos = search.selectionStart; renderContracts(); const s = $('#view-contracts .search'); s.focus(); s.setSelectionRange(pos, pos); });
-  root.replaceChildren(
-    el('div', { class: 'crm-toolbar' },
-      el('div', { class: 'tabs', role: 'tablist' }, C_FILTERS.map(([k, label, t]) => el('button', {
-        type: 'button', role: 'tab', class: 'tab', 'aria-selected': String(state.cFilter === k),
-        onclick: () => { state.cFilter = k; renderContracts(); },
-      }, label, el('span', { class: 'tab-count', text: state.contracts.filter(t).length })))),
-      search),
-    el('section', { class: 'crm-card wide flush' }, contractTable(rows, {
-      empty: state.contracts.length ? 'Nothing matches.' : 'No contracts yet. Create one with “New contract”, or turn a request into a deal.',
-    })));
+  if (!cShell) {
+    // built once, so typing in the search box never loses focus
+    const search = el('input', { type: 'search', placeholder: 'Search projects, clients, companies…', 'aria-label': 'Search contracts' });
+    search.addEventListener('input', () => { state.cQuery = search.value; renderContractList(); });
+    const sort = el('select', { class: 'ct-sort', 'aria-label': 'Sort' }, C_SORTS.map(([k, label]) => el('option', { value: k, text: label })));
+    sort.addEventListener('change', () => { state.cSort = sort.value; renderContractList(); });
+    cShell = {
+      head: el('header', { class: 'ct-head' }),
+      seg: el('div', { class: 'ct-seg', role: 'tablist', 'aria-label': 'Filter contracts' }),
+      list: el('section', { class: 'ct-card' }),
+      tools: el('div', { class: 'ct-tools' },
+        el('label', { class: 'ct-search' }, el('span', { class: 'ct-search-ico', 'aria-hidden': 'true', html: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>' }), search),
+        sort),
+    };
+    fill(root, el('div', { class: 'ct' }, cShell.head, el('div', { class: 'ct-bar' }, cShell.seg, cShell.tools), cShell.list));
+  }
+  renderContractList();
 }
 
-function contractTable(rows, { compact = false, empty = 'Nothing here.' } = {}) {
-  if (!rows.length) return el('p', { class: 'crm-empty', text: empty });
-  const open = (c) => { location.hash = `#contract/${c.id}`; };
-  return el('table', { class: `ctable${compact ? ' compact' : ''}` },
-    el('thead', {}, el('tr', {}, ['Contract', 'Client', 'Status', 'Progress', 'Price', 'Due', compact ? null : 'Updated'].filter(Boolean).map((h) => el('th', { scope: 'col', text: h })))),
-    el('tbody', {}, rows.map((c) => el('tr', { tabindex: 0, onclick: () => open(c), onkeydown: (e) => { if (e.key === 'Enter') open(c); } },
-      el('td', { 'data-label': 'Contract' }, el('strong', { text: c.title }), c.company ? el('small', { text: c.company }) : null),
-      el('td', { 'data-label': 'Client' }, el('span', { text: c.client_name || c.client_email || '—' }), c.client_id ? null : c.client_email ? el('small', { class: 'muted-sm', text: 'not signed up' }) : null),
-      el('td', { 'data-label': 'Status' }, statusPill(c.status)),
-      el('td', { 'data-label': 'Progress' }, el('span', { class: 'mini-bar' }, el('i', { style: { width: `${c.progress}%` } })), el('span', { class: 'mono mini-pct', text: `${c.progress}%` })),
-      el('td', { 'data-label': 'Price', class: 'num', text: price(c) }),
-      el('td', { 'data-label': 'Due', class: c.due_date && daysFrom(c.due_date) < 0 && LIVE.includes(c.status) ? 'late' : '', text: c.due_date ? dueText(c) : '—' }),
-      compact ? null : el('td', { 'data-label': 'Updated', class: 'muted-sm', text: timeAgo(c.updated_at) })))));
+function renderContractList() {
+  if (!cShell) return;
+  const all = state.contracts;
+  const sum = (list) => list.reduce((s, c) => s + Number(c.value || 0), 0);
+  const live = all.filter((c) => LIVE.includes(c.status));
+  const project = live.filter((c) => c.billing !== 'monthly');
+  const monthly = live.filter((c) => c.billing === 'monthly');
+
+  fill(cShell.head,
+    el('div', {},
+      el('h2', { text: 'Contracts' }),
+      el('p', { text: all.length
+        ? [`${live.length} live`, project.length ? `${money(sum(project))} in project work` : null, monthly.length ? `${money(sum(monthly))}/mo recurring` : null,
+          all.filter((c) => PENDING.includes(c.status)).length ? `${all.filter((c) => PENDING.includes(c.status)).length} pending` : null].filter(Boolean).join(' · ')
+        : 'Every deal you make lives here, from proposal to complete.' })));
+
+  fill(cShell.seg, C_FILTERS.map(([k, label, test]) => el('button', {
+    type: 'button', role: 'tab', class: 'ct-seg-btn', 'aria-selected': String(state.cFilter === k),
+    onclick: () => { state.cFilter = k; renderContractList(); },
+  }, label, el('span', { text: all.filter(test).length }))));
+
+  const test = C_FILTERS.find((f) => f[0] === state.cFilter)[2];
+  const q = (state.cQuery || '').trim().toLowerCase();
+  const sorter = (C_SORTS.find((x) => x[0] === state.cSort) || C_SORTS[0])[2];
+  const rows = all.filter(test)
+    .filter((c) => !q || [c.title, c.client_name, c.client_email, c.company].some((s) => s && s.toLowerCase().includes(q)))
+    .sort(sorter);
+
+  if (!rows.length) {
+    fill(cShell.list, el('div', { class: 'ct-empty' },
+      el('span', { class: 'ct-empty-ico', html: icon.contracts }),
+      el('strong', { text: q ? `Nothing matches “${state.cQuery.trim()}”` : all.length ? `No ${C_FILTERS.find((f) => f[0] === state.cFilter)[1].toLowerCase()} contracts` : 'No contracts yet' }),
+      el('p', { text: q ? 'Try a client’s name, their company, or the project title.' : all.length ? 'They’ll show up here when there are some.' : 'Create one, or turn a website request into a deal from Requests.' }),
+      !q && !all.length ? el('button', { type: 'button', class: 'btn btn-primary btn-sm', text: 'New contract', onclick: () => $('#newContractBtn').click() }) : null));
+    return;
+  }
+
+  const head = el('div', { class: 'ct-row ct-labels', 'aria-hidden': 'true' },
+    el('span'), el('span', { text: 'Project' }), el('span', { text: 'Client' }), el('span', { text: 'Status' }),
+    el('span', { text: 'Progress' }), el('span', { class: 'r', text: 'Price' }), el('span', { class: 'r', text: 'Due' }), el('span'));
+  const grouped = state.cFilter === 'all' && !q
+    ? C_GROUPS.map(([label, sts]) => [label, rows.filter((c) => sts.includes(c.status))]).filter(([, l]) => l.length)
+    : [[null, rows]];
+  fill(cShell.list, head, grouped.map(([label, list]) => [
+    label ? el('h3', { class: 'ct-group' }, label, el('span', { text: list.length })) : null,
+    el('ul', { class: 'ct-rows' }, list.map(contractRow)),
+  ]));
+}
+
+function contractRow(c) {
+  const late = c.due_date && daysFrom(c.due_date) < 0 && LIVE.includes(c.status);
+  const tks = state.tickets.filter((t) => t.contract_id === c.id && t.status === 'open').length;
+  const due = c.due_date ? dueText(c) : c.billing === 'monthly' && LIVE.includes(c.status) ? 'Ongoing' : '—';
+  return el('li', {}, el('a', { class: `ct-row${c.status === 'lost' ? ' is-lost' : ''}`, href: projectHref(c) },
+    el('span', { class: 'hm-av', text: initials(c.company || c.client_name || c.title) }),
+    el('span', { class: 'ct-main' }, el('strong', {}, el('span', { class: 'ct-title', text: c.title }), tks ? el('b', { class: 'hm-badge', title: `${tks} new ticket${tks === 1 ? '' : 's'}`, text: tks }) : null),
+      el('small', { text: c.company || (c.billing === 'monthly' ? 'Monthly plan' : 'One-time project') })),
+    el('span', { class: 'ct-client' }, el('span', { text: c.client_name || c.client_email || 'No client yet' }),
+      c.client_email && !c.client_id ? el('small', { class: 'ct-warn', text: 'Not signed up yet' }) : c.client_id ? el('small', { text: 'Portal active' }) : null),
+    el('span', { class: 'ct-status' }, statusPill(c.status)),
+    el('span', { class: 'hm-proj-prog', title: `${c.progress}% done` }, el('span', { class: 'hm-bar' }, el('i', { style: { width: `${c.progress}%` } })), el('small', { class: 'mono', text: `${c.progress}%` })),
+    el('span', { class: 'ct-price r mono', text: price(c) }),
+    el('span', { class: `ct-due r${late ? ' late' : ''}`, text: due }),
+    el('span', { class: 'ct-go', 'aria-hidden': 'true', text: '›' })));
 }
 
 /* ------------------------------------------------------------------ */
