@@ -110,7 +110,6 @@ export function calendarView(root, { getContracts, onOpenContract, onOpenRequest
       planned.length ? el('ul', { class: 'cal-items' }, planned.map(row)) : el('p', { class: 'cal-none', text: 'Nothing scheduled.' }),
       el('h4', { class: 'mono', text: 'Logged' }),
       logged.length ? el('ul', { class: 'cal-items' }, logged.map(row)) : el('p', { class: 'cal-none', text: 'Nothing logged this day.' }));
-    if (!REDUCED) gsap.from(panel.children, { y: 8, autoAlpha: 0, duration: 0.3, stagger: 0.03, ease: 'power2.out', clearProps: 'all' });
   }
 
   function open(x) {

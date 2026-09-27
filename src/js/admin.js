@@ -20,7 +20,7 @@ import {
   el, $, $$, REDUCED, STATUS, PENDING, LIVE, statusPill, money, moneyShort, price, fmtDate, fmtTime,
   timeAgo, dueText, daysFrom, ymd, toast, armedButton, icon, EVENT_KINDS, fill,
 } from './crm/util.js';
-import { barChart, lineChart, donut, hBars } from './crm/charts.js';
+import { barChart, lineChart, donut, hBars, chartMotion } from './crm/charts.js';
 import { contractPage, contractForm, SECTIONS, projectHref } from './crm/contract-view.js';
 import { calendarView, eventModal } from './crm/calendar.js';
 import { notificationBell } from './crm/notifications.js';
@@ -183,9 +183,6 @@ function route() {
         onOpenRequests: (t) => { location.hash = t === 'accounts' ? '#requests/accounts' : '#requests'; },
       });
     } else state.calendar.reload();
-  }
-  if (!REDUCED && !['contract', 'requests', 'tickets'].includes(v)) {
-    gsap.from(`#view-${v} > *`, { y: 12, autoAlpha: 0, duration: 0.4, stagger: 0.04, ease: 'power3.out', clearProps: 'all' });
   }
 }
 
@@ -399,6 +396,7 @@ function renderHome() {
         el('span', { class: 'agenda-date' }, el('b', { text: new Date(e.starts_at).getDate() }), el('small', { text: new Date(e.starts_at).toLocaleDateString(undefined, { weekday: 'short' }) })),
         el('span', { class: 'agenda-body' }, el('strong', { text: e.title }), el('small', { text: `${EVENT_KINDS[e.kind]}${e.all_day ? '' : ` · ${fmtTime(e.starts_at)}`}${e.contract_id ? ` · ${state.contracts.find((c) => c.id === e.contract_id)?.title || ''}` : ''}` })))))
         : el('p', { class: 'crm-empty', text: 'Nothing on the calendar for the next two weeks.' }), { link: ['Calendar →', '#calendar'] })));
+  chartMotion.on = false;   // later visits and live refreshes don't replay the chart animation
 }
 
 /* ------------------------------------------------------------------ */
@@ -743,7 +741,6 @@ function renderDetail(animate = true) {
     ),
   );
 
-  if (animate && !REDUCED) gsap.from('.detail-inner > *', { y: 12, autoAlpha: 0, duration: 0.45, stagger: 0.04, ease: 'power3.out' });
   detail.scrollTop = 0;
 
   loadFileLinks(q);

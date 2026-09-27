@@ -245,7 +245,6 @@ export async function ticketView(root, opts) {
   }
 
   renderHead(); renderAbout(); renderThread();
-  if (!REDUCED) gsap.from(root.querySelectorAll('.cv-head, .cv-card'), { y: 12, autoAlpha: 0, duration: 0.4, stagger: 0.05, ease: 'power3.out', clearProps: 'all' });
   supabase.from('notifications').update({ read_at: new Date().toISOString() }).eq('ticket_id', id).is('read_at', null).then(() => opts.onRead?.());
 
   const channel = supabase.channel(`ticket-${id}-${Math.random().toString(36).slice(2, 8)}`)

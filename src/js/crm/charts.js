@@ -4,6 +4,9 @@
 import { gsap } from 'gsap';
 import { el, REDUCED } from './util.js';
 
+/** Charts animate in on the first Home view only; the dashboard turns this off after. */
+export const chartMotion = { on: true };
+
 const nice = (max) => {
   if (max <= 0) return 1;
   const p = 10 ** Math.floor(Math.log10(max));
@@ -30,7 +33,7 @@ export function barChart(data, { format = String, empty = 'Nothing yet' } = {}) 
     svg.append(bar);
     svg.append(el('text', { x: x + bw * 0.3, y: H - 8, class: 'chart-axis', 'text-anchor': 'middle', text: d.label }));
   });
-  if (!REDUCED) gsap.from(svg.querySelectorAll('.chart-bar'), { scaleY: 0, transformOrigin: '50% 100%', duration: 0.7, stagger: 0.05, ease: 'power3.out' });
+  if (!REDUCED && chartMotion.on) gsap.from(svg.querySelectorAll('.chart-bar'), { scaleY: 0, transformOrigin: '50% 100%', duration: 0.7, stagger: 0.05, ease: 'power3.out' });
   const wrap = el('div', { class: 'chart' }, svg);
   if (!data.some((d) => d.value)) wrap.append(el('p', { class: 'chart-empty', text: empty }));
   return wrap;
@@ -59,7 +62,7 @@ export function lineChart(data, { format = String, empty = 'Nothing yet' } = {})
       svg.append(el('text', { x: p[0], y: H - 8, class: 'chart-axis', 'text-anchor': 'middle', text: data[i].label }));
     }
   });
-  if (!REDUCED) {
+  if (!REDUCED && chartMotion.on) {
     const len = path.getTotalLength?.() || 1000;
     gsap.fromTo(path, { strokeDasharray: len, strokeDashoffset: len }, { strokeDashoffset: 0, duration: 1.1, ease: 'power2.out' });
     gsap.from(svg.querySelector('.chart-area'), { autoAlpha: 0, duration: 1, delay: 0.3 });
@@ -88,7 +91,7 @@ export function donut(data, { center = '', sub = '', format = String } = {}) {
   }
   svg.append(el('text', { x: 100, y: 100, class: 'donut-num', 'text-anchor': 'middle', text: center }));
   svg.append(el('text', { x: 100, y: 122, class: 'donut-sub', 'text-anchor': 'middle', text: sub }));
-  if (!REDUCED) gsap.from(svg.querySelectorAll('.donut-seg'), { strokeDasharray: `0 ${C}`, duration: 0.9, stagger: 0.08, ease: 'power2.out' });
+  if (!REDUCED && chartMotion.on) gsap.from(svg.querySelectorAll('.donut-seg'), { strokeDasharray: `0 ${C}`, duration: 0.9, stagger: 0.08, ease: 'power2.out' });
   return el('div', { class: 'donut' }, svg,
     el('ul', { class: 'donut-legend' }, data.map((d) => el('li', {},
       el('i', { style: { background: d.color } }), el('span', { text: d.label }), el('b', { text: format(d.value) })))));
@@ -101,7 +104,7 @@ export function hBars(data, { format = String } = {}) {
     el('div', { class: 'hbar-top' }, el('span', { text: d.label }), el('b', { text: format(d.value) })),
     el('div', { class: 'hbar-track' }, el('div', { class: 'hbar-fill', style: { width: `${(d.value / max) * 100}%` } })),
     d.sub ? el('small', { text: d.sub }) : null)));
-  if (!REDUCED) gsap.from(list.querySelectorAll('.hbar-fill'), { width: 0, duration: 0.8, stagger: 0.08, ease: 'power3.out' });
+  if (!REDUCED && chartMotion.on) gsap.from(list.querySelectorAll('.hbar-fill'), { width: 0, duration: 0.8, stagger: 0.08, ease: 'power3.out' });
   return list;
 }
 

@@ -371,7 +371,6 @@ export async function contractPage(root, opts) {
   /* ---------- go ---------- */
   renderHead();
   renderSection();
-  if (!REDUCED) gsap.from(root.querySelectorAll('.cv-head, .cv-tabs, .cv-stages, .cv-body > .cv-card, .cv-grid .cv-card'), { y: 12, autoAlpha: 0, duration: 0.4, stagger: 0.03, ease: 'power3.out', clearProps: 'all' });
 
   // opening the project reads its notifications (a ticket reads its own when opened)
   if (section !== 'tickets') supabase.from('notifications').update({ read_at: new Date().toISOString() }).eq('contract_id', id).is('ticket_id', null).is('read_at', null).then(() => opts.onRead?.());
