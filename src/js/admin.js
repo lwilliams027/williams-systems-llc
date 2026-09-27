@@ -204,7 +204,7 @@ function route() {
 async function routeProject([slug, section = 'overview', sub]) {
   state.cleanup?.(); state.cleanup = null;
   state.view = 'contract';
-  state.project = [slug, section];
+  state.project = [slug, section === 'chat' ? 'overview' : section];
   for (const id of Object.keys(TITLES)) $(`#view-${id}`).hidden = id !== 'contract';
   $$('.crm-nav-link').forEach((a) => a.setAttribute('aria-current', 'false'));
   const c = state.contracts.find((x) => x.slug === slug);
@@ -231,6 +231,8 @@ async function routeProject([slug, section = 'overview', sub]) {
 }
 
 function openNotification(n) {
+  const proj = n.contract_id && state.contracts.find((c) => c.id === n.contract_id);
+  if (n.kind === 'message' && proj && !n.ticket_id) { location.hash = projectHref(proj, 'chat'); return; }
   if (n.ticket_id) location.hash = `#tickets/${n.ticket_id}`;
   else if (n.contract_id) location.hash = `#contract/${n.contract_id}`;
   else if (n.target === 'accounts') location.hash = '#requests/accounts';

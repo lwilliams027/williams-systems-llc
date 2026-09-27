@@ -83,7 +83,7 @@ async function show(c, section, sub) {
   st.cleanup?.(); st.cleanup = null;
   if (st.current !== c.id) st.counts = {};
   st.current = c.id;
-  st.section = section;
+  st.section = section === 'chat' ? 'overview' : section;
   document.title = `${c.title} — Williams Systems LLC`;
   $('#viewTitle').textContent = c.title;
   renderNav();

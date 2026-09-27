@@ -16,15 +16,15 @@ import { gsap } from 'gsap';
 import { supabase } from '../supabase.js';
 import {
   el, $, $$, REDUCED, STATUS, PENDING, statusPill, money, price, fmtDate, fmtTime, timeAgo, dueText,
-  toast, armedButton, modal, field, icon, initials, EVENT_KINDS, ymd, fill, add, richText, meetingName, formatBytes,
+  toast, armedButton, modal, field, icon, initials, EVENT_KINDS, ymd, day, fill, add, richText, meetingName, formatBytes,
 } from './util.js';
 import { ticketRows, ticketForm, ticketView, fileList, OPEN_STATES } from './tickets.js';
+import { chatBubble } from './chat-bubble.js';
 
 const SITE = new URL('./', location.href).href;
 export const SECTIONS = [
   ['overview', 'Overview'],
   ['tickets', 'Tickets'],
-  ['chat', 'Chat'],
   ['schedule', 'Schedule'],
   ['files', 'Files'],
 ];
@@ -37,6 +37,8 @@ export const projectHref = (c, section = 'overview', sub) =>
  */
 export async function contractPage(root, opts) {
   const { owner } = opts;
+  // old links to …/chat open the overview with the chat bubble popped up
+  const wantChat = opts.section === 'chat';
   const section = SECTIONS.some(([k]) => k === opts.section) ? opts.section : 'overview';
   fill(root, el('div', { class: 'cv-loading', text: 'Loading…' }));
 
@@ -50,13 +52,15 @@ export async function contractPage(root, opts) {
   }
   const id = c.data.id;
   const [msgs, evs, acts, tks] = await Promise.all([
-    section === 'chat' || section === 'overview' ? supabase.from('contract_messages').select('*').eq('contract_id', id).order('created_at') : { data: [] },
+    { data: [] },
     supabase.from('events').select('*').eq('contract_id', id).order('starts_at'),
     section === 'overview' ? supabase.from('activity').select('*').eq('contract_id', id).order('created_at', { ascending: false }).limit(60) : { data: [] },
     supabase.from('tickets').select('*').eq('contract_id', id).order('updated_at', { ascending: false }),
   ]);
   const s = { c: c.data, msgs: msgs.data || [], evs: evs.data || [], acts: acts.data || [], tks: tks.data || [] };
   const href = (sec, sub) => projectHref(s.c, sec, sub);
+  const chatBox = chatBubble({ contract: s.c, owner, me: opts.me, onRead: opts.onRead });
+  if (wantChat) setTimeout(() => chatBox.open(), 50);
 
   const head = el('div');
   const tabs = el('nav', { class: 'cv-tabs', 'aria-label': 'Project sections' });
@@ -118,7 +122,7 @@ export async function contractPage(root, opts) {
         person.phone ? el('li', {}, el('a', { href: `tel:+1${person.phone.replace(/\D/g, '')}`, text: person.phone })) : null) : null,
       portal,
       el('div', { class: 'pv-actions' },
-        el('a', { class: 'btn btn-primary btn-sm', href: href('chat'), text: owner ? 'Message' : 'Message Landon' }),
+        el('button', { type: 'button', class: 'btn btn-primary btn-sm', text: owner ? 'Message' : 'Message Landon', onclick: () => chatBox.open() }),
         person.email ? el('a', { class: 'btn btn-ghost btn-sm', href: `mailto:${person.email}`, text: 'Email' }) : null));
 
     const stage = owner
@@ -167,108 +171,164 @@ export async function contractPage(root, opts) {
   function renderSection() {
     if (section === 'overview') return overview();
     if (section === 'tickets') return ticketsSection();
-    if (section === 'chat') return chatSection();
     if (section === 'schedule') return scheduleSection();
     if (section === 'files') return filesSection();
   }
 
   /* =====================================================================
-     Overview
+     Overview — the whole project on one screen, with charts
      ===================================================================== */
   const slots = {};
+  const DAY = 86400000;
+  const clamp = (n, a, b) => Math.min(b, Math.max(a, n));
+  let scopeOpen = false, scopeEditing = false, showAllHistory = false;
+  const card = (title, bodyNodes, { link, extra, cls = '' } = {}) => el('section', { class: `cv-card ov-card ${cls}` },
+    el('div', { class: 'cv-card-head' }, el('h2', { text: title }), extra || null, link ? el('a', { class: 'crm-more', href: link[1], text: link[0] }) : null),
+    bodyNodes);
+
   function overview() {
-    Object.assign(slots, {
-      stages: el('div'), scope: el('section', { class: 'cv-card' }), items: el('section', { class: 'cv-card' }),
-      events: el('section', { class: 'cv-card' }), timeline: el('section', { class: 'cv-card' }),
-      tickets: el('section', { class: 'cv-card' }), chat: el('section', { class: 'cv-card' }),
-    });
-    fill(body,
-      el('section', { class: 'cv-card pv-stage' }, slots.stages),
-      slots.scope, slots.items,
-      el('div', { class: 'pv-duo' }, slots.events, slots.tickets),
-      slots.chat, slots.timeline);
-    renderStages(); renderScope(); renderItems(); renderTimeline(); renderMiniTickets(); renderMiniChat(); renderEvents(slots.events, true);
-  }
-
-  function renderStages() {
     const c = s.c;
-    if (c.status === 'lost') {
-      fill(slots.stages, el('div', { class: 'cv-lost', text: `This deal was marked lost ${c.closed_at ? timeAgo(c.closed_at) : ''}.` }));
-      return;
-    }
+    const items = Array.isArray(c.deliverables) ? c.deliverables : [];
+    const done = items.filter((d) => d.done).length;
+    const today0 = new Date(new Date().setHours(0, 0, 0, 0));
+    const start = c.start_date ? day(c.start_date) : null;
+    const due = c.due_date ? day(c.due_date) : null;
+    const timePct = start && due && due > start ? clamp(Math.round(((today0 - start) / (due - start)) * 100), 0, 100) : null;
+    const daysLeft = due ? Math.round((due - today0) / DAY) : null;
+    const closed = ['complete', 'lost'].includes(c.status);
+    const pace = timePct == null || closed || PENDING.includes(c.status) ? null
+      : c.progress >= timePct - 10 ? ['on', 'On track'] : c.progress >= timePct - 25 ? ['tight', 'Cutting it close'] : ['behind', 'Behind schedule'];
+    const openT = s.tks.filter((t) => OPEN_STATES.includes(t.status));
+    const upcoming = s.evs.filter((e) => new Date(e.starts_at) >= today0);
+
+    /* ---------- the four numbers ---------- */
+    const ring = (() => {
+      const R = 22, C = 2 * Math.PI * R, pct = clamp(c.progress, 0, 100);
+      const svg = el('svg', { class: 'ov-ring', viewBox: '0 0 56 56', 'aria-hidden': 'true' },
+        el('defs', { html: '<linearGradient id="ovRing" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#2E9BFF"/><stop offset="1" stop-color="#A06BFF"/></linearGradient>' }),
+        el('circle', { cx: 28, cy: 28, r: R, class: 'ov-ring-track' }),
+        el('circle', { cx: 28, cy: 28, r: R, class: 'ov-ring-fill', 'stroke-dasharray': `${(pct / 100) * C} ${C}`, transform: 'rotate(-90 28 28)' }));
+      return svg;
+    })();
+    const segs = el('div', { class: 'ov-segs', 'aria-hidden': 'true' },
+      (items.length ? items : [{}]).map((d) => el('i', { class: d.done ? 'on' : '' })));
+    const timeValue = c.billing === 'monthly' && !due ? 'Ongoing'
+      : daysLeft == null ? '—'
+      : closed ? fmtDate(c.due_date, { month: 'short', day: 'numeric' })
+      : daysLeft > 0 ? `${daysLeft}` : daysLeft === 0 ? 'Today' : `${-daysLeft}`;
+    const timeLabel = c.billing === 'monthly' && !due ? 'Monthly plan'
+      : daysLeft == null ? 'No due date' : closed ? 'Was due' : daysLeft > 0 ? `day${daysLeft === 1 ? '' : 's'} left` : daysLeft === 0 ? 'Due today' : `day${daysLeft === -1 ? '' : 's'} overdue`;
+    const stats = el('section', { class: 'ov-stats' },
+      el('div', { class: 'ov-stat' }, ring,
+        el('div', {}, el('b', { text: `${c.progress}%` }), el('span', { text: 'Work done' }))),
+      el('div', { class: 'ov-stat' },
+        el('div', { class: 'ov-stat-col' }, el('div', {}, el('b', { text: items.length ? `${done}/${items.length}` : '—' }), el('span', { text: 'Deliverables' })), segs)),
+      el('div', { class: `ov-stat${daysLeft != null && daysLeft < 0 && !closed ? ' late' : ''}` },
+        el('div', { class: 'ov-stat-col' }, el('div', {}, el('b', { text: timeValue }), el('span', { text: timeLabel })),
+          timePct != null ? el('div', { class: 'ov-minibar', title: `${timePct}% of the time used` }, el('i', { style: { width: `${timePct}%` } })) : null)),
+      el('a', { class: 'ov-stat', href: href('tickets') },
+        el('div', { class: 'ov-stat-col' }, el('div', {}, el('b', { text: String(openT.length) }), el('span', { text: owner ? 'Open tickets' : 'Open requests' })),
+          el('small', { text: openT.length ? [openT.filter((t) => t.status === 'open').length ? `${openT.filter((t) => t.status === 'open').length} new` : null, openT.filter((t) => t.status === 'waiting').length ? `${openT.filter((t) => t.status === 'waiting').length} waiting` : null].filter(Boolean).join(' · ') || 'In progress' : 'All clear' }))));
+
+    /* ---------- timeline chart: start → due, today, events; time used vs work done ---------- */
     const steps = ['Proposal', 'Signed', 'In progress', 'Complete'];
-    const at = PENDING.includes(c.status) ? 0 : c.status === 'complete' ? 3 : c.progress > 0 ? 2 : 1;
-    fill(slots.stages, el('ol', { class: 'cv-stages', 'aria-label': 'Project stage' }, steps.map((t, i) =>
-      el('li', { class: i < at ? 'done' : i === at ? 'now' : '', 'aria-current': i === at ? 'step' : null },
-        el('i', {}), el('span', { text: i === 0 && at === 0 ? STATUS[c.status].label : i === 2 && c.status === 'on_hold' ? 'On hold' : t })))));
-  }
-
-  function renderScope(editing = false) {
-    const c = s.c;
-    const h = el('div', { class: 'cv-card-head' }, el('h2', { text: 'Scope of work' }),
-      owner && !editing ? el('button', { type: 'button', class: 'link-btn', text: c.scope ? 'Edit' : 'Write it', onclick: () => renderScope(true) }) : null);
-    if (editing) {
-      const area = el('textarea', { class: 'cv-textarea', rows: 12, maxlength: 20000, 'aria-label': 'Scope of work', placeholder: 'What’s included, what isn’t, how it’s delivered…' });
-      area.value = c.scope || '';
-      fill(slots.scope, h, area, el('div', { class: 'cv-row-end' },
-        el('button', { type: 'button', class: 'link-btn', text: 'Cancel', onclick: () => renderScope() }),
-        el('button', { type: 'button', class: 'btn btn-primary btn-sm', text: 'Save', onclick: async () => { await save({ scope: area.value.trim() || null }, 'Scope saved'); } })));
-      area.focus();
-      return;
+    const at = c.status === 'lost' ? -1 : PENDING.includes(c.status) ? 0 : c.status === 'complete' ? 3 : c.progress > 0 ? 2 : 1;
+    const stageStrip = el('ol', { class: 'ov-steps', 'aria-label': 'Project stage' }, steps.map((t, i) =>
+      el('li', { class: i < at ? 'done' : i === at ? 'now' : '' }, el('i'), el('span', { text: i === 2 && c.status === 'on_hold' ? 'On hold' : t }))));
+    let track;
+    if (start && due && due > start) {
+      const pos = (d) => clamp(((d - start) / (due - start)) * 100, 0, 100);
+      const inRange = s.evs.filter((e) => { const d = new Date(e.starts_at); return d >= start && d <= new Date(due.getTime() + DAY); });
+      track = el('div', { class: 'ov-track' },
+        el('div', { class: 'ov-track-bar' },
+          el('i', { class: 'ov-track-used', style: { width: `${timePct}%` } }),
+          inRange.map((e) => el('span', { class: `ov-track-ev k-${e.kind}`, style: { left: `${pos(new Date(e.starts_at))}%` }, title: `${e.title} · ${fmtDate(e.starts_at, { month: 'short', day: 'numeric' })}` })),
+          today0 >= start && today0 <= due ? el('span', { class: 'ov-today', style: { left: `${timePct}%` } }, el('em', { text: 'Today' })) : null),
+        el('div', { class: 'ov-track-ends' },
+          el('span', { text: `Start ${fmtDate(c.start_date, { month: 'short', day: 'numeric' })}` }),
+          el('span', { text: `Due ${fmtDate(c.due_date, { month: 'short', day: 'numeric' })}` })));
+    } else {
+      track = el('p', { class: 'ov-quiet' }, c.billing === 'monthly' ? 'Monthly plan: no fixed end date.' : 'Add a start and due date to see the timeline.',
+        owner && c.billing !== 'monthly' ? el('button', { type: 'button', class: 'link-btn', text: ' Set dates', onclick: () => contractForm(c, { onSaved: (d) => { s.c = d; renderHead(); renderSection(); opts.onChanged?.(d); } }) }) : null);
     }
-    fill(slots.scope, h, c.scope
-      ? richText(c.scope, 'div', { class: 'cv-scope' })
-      : el('p', { class: 'cv-empty', text: owner ? 'No scope written yet. Write what this project covers so the client can see it.' : 'Your scope of work will appear here.' }));
-  }
+    const compare = timePct != null ? el('div', { class: 'ov-compare' },
+      el('div', { class: 'ov-cmp' }, el('span', { text: 'Time used' }), el('div', { class: 'ov-cmp-bar time' }, el('i', { style: { width: `${timePct}%` } })), el('b', { class: 'mono', text: `${timePct}%` })),
+      el('div', { class: 'ov-cmp' }, el('span', { text: 'Work done' }), el('div', { class: 'ov-cmp-bar work' }, el('i', { style: { width: `${c.progress}%` } })), el('b', { class: 'mono', text: `${c.progress}%` }))) : null;
+    const timeline = card('Timeline', [stageStrip, track, compare], {
+      cls: 'ov-timeline',
+      extra: pace ? el('span', { class: `ov-pace ${pace[0]}`, text: pace[1] }) : c.status === 'lost' ? el('span', { class: 'ov-pace behind', text: 'Lost' }) : null,
+    });
 
-  function renderItems() {
-    const list = Array.isArray(s.c.deliverables) ? s.c.deliverables : [];
-    const done = list.filter((d) => d.done).length;
-    const setList = (next, msg) => save({ deliverables: next, ...(next.length ? { progress: s.c.status === 'complete' ? 100 : Math.round((next.filter((d) => d.done).length / next.length) * 100) } : {}) }, msg);
+    /* ---------- deliverables (compact checklist) ---------- */
+    const setList = (next, msg) => save({ deliverables: next, ...(next.length ? { progress: c.status === 'complete' ? 100 : Math.round((next.filter((d) => d.done).length / next.length) * 100) } : {}) }, msg);
     const input = el('input', { type: 'text', maxlength: 200, placeholder: 'Add a deliverable…', 'aria-label': 'New deliverable' });
-    const addItem = () => { const t = input.value.trim(); if (!t) return; setList([...list, { text: t, done: false }]); };
+    const addItem = () => { const t = input.value.trim(); if (t) setList([...items, { text: t, done: false }]); };
     input.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); addItem(); } });
-    const ticketLink = (d) => {
-      const t = d.ticket && s.tks.find((x) => x.number === d.ticket);
-      return t ? el('a', { class: 'cv-from-ticket mono', href: href('tickets', t.number), text: `#${t.number}` }) : null;
-    };
-    fill(slots.items,
-      el('div', { class: 'cv-card-head' }, el('h2', { text: 'Deliverables' }), list.length ? el('span', { class: 'cv-count mono', text: `${done}/${list.length} done` }) : null),
-      list.length ? el('ul', { class: 'cv-checks' }, list.map((d, i) => el('li', { class: d.done ? 'done' : '' },
+    const deliverables = card('Deliverables', [
+      items.length ? el('ul', { class: 'ov-checks' }, items.map((d, i) => el('li', { class: d.done ? 'done' : '' },
         el('label', {},
-          el('input', { type: 'checkbox', checked: d.done ? true : null, disabled: owner ? null : true, onchange: (e) => setList(list.map((x, j) => (j === i ? { ...x, done: e.target.checked } : x))) }),
+          el('input', { type: 'checkbox', checked: d.done ? true : null, disabled: owner ? null : true, onchange: (e) => setList(items.map((x, j) => (j === i ? { ...x, done: e.target.checked } : x))) }),
           el('span', { text: d.text })),
-        ticketLink(d),
-        owner ? el('button', { type: 'button', class: 'cv-x', 'aria-label': `Remove ${d.text}`, html: '&times;', onclick: () => setList(list.filter((_, j) => j !== i)) }) : null)))
-        : el('p', { class: 'cv-empty', text: owner ? 'Break the work into deliverables. Ticking them off updates progress, and the client is told.' : 'Deliverables will be listed here as the project takes shape.' }),
-      owner ? el('div', { class: 'cv-add' }, input, el('button', { type: 'button', class: 'btn btn-ghost btn-sm', text: 'Add', onclick: addItem })) : null);
-  }
+        d.ticket ? el('a', { class: 'cv-from-ticket mono', href: href('tickets', d.ticket), text: `#${d.ticket}` }) : null,
+        owner ? el('button', { type: 'button', class: 'cv-x', 'aria-label': `Remove ${d.text}`, html: '&times;', onclick: () => setList(items.filter((_, j) => j !== i)) }) : null)))
+        : el('p', { class: 'ov-quiet', text: owner ? 'Break the work into deliverables. Ticking them off moves the progress.' : 'Deliverables will be listed here as the project takes shape.' }),
+      owner ? el('div', { class: 'ov-add' }, input, el('button', { type: 'button', class: 'cv-add-btn', 'aria-label': 'Add deliverable', html: icon.plus, onclick: addItem })) : null,
+    ], { cls: 'ov-deliv', extra: items.length ? el('span', { class: 'cv-count mono', text: `${done}/${items.length}` }) : null });
 
-  let showAllHistory = false;
-  function renderTimeline() {
-    const PREVIEW = 5;
-    const list = showAllHistory ? s.acts : s.acts.slice(0, PREVIEW);
-    fill(slots.timeline, el('div', { class: 'cv-card-head' }, el('h2', { text: 'History' }), s.acts.length ? el('span', { class: 'cv-count mono', text: s.acts.length }) : null),
-      s.acts.length ? el('ol', { class: 'cv-timeline' }, list.map((a) => el('li', { class: `t-${a.kind}` },
-        el('i', {}), el('span', { text: a.summary }), el('time', { class: 'mono', datetime: a.created_at, title: new Date(a.created_at).toLocaleString(), text: timeAgo(a.created_at) }))))
-        : el('p', { class: 'cv-empty', text: 'Updates will show up here.' }),
-      s.acts.length > PREVIEW ? el('button', { type: 'button', class: 'link-btn cal-more-log', text: showAllHistory ? 'Show less' : `Show all ${s.acts.length}`, onclick: () => { showAllHistory = !showAllHistory; renderTimeline(); } }) : null);
-  }
+    /* ---------- coming up ---------- */
+    const soon = card('Coming up', upcoming.length
+      ? el('ul', { class: 'ov-events' }, upcoming.slice(0, 3).map((e) => el('li', { class: `k-${e.kind}` },
+        el('span', { class: 'hm-date' }, el('small', { text: new Date(e.starts_at).toLocaleDateString(undefined, { month: 'short' }) }), el('b', { text: new Date(e.starts_at).getDate() })),
+        el('span', { class: 'ov-ev-main' }, el('strong', { text: e.title }), el('small', { text: e.all_day ? EVENT_KINDS[e.kind] : `${new Date(e.starts_at).toLocaleDateString(undefined, { weekday: 'short' })} · ${fmtTime(e.starts_at)}` })),
+        e.link ? el('a', { class: 'hm-join', href: e.link, target: '_blank', rel: 'noopener noreferrer', text: 'Join' }) : null)))
+      : el('p', { class: 'ov-quiet', text: 'Nothing scheduled.' }), { link: ['Schedule →', href('schedule')] });
 
-  function renderMiniTickets() {
-    const open = s.tks.filter((t) => OPEN_STATES.includes(t.status));
-    fill(slots.tickets,
-      el('div', { class: 'cv-card-head' }, el('h2', { text: owner ? 'Tickets' : 'Your requests' }), el('a', { class: 'crm-more', href: href('tickets'), text: s.tks.length ? `All ${s.tks.length} →` : 'Open →' })),
-      open.length ? ticketRows(open.slice(0, 4), { owner, onOpen: (t) => { location.hash = href('tickets', t.number); } })
-        : el('p', { class: 'cv-empty', text: owner ? 'No open tickets.' : 'Need a change or found a bug? Send a request, with files.' }),
-      s.c.status !== 'lost' ? el('button', { type: 'button', class: 'btn btn-ghost btn-sm', text: owner ? '+ New ticket' : '+ New request', onclick: newTicket }) : null);
-  }
+    /* ---------- tickets: a bar by status + the latest open ones ---------- */
+    const TK = [['open', 'New', '#7CB7FF'], ['in_progress', 'In progress', '#A06BFF'], ['waiting', owner ? 'Waiting on client' : 'Waiting on you', '#F5B84B'], ['resolved', 'Resolved', '#3DDC84']];
+    const counts = TK.map(([k, label, color]) => ({ k, label, color, n: s.tks.filter((t) => (k === 'resolved' ? ['resolved', 'closed'].includes(t.status) : t.status === k)).length }));
+    const total = counts.reduce((a, x) => a + x.n, 0);
+    const tickets = card(owner ? 'Tickets' : 'Your requests', [
+      total ? el('div', { class: 'ov-stack', role: 'img', 'aria-label': counts.map((x) => `${x.label}: ${x.n}`).join(', ') },
+        counts.filter((x) => x.n).map((x) => el('i', { style: { flex: x.n, background: x.color }, title: `${x.label}: ${x.n}` }))) : null,
+      total ? el('ul', { class: 'ov-legend' }, counts.filter((x) => x.n).map((x) => el('li', {}, el('i', { style: { background: x.color } }), x.label, el('b', { text: x.n })))) : null,
+      openT.length ? el('ul', { class: 'ov-tks' }, openT.slice(0, 2).map((t) => el('li', {}, el('a', { href: href('tickets', t.number) },
+        el('span', { class: 'mono', text: `#${t.number}` }), el('span', { class: 'ov-tk-title', text: t.title }))))) : null,
+      !total ? el('p', { class: 'ov-quiet', text: owner ? 'No tickets yet.' : 'Need a change or found a bug? Send a request.' }) : null,
+      c.status !== 'lost' ? el('button', { type: 'button', class: 'link-btn ov-new', text: owner ? '+ New ticket' : '+ New request', onclick: newTicket }) : null,
+    ], { link: ['All →', href('tickets')] });
 
-  function renderMiniChat() {
-    const last = s.msgs.slice(-2);
-    fill(slots.chat,
-      el('div', { class: 'cv-card-head' }, el('h2', { text: owner ? 'Chat' : 'Chat with Landon' }), el('a', { class: 'crm-more', href: href('chat'), text: 'Open chat →' })),
-      last.length ? el('ol', { class: 'chat-list mini' }, last.map((m) => bubble(m))) : el('p', { class: 'cv-empty', text: owner ? 'No messages yet.' : 'Questions or feedback? Send Landon a message.' }));
+    /* ---------- scope (preview) + history ---------- */
+    let scopeBody;
+    if (scopeEditing) {
+      const area = el('textarea', { class: 'cv-textarea', rows: 10, maxlength: 20000, 'aria-label': 'Scope of work' });
+      area.value = c.scope || '';
+      scopeBody = [area, el('div', { class: 'cv-row-end' },
+        el('button', { type: 'button', class: 'link-btn', text: 'Cancel', onclick: () => { scopeEditing = false; overview(); } }),
+        el('button', { type: 'button', class: 'btn btn-primary btn-sm', text: 'Save', onclick: async () => { scopeEditing = false; await save({ scope: area.value.trim() || null }, 'Scope saved'); } }))];
+      setTimeout(() => area.focus(), 0);
+    } else {
+      scopeBody = [c.scope ? richText(c.scope, 'div', { class: `cv-scope ov-scope${scopeOpen ? ' open' : ''}` })
+        : el('p', { class: 'ov-quiet', text: owner ? 'No scope written yet.' : 'Your scope of work will appear here.' }),
+      c.scope && c.scope.split('\n').length + c.scope.length / 90 > 6 ? el('button', { type: 'button', class: 'link-btn ov-new', text: scopeOpen ? 'Show less' : 'Read all', onclick: () => { scopeOpen = !scopeOpen; overview(); } }) : null];
+    }
+    const scope = card('Scope of work', scopeBody, {
+      cls: 'ov-scope-card',
+      extra: owner && !scopeEditing ? el('button', { type: 'button', class: 'link-btn', text: c.scope ? 'Edit' : 'Write it', onclick: () => { scopeEditing = true; overview(); } }) : null,
+    });
+    const PREVIEW = 4;
+    const hist = showAllHistory ? s.acts : s.acts.slice(0, PREVIEW);
+    const history = card('Recent activity', [
+      s.acts.length ? el('ol', { class: 'cv-timeline' }, hist.map((a) => el('li', { class: `t-${a.kind}` },
+        el('i'), el('span', { text: a.summary }), el('time', { class: 'mono', datetime: a.created_at, title: new Date(a.created_at).toLocaleString(), text: timeAgo(a.created_at) }))))
+        : el('p', { class: 'ov-quiet', text: 'Updates will show up here.' }),
+      s.acts.length > PREVIEW ? el('button', { type: 'button', class: 'link-btn ov-new', text: showAllHistory ? 'Show less' : `Show all ${s.acts.length}`, onclick: () => { showAllHistory = !showAllHistory; overview(); } }) : null,
+    ]);
+
+    fill(body, el('div', { class: 'ov' },
+      stats,
+      el('div', { class: 'ov-row ov-row-a' }, timeline, deliverables),
+      el('div', { class: 'ov-row ov-row-b' }, soon, tickets),
+      el('div', { class: 'ov-row ov-row-c' }, scope, history)));
   }
 
   /* =====================================================================
@@ -299,60 +359,6 @@ export async function contractPage(root, opts) {
       onDeleted: () => { s.tks = s.tks.filter((t) => t.id !== selected.id); location.hash = href('tickets'); },
       onRead: opts.onRead,
     }).then((stop) => { stopTicket = stop; });
-  }
-
-  /* =====================================================================
-     Chat
-     ===================================================================== */
-  let chatList = null;
-  function bubble(m) {
-    const mine = m.sender_id === opts.me.id;
-    return el('li', { class: `chat-msg${mine ? ' mine' : ''}`, 'data-id': m.id },
-      mine ? null : el('span', { class: 'chat-av', text: initials(m.sender_name) }),
-      el('div', {},
-        richText(m.body, 'p', { class: 'chat-bubble' }),
-        el('span', { class: 'chat-meta', text: `${mine ? 'You' : m.sender_name} · ${fmtTime(m.created_at)}` })));
-  }
-  function chatSection() {
-    chatList = el('ol', { class: 'chat-list', 'aria-live': 'polite' });
-    const box = el('textarea', { rows: 1, maxlength: 4000, placeholder: owner ? 'Message the client…' : 'Message Landon…', 'aria-label': 'Message' });
-    const sendBtn = el('button', { type: 'submit', class: 'chat-send', 'aria-label': 'Send', html: icon.send });
-    const send = async () => {
-      const text = box.value.trim();
-      if (!text) return;
-      sendBtn.disabled = true;
-      const { data, error } = await supabase.from('contract_messages').insert({ contract_id: id, body: text }).select().single();
-      sendBtn.disabled = false;
-      if (error) return toast(`Couldn’t send: ${error.message}`, 'error');
-      box.value = ''; box.style.height = '';
-      if (!s.msgs.some((m) => m.id === data.id)) { s.msgs.push(data); renderChat(); }
-      box.focus();
-    };
-    box.addEventListener('keydown', (e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send(); } });
-    box.addEventListener('input', () => { box.style.height = 'auto'; box.style.height = `${Math.min(box.scrollHeight, 160)}px`; });
-    fill(body, el('section', { class: 'cv-card cv-chat full' },
-      el('div', { class: 'cv-card-head' }, el('h2', { text: owner ? `Chat with ${s.c.client_name?.split(' ')[0] || 'the client'}` : 'Chat with Landon' })),
-      chatList,
-      el('form', { class: 'chat-form', onsubmit: (e) => { e.preventDefault(); send(); } }, box, sendBtn),
-      el('p', { class: 'chat-note', text: owner && !s.c.client_id ? 'The client will see this chat once they have an account.' : 'For a change or a bug, a ticket keeps it tracked. Links you paste become clickable.' })));
-    renderChat();
-    box.focus({ preventScroll: true });
-  }
-  function renderChat(scroll = true) {
-    if (!chatList) return;
-    if (!s.msgs.length) {
-      fill(chatList, el('li', { class: 'chat-empty', text: owner ? 'No messages yet. Say hello.' : 'Questions, feedback, links: send them here and Landon will reply.' }));
-      return;
-    }
-    let lastDay = '';
-    const nodes = [];
-    for (const m of s.msgs) {
-      const d = new Date(m.created_at).toDateString();
-      if (d !== lastDay) { nodes.push(el('li', { class: 'chat-day', text: fmtDate(m.created_at, { weekday: 'short', month: 'short', day: 'numeric' }) })); lastDay = d; }
-      nodes.push(bubble(m));
-    }
-    fill(chatList, nodes);
-    if (scroll) chatList.scrollTop = chatList.scrollHeight;
   }
 
   /* =====================================================================
@@ -412,32 +418,22 @@ export async function contractPage(root, opts) {
   renderSection();
 
   // opening the project reads its notifications (a ticket reads its own when opened)
-  if (section !== 'tickets') supabase.from('notifications').update({ read_at: new Date().toISOString() }).eq('contract_id', id).is('ticket_id', null).is('read_at', null).then(() => opts.onRead?.());
+  if (section !== 'tickets') supabase.from('notifications').update({ read_at: new Date().toISOString() }).eq('contract_id', id).is('ticket_id', null).neq('kind', 'message').is('read_at', null).then(() => opts.onRead?.());
 
   /* ---------- live updates ---------- */
   const channel = supabase.channel(`contract-${id}-${Math.random().toString(36).slice(2, 8)}`)
-    .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'contract_messages', filter: `contract_id=eq.${id}` }, ({ new: m }) => {
-      if (s.msgs.some((x) => x.id === m.id)) return;
-      s.msgs.push(m);
-      if (section === 'chat') {
-        renderChat();
-        const node = chatList?.querySelector(`[data-id="${m.id}"]`);
-        if (node && !REDUCED) gsap.from(node, { y: 10, autoAlpha: 0, duration: 0.35, ease: 'power3.out' });
-        if (m.sender_id !== opts.me.id) supabase.from('notifications').update({ read_at: new Date().toISOString() }).eq('contract_id', id).is('ticket_id', null).is('read_at', null).then(() => opts.onRead?.());
-      } else if (section === 'overview') renderMiniChat();
-    })
     .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'contracts', filter: `id=eq.${id}` }, ({ new: c2 }) => {
       s.c = c2; renderHead();
-      if (section === 'overview') { renderStages(); renderScope(); renderItems(); }
+      if (section === 'overview' && !scopeEditing) overview();
     })
     .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'activity', filter: `contract_id=eq.${id}` }, ({ new: a }) => {
       if (section !== 'overview' || s.acts.some((x) => x.id === a.id)) return;
-      s.acts.unshift(a); renderTimeline();
+      s.acts.unshift(a); if (!scopeEditing) overview();
     })
     .on('postgres_changes', { event: '*', schema: 'public', table: 'tickets', filter: `contract_id=eq.${id}` }, async () => {
       const { data } = await supabase.from('tickets').select('*').eq('contract_id', id).order('updated_at', { ascending: false });
       s.tks = data || []; renderTabs();
-      if (section === 'overview') { renderMiniTickets(); renderItems(); }
+      if (section === 'overview' && !scopeEditing) overview();
       if (section === 'tickets') {
         // refresh the list only; the open ticket keeps itself up to date
         const rows = body.querySelector('.tk-pane-list .tk-rows, .tk-pane-list .cv-empty');
@@ -447,12 +443,12 @@ export async function contractPage(root, opts) {
     .on('postgres_changes', { event: '*', schema: 'public', table: 'events', filter: `contract_id=eq.${id}` }, async () => {
       const { data } = await supabase.from('events').select('*').eq('contract_id', id).order('starts_at');
       s.evs = data || []; renderTabs();
-      if (section === 'overview') renderEvents(slots.events, true);
+      if (section === 'overview' && !scopeEditing) overview();
       if (section === 'schedule') scheduleSection();
     })
     .subscribe();
 
-  return () => { stopTicket?.(); supabase.removeChannel(channel); };
+  return () => { stopTicket?.(); chatBox.destroy(); supabase.removeChannel(channel); };
 }
 
 const dueClass = (c) => (c.due_date && !['complete', 'lost'].includes(c.status) && new Date(c.due_date + 'T23:59:59') < new Date() ? 'cv-late' : '');
