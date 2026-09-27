@@ -919,3 +919,43 @@ a.ct-row:hover .ct-go { color: var(--text); transform: translateX(2px); }
 
 .crm-requests .detail-actions { flex-wrap: wrap; }
 @media (max-width: 560px) { .crm-requests .meta-grid { grid-template-columns: 1fr 1fr; } }
+
+/* =====================================================================
+   Tickets page — same panel as Requests
+   ===================================================================== */
+.crm-view.crm-tickets { padding: clamp(24px, 4vw, 44px) clamp(16px, 3vw, 32px) clamp(16px, 3vw, 32px); }
+.tq-new { display: inline-flex; align-items: center; gap: 6px; height: 42px; white-space: nowrap; }
+.tq-new svg { width: 15px; height: 15px; }
+.tk-shell.tq-card {
+  min-height: 0; height: max(560px, calc(100dvh - var(--top-h) - 250px));
+  grid-template-columns: minmax(300px, 380px) minmax(0, 1fr);
+  border-radius: 20px; border: 1px solid var(--line-solid); overflow: hidden;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.025), transparent 120px), var(--ink-2);
+}
+.tq-card .tk-side { position: static; height: auto; min-height: 0; background: transparent; }
+.tq-card .tk-list { overflow-y: auto; }
+.tq-card .tk-item { padding: 14px 16px; border-bottom-color: var(--line-solid); }
+.tq-card .tk-item:hover { background: rgba(255, 255, 255, 0.025); }
+.tq-card .tk-item.on { background: var(--surface); }
+.tq-card .tk-detail { background: var(--ink); overflow-y: auto; min-height: 0; }
+.tq-card .tk-detail > .detail-empty { border: 0; min-height: 100%; gap: 8px; }
+.tq-card .detail-empty strong, .rq-card .detail-empty strong { font-family: var(--font-display); font-size: 1.1rem; color: var(--text); }
+.tq-card .detail-empty p { font-size: 0.92rem; }
+.tq-card .tk-empty-ico { width: 44px; height: 44px; padding: 10px; border-radius: 14px; background: var(--surface); color: var(--text-2); margin-bottom: 6px; }
+.tq-card .list-empty { padding: 32px 24px; }
+@media (max-width: 1100px) {
+  .tk-shell.tq-card { height: auto; min-height: 480px; grid-template-columns: 1fr; }
+}
+@media (max-width: 899.98px) {
+  .crm-view.crm-tickets { padding-top: 20px; }
+  .crm-tickets .ct-head h2 { display: none; }
+}
+@media (max-width: 560px) {
+  .tq-new span { display: none; }
+  .tq-new { width: 42px; padding: 0; justify-content: center; }
+  .crm-tickets .ct-tools { flex-wrap: nowrap; }
+  .crm-tickets .ct-search { flex-basis: auto; }
+}
+
+.tq-card .tk-detail .cv-title h1 { font-size: clamp(1.4rem, 2vw, 1.8rem); letter-spacing: -0.02em; }
+@media (min-width: 1100.02px) { .tq-card .tk-detail .cv-back { display: none; } }

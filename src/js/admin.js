@@ -174,7 +174,7 @@ function route() {
   const navKey = v === 'contract' ? 'contracts' : v;
   $$('.crm-nav-link').forEach((a) => a.setAttribute('aria-current', a.dataset.route === navKey ? 'page' : 'false'));
   $('#viewTitle').textContent = TITLES[v];
-  document.querySelector('.crm-top').classList.toggle('has-page-head', ['home', 'contracts', 'requests'].includes(v));
+  document.querySelector('.crm-top').classList.toggle('has-page-head', ['home', 'contracts', 'requests', 'tickets'].includes(v));
   $('#newContractBtn').querySelector('span').textContent = v === 'pending' ? 'New deal' : 'New contract';
   document.title = `${TITLES[v]} — Williams Systems LLC`;
   window.scrollTo(0, 0);
@@ -588,17 +588,17 @@ let tShell;
 function renderTickets(id) {
   const root = $('#view-tickets');
   if (!tShell) {
-    const search = el('input', { type: 'search', class: 'search', placeholder: 'Search tickets…', 'aria-label': 'Search tickets' });
+    const search = el('input', { type: 'search', placeholder: 'Search tickets, projects, clients…', 'aria-label': 'Search tickets' });
     search.addEventListener('input', () => { state.tQuery = search.value.trim().toLowerCase(); renderTicketList(); });
-    tShell = el('div', { class: 'tk-shell' },
-      el('aside', { class: 'tk-side' },
-        el('div', { class: 'tk-tools' },
-          el('div', { class: 'tk-tools-row' }, search,
-            el('button', { type: 'button', class: 'btn btn-ghost btn-sm', text: '+ New', onclick: () => ticketForm({ contracts: state.contracts, owner: true, onCreated: (t) => { state.tickets.unshift(t); location.hash = `#tickets/${t.id}`; } }) })),
-          el('div', { class: 'tabs', role: 'tablist', id: 'tkTabs' })),
-        tListEl),
-      tDetailEl);
-    root.replaceChildren(tShell);
+    tShell = el('div', { class: 'tk-shell tq-card' }, el('aside', { class: 'tk-side' }, tListEl), tDetailEl);
+    root.replaceChildren(el('div', { class: 'rq' },
+      el('header', { class: 'ct-head' }, el('div', {}, el('h2', { text: 'Tickets' }), el('p', { id: 'tkSummary' }))),
+      el('div', { class: 'ct-bar' },
+        el('div', { class: 'ct-seg', role: 'tablist', id: 'tkTabs', 'aria-label': 'Filter tickets' }),
+        el('div', { class: 'ct-tools' },
+          el('label', { class: 'ct-search' }, el('span', { class: 'ct-search-ico', 'aria-hidden': 'true', html: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>' }), search),
+          el('button', { type: 'button', class: 'btn btn-primary btn-sm tq-new', html: `${icon.plus}<span>New ticket</span>`, onclick: () => ticketForm({ contracts: state.contracts, owner: true, onCreated: (t) => { state.tickets.unshift(t); location.hash = `#tickets/${t.id}`; } }) }))),
+      tShell));
   }
   state.tSelected = id || null;
   tShell.classList.toggle('show-detail', Boolean(id));
@@ -607,7 +607,8 @@ function renderTickets(id) {
   if (!id) {
     tDetailEl.replaceChildren(el('div', { class: 'detail-empty' },
       el('span', { class: 'tk-empty-ico', html: icon.tickets }),
-      el('p', { text: state.tickets.length ? 'Pick a ticket to read it, reply, or add it to the scope of work.' : 'No tickets yet. When a client sends a request from their project page, it lands here.' })));
+      el('strong', { text: state.tickets.length ? 'No ticket selected' : 'No tickets yet' }),
+      el('p', { text: state.tickets.length ? 'Pick one to read it, reply, or add it to the scope of work.' : 'When a client sends a request from their project page, it lands here.' })));
     return;
   }
   ticketView(tDetailEl, {
@@ -623,9 +624,16 @@ function renderTicketList() {
   const tabs = $('#tkTabs');
   if (!tabs) return;
   tabs.replaceChildren(...T_FILTERS.map(([k, label, test]) => el('button', {
-    type: 'button', role: 'tab', class: 'tab', 'aria-selected': String(state.tFilter === k),
+    type: 'button', role: 'tab', class: 'ct-seg-btn', 'aria-selected': String(state.tFilter === k),
     onclick: () => { state.tFilter = k; renderTicketList(); },
-  }, label, el('span', { class: 'tab-count', text: state.tickets.filter(test).length }))));
+  }, label, el('span', { text: state.tickets.filter(test).length }))));
+  const active = state.tickets.filter((t) => OPEN_STATES.includes(t.status));
+  const hot = active.filter((t) => ['high', 'urgent'].includes(t.priority)).length;
+  const fresh = active.filter((t) => t.status === 'open').length;
+  const waiting = active.filter((t) => t.status === 'waiting').length;
+  $('#tkSummary').textContent = active.length
+    ? [`${active.length} active`, fresh ? `${fresh} new` : null, hot ? `${hot} high priority` : null, waiting ? `${waiting} waiting on the client` : null].filter(Boolean).join(' · ')
+    : 'All caught up. Client requests from every project land here.';
   const test = T_FILTERS.find((x) => x[0] === state.tFilter)[2];
   const q = state.tQuery;
   const nameOf = (t) => state.contracts.find((c) => c.id === t.contract_id);
