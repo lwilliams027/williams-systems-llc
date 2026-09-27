@@ -141,3 +141,83 @@ create policy "Clients organize their project files" on public.project_files
 revoke update on public.project_files from authenticated;
 grant update (note, folder) on public.project_files to authenticated;
 grant insert (contract_id, path, name, size, type, note, folder) on public.project_files to authenticated;
+
+-- =====================================================================
+-- Folders: a real file system per project (nested folders; every file
+-- lives in one). Replaces the old free-text "folder" label.
+-- =====================================================================
+create table if not exists public.project_folders (
+  id          uuid primary key default gen_random_uuid(),
+  contract_id uuid not null references public.contracts (id) on delete cascade,
+  parent_id   uuid references public.project_folders (id) on delete restrict,
+  name        text not null check (char_length(name) between 1 and 80),
+  created_by  uuid references auth.users (id) on delete set null default auth.uid(),
+  created_at  timestamptz not null default now()
+);
+create unique index if not exists project_folders_unique_name
+  on public.project_folders (contract_id, coalesce(parent_id, '00000000-0000-0000-0000-000000000000'::uuid), lower(name));
+alter table public.project_folders enable row level security;
+
+drop policy if exists "Owners manage folders" on public.project_folders;
+create policy "Owners manage folders" on public.project_folders
+  for all to authenticated using (public.is_admin()) with check (public.is_admin());
+drop policy if exists "Clients use their project folders" on public.project_folders;
+create policy "Clients use their project folders" on public.project_folders
+  for all to authenticated using (public.my_contract(contract_id)) with check (public.my_contract(contract_id));
+
+revoke all on public.project_folders from anon, authenticated;
+grant select, delete on public.project_folders to authenticated;
+grant insert (contract_id, parent_id, name) on public.project_folders to authenticated;
+grant update (parent_id, name) on public.project_folders to authenticated;
+
+-- a folder can't be moved inside itself (or inside one of its own subfolders)
+create or replace function public.project_folders_check()
+returns trigger
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare cur uuid := new.parent_id;
+begin
+  while cur is not null loop
+    if cur = new.id then raise exception 'A folder can’t go inside itself' using errcode = '22023'; end if;
+    select parent_id into cur from public.project_folders where id = cur;
+  end loop;
+  if new.parent_id is not null and not exists (select 1 from public.project_folders p where p.id = new.parent_id and p.contract_id = new.contract_id) then
+    raise exception 'That folder belongs to another project' using errcode = '22023';
+  end if;
+  return new;
+end;
+$$;
+drop trigger if exists project_folders_check on public.project_folders;
+create trigger project_folders_check before insert or update on public.project_folders
+  for each row execute function public.project_folders_check();
+
+-- files live in a folder
+alter table public.project_files add column if not exists folder_id uuid references public.project_folders (id) on delete restrict;
+create index if not exists project_files_folder_id_idx on public.project_files (folder_id);
+grant insert (contract_id, path, name, size, type, note, folder, folder_id) on public.project_files to authenticated;
+grant update (note, folder, folder_id, name) on public.project_files to authenticated;
+
+-- realtime for folders
+do $$
+begin
+  if not exists (select 1 from pg_publication_tables where pubname = 'supabase_realtime' and schemaname = 'public' and tablename = 'project_folders') then
+    alter publication supabase_realtime add table public.project_folders;
+  end if;
+end $$;
+
+-- ---------- one-time move: old folder labels become real folders; loose files go to Documents ----------
+insert into public.project_folders (contract_id, name)
+select distinct f.contract_id, f.folder from public.project_files f
+ where f.folder is not null and f.folder_id is null
+on conflict do nothing;
+update public.project_files f set folder_id = p.id
+  from public.project_folders p
+ where f.folder_id is null and f.folder is not null and p.contract_id = f.contract_id and p.parent_id is null and lower(p.name) = lower(f.folder);
+insert into public.project_folders (contract_id, name)
+select distinct f.contract_id, 'Documents' from public.project_files f where f.folder_id is null
+on conflict do nothing;
+update public.project_files f set folder_id = p.id
+  from public.project_folders p
+ where f.folder_id is null and p.contract_id = f.contract_id and p.parent_id is null and p.name = 'Documents';

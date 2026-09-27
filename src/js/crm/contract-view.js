@@ -52,14 +52,16 @@ export async function contractPage(root, opts) {
     return () => {};
   }
   const id = c.data.id;
-  const [msgs, evs, acts, tks] = await Promise.all([
+  const [msgs, evs, acts, tks, fds] = await Promise.all([
     { data: [] },
     supabase.from('events').select('*').eq('contract_id', id).order('starts_at'),
     section === 'overview' ? supabase.from('activity').select('*').eq('contract_id', id).order('created_at', { ascending: false }).limit(60) : { data: [] },
     supabase.from('tickets').select('*').eq('contract_id', id).order('updated_at', { ascending: false }),
+    supabase.from('project_folders').select('*').eq('contract_id', id),
   ]);
-  const s = { c: c.data, msgs: msgs.data || [], evs: evs.data || [], acts: acts.data || [], tks: tks.data || [] };
+  const s = { c: c.data, msgs: msgs.data || [], evs: evs.data || [], acts: acts.data || [], tks: tks.data || [], folders: fds.data || [] };
   const href = (sec, sub) => projectHref(s.c, sec, sub);
+  opts.onFolders?.(s.c, s.folders, section === 'files' ? opts.sub || null : undefined);
   const chatBox = chatBubble({ contract: s.c, owner, me: opts.me, onRead: opts.onRead });
   if (wantChat) setTimeout(() => chatBox.open(), 50);
 
@@ -372,42 +374,104 @@ export async function contractPage(root, opts) {
   }
 
   /* =====================================================================
-     Files: upload anything to the project (stylesheets, CSVs, PDFs,
-     images, zips…), add notes, sort into folders; plus everything
-     attached on the project's tickets
+     Files: a file system for the project. Folders (nested) hold every
+     file; open them, go back up with the path bar, drag things into
+     folders, rename, add notes, upload into the folder you're in.
+     Ticket attachments show as a read-only folder.
+     Address: #/<project>/files/<folder id>
      ===================================================================== */
   const PF_BUCKET = 'project-files';
   const PF_MAX = 50 * 1024 * 1024;
+  const DEFAULT_FOLDERS = ['Brand assets', 'Content', 'Documents', 'Designs'];
+  const TICKETS = 'tickets';                  // virtual folder: ticket attachments
   const extOf = (n = '') => (n.includes('.') ? n.split('.').pop().toLowerCase().slice(0, 5) : 'file');
   const EXT_TONE = { css: 'code', scss: 'code', js: 'code', ts: 'code', html: 'code', json: 'code', csv: 'data', xlsx: 'data', xls: 'data', tsv: 'data',
     pdf: 'doc', doc: 'doc', docx: 'doc', txt: 'doc', md: 'doc', png: 'img', jpg: 'img', jpeg: 'img', gif: 'img', webp: 'img', svg: 'img',
     zip: 'zip', rar: 'zip', '7z': 'zip', fig: 'img', psd: 'img', ai: 'img', mp4: 'vid', mov: 'vid' };
+  const I = (d, w = 2) => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="${w}" stroke-linecap="round" stroke-linejoin="round">${d}</svg>`;
   const ICO = {
-    download: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v12M7 11l5 5 5-5"/><path d="M4 20h16"/></svg>',
-    note: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg>',
-    trash: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4h8v2M6 6l1 14h10l1-14"/></svg>',
-    folder: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>',
-    list: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/></svg>',
-    grid: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>',
-    upload: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 16V4M7 9l5-5 5 5"/><path d="M20 16v3a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-3"/></svg>',
+    folder: I('<path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>', 1.8),
+    lock: I('<rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/>'),
+    download: I('<path d="M12 4v12M7 11l5 5 5-5"/><path d="M4 20h16"/>'),
+    note: I('<path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/>'),
+    rename: I('<path d="M4 7V5h16v2M9 20h6M12 5v15"/>'),
+    move: I('<path d="M5 12h14M13 6l6 6-6 6"/>'),
+    trash: I('<path d="M3 6h18M8 6V4h8v2M6 6l1 14h10l1-14"/>'),
+    up: I('<path d="M12 19V5M5 12l7-7 7 7"/>'),
+    list: I('<path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/>'),
+    grid: I('<rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/>'),
+    upload: I('<path d="M12 16V4M7 9l5-5 5 5"/><path d="M20 16v3a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-3"/>'),
+    newFolder: I('<path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><path d="M12 10v6M9 13h6"/>', 1.8),
+    search: I('<circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/>'),
   };
   const PF_SORTS = [
-    ['new', 'Newest', (a, b) => new Date(b.created_at) - new Date(a.created_at)],
     ['name', 'Name', (a, b) => a.name.localeCompare(b.name)],
+    ['new', 'Newest', (a, b) => new Date(b.created_at) - new Date(a.created_at)],
     ['size', 'Largest', (a, b) => Number(b.size) - Number(a.size)],
     ['type', 'Type', (a, b) => extOf(a.name).localeCompare(extOf(b.name)) || a.name.localeCompare(b.name)],
   ];
-  let filesState = null;
-  const fv = (() => {
+  const fx = (() => {
     let saved = {};
     try { saved = JSON.parse(localStorage.getItem('ws-files-view') || '{}'); } catch { /* private mode */ }
-    return { folder: 'all', q: '', sort: saved.sort || 'new', view: saved.view || 'list', extra: [], editing: null };
+    return { cur: null, q: '', sort: saved.sort && PF_SORTS.some((x) => x[0] === saved.sort) ? saved.sort : 'name', view: saved.view || 'list', editing: null };
   })();
-  const rememberView = () => { try { localStorage.setItem('ws-files-view', JSON.stringify({ sort: fv.sort, view: fv.view })); } catch { /* ignore */ } };
-  const signed = new Map();   // path -> signed url (images), so re-renders don't flash
+  const rememberView = () => { try { localStorage.setItem('ws-files-view', JSON.stringify({ sort: fx.sort, view: fx.view })); } catch { /* ignore */ } };
+  const signed = new Map();
+  let files = [];            // project files
+  let ticketFiles = [];      // attachments from tickets, grouped by ticket in the virtual folder
+  let fxEls = null;
 
-  async function uploadProjectFiles(list, status) {
-    const folder = !['all', '__none'].includes(fv.folder) ? fv.folder : null;
+  /* ---------- the tree ---------- */
+  const folderById = (fid) => s.folders.find((f) => f.id === fid);
+  const kids = (pid) => s.folders.filter((f) => (f.parent_id || null) === (pid || null)).sort((a, b) => a.name.localeCompare(b.name));
+  const filesIn = (fid) => files.filter((f) => f.folder_id === fid);
+  const pathTo = (fid) => { const out = []; let f = folderById(fid); while (f) { out.unshift(f); f = folderById(f.parent_id); } return out; };
+  const descendants = (fid) => { const out = []; const walk = (id) => kids(id).forEach((k) => { out.push(k.id); walk(k.id); }); walk(fid); return out; };
+  const itemCount = (fid) => kids(fid).length + filesIn(fid).length;
+  const isReal = (fid) => Boolean(fid && folderById(fid));
+  const isTicketFolder = (fid) => fid === TICKETS || String(fid || '').startsWith('ticket-');
+
+  async function loadFolders() {
+    const { data, error } = await supabase.from('project_folders').select('*').eq('contract_id', id);
+    if (!error) s.folders = data || [];
+    opts.onFolders?.(s.c, s.folders, fx.cur);
+  }
+  async function loadFiles() {
+    const ids = s.tks.map((t) => t.id);
+    const [pf, tm] = await Promise.all([
+      supabase.from('project_files').select('*').eq('contract_id', id),
+      ids.length ? supabase.from('ticket_messages').select('ticket_id, files').in('ticket_id', ids).neq('files', '[]') : Promise.resolve({ data: [] }),
+    ]);
+    if (pf.error) toast(`Couldn’t load files: ${pf.error.message}`, 'error');
+    files = pf.data || [];
+    ticketFiles = [];
+    for (const t of s.tks) {
+      const seen = new Set();
+      for (const f of [...(t.files || []), ...(tm.data || []).filter((m) => m.ticket_id === t.id).flatMap((m) => m.files || [])]) {
+        if (seen.has(f.path)) continue;
+        seen.add(f.path);
+        ticketFiles.push({ ...f, ticket: t, created_at: t.created_at });
+      }
+    }
+  }
+  // every project starts with a few folders so nothing is ever loose
+  async function ensureDefaults() {
+    if (s.folders.length) return;
+    await supabase.from('project_folders').insert(DEFAULT_FOLDERS.map((name) => ({ contract_id: id, name })));
+    await loadFolders();
+  }
+
+  /* ---------- actions ---------- */
+  function go(fid) {
+    fx.cur = fid || null;
+    fx.editing = null;
+    history.replaceState(null, '', href('files', fx.cur || undefined));
+    opts.onFolders?.(s.c, s.folders, fx.cur);
+    renderExplorer();
+  }
+
+  async function uploadInto(list, fid, status) {
+    if (!isReal(fid)) { toast('Open a folder first, then upload into it', 'error'); return; }
     let okCount = 0;
     for (const f of list) {
       if (f.size > PF_MAX) { toast(`${f.name} is over 50 MB`, 'error'); continue; }
@@ -416,63 +480,123 @@ export async function contractPage(root, opts) {
       const path = `${id}/${crypto.randomUUID().slice(0, 8)}-${safe}`;
       const up = await supabase.storage.from(PF_BUCKET).upload(path, f, { contentType: f.type || 'application/octet-stream', upsert: false });
       if (up.error) { toast(`Couldn’t upload ${f.name}: ${up.error.message}`, 'error'); continue; }
-      const ins = await supabase.from('project_files').insert({ contract_id: id, path, name: f.name, size: f.size, type: f.type || null, folder });
+      const ins = await supabase.from('project_files').insert({ contract_id: id, path, name: f.name, size: f.size, type: f.type || null, folder_id: fid });
       if (ins.error) { await supabase.storage.from(PF_BUCKET).remove([path]); toast(`Couldn’t save ${f.name}: ${ins.error.message}`, 'error'); continue; }
       okCount++;
     }
     status('');
-    if (okCount) toast(`${okCount} file${okCount === 1 ? '' : 's'} uploaded${folder ? ` to ${folder}` : ''}`);
-    await loadFiles();
-    renderFileList();
+    if (okCount) toast(`${okCount} file${okCount === 1 ? '' : 's'} uploaded to ${folderById(fid).name}`);
+    await loadFiles(); renderExplorer();
   }
 
-  async function loadFiles() {
-    const ids = s.tks.map((t) => t.id);
-    const [pf, tm] = await Promise.all([
-      supabase.from('project_files').select('*').eq('contract_id', id),
-      ids.length ? supabase.from('ticket_messages').select('ticket_id, files, created_at, sender_name').in('ticket_id', ids).neq('files', '[]') : Promise.resolve({ data: [] }),
-    ]);
-    if (pf.error) toast(`Couldn’t load files: ${pf.error.message}`, 'error');
-    const fromTickets = [];
-    for (const t of s.tks) {
-      const seen = new Set();
-      for (const f of [...(t.files || []), ...(tm.data || []).filter((m) => m.ticket_id === t.id).flatMap((m) => m.files || [])]) {
-        if (seen.has(f.path)) continue;
-        seen.add(f.path);
-        fromTickets.push({ ...f, ticket: t });
-      }
+  async function moveItem(kind, itemId, toFolder) {
+    if (!isReal(toFolder)) return toast('Pick a folder to move it into', 'error');
+    if (kind === 'file') {
+      const f = files.find((x) => x.id === itemId);
+      if (!f || f.folder_id === toFolder) return;
+      const { error } = await supabase.from('project_files').update({ folder_id: toFolder }).eq('id', itemId);
+      if (error) return toast(`Couldn’t move: ${error.message}`, 'error');
+      f.folder_id = toFolder;
+    } else {
+      const d = folderById(itemId);
+      if (!d || d.id === toFolder || d.parent_id === toFolder || descendants(itemId).includes(toFolder)) return;
+      const { error } = await supabase.from('project_folders').update({ parent_id: toFolder }).eq('id', itemId);
+      if (error) return toast(/unique/i.test(error.message) ? 'There’s already a folder with that name there' : `Couldn’t move: ${error.message}`, 'error');
+      d.parent_id = toFolder;
+      opts.onFolders?.(s.c, s.folders, fx.cur);
     }
-    filesState = { shared: pf.data || [], fromTickets };
+    toast(`Moved to ${folderById(toFolder).name}`);
+    renderExplorer();
   }
 
-  async function saveFile(f, patch, msg) {
-    const { data, error } = await supabase.from('project_files').update(patch).eq('id', f.id).select().single();
-    if (error) { toast(`Couldn’t save: ${error.message}`, 'error'); return; }
-    Object.assign(f, data);
-    if (msg) toast(msg);
-    renderFileList();
-  }
-
-  const folders = () => {
-    const names = new Set([...filesState.shared.map((f) => f.folder).filter(Boolean), ...fv.extra]);
-    return [...names].sort((a, b) => a.localeCompare(b));
-  };
-
-  function newFolderModal(then) {
-    const input = el('input', { maxlength: 60, placeholder: 'e.g. Brand assets' });
-    const f = el('form', { class: 'crm-form' }, field('Folder name', input),
-      el('div', { class: 'crm-form-actions' }, el('button', { type: 'submit', class: 'btn btn-primary', text: 'Create folder' })));
-    const m = modal('New folder', f);
-    f.addEventListener('submit', (e) => {
+  function nameModal(title, value, button, then) {
+    const input = el('input', { maxlength: 120, value: value || '' });
+    const msg = el('p', { class: 'crm-form-msg', role: 'alert', hidden: true });
+    const f = el('form', { class: 'crm-form' }, field('Name', input), msg,
+      el('div', { class: 'crm-form-actions' }, el('button', { type: 'submit', class: 'btn btn-primary', text: button })));
+    const m = modal(title, f);
+    setTimeout(() => { input.focus(); input.select(); }, 0);
+    f.addEventListener('submit', async (e) => {
       e.preventDefault();
-      const name = input.value.trim().slice(0, 60);
-      if (!name) return;
-      if (!fv.extra.includes(name)) fv.extra.push(name);
-      m.close();
-      then(name);
+      const v = input.value.trim();
+      if (!v) return;
+      const err = await then(v);
+      if (err) { msg.textContent = err; msg.hidden = false; } else m.close();
     });
   }
+  const newFolder = () => nameModal(fx.cur && isReal(fx.cur) ? `New folder in ${folderById(fx.cur).name}` : 'New folder', '', 'Create folder', async (name) => {
+    const { error } = await supabase.from('project_folders').insert({ contract_id: id, parent_id: isReal(fx.cur) ? fx.cur : null, name: name.slice(0, 80) });
+    if (error) return /unique|duplicate/i.test(error.message) ? 'There’s already a folder with that name here.' : error.message;
+    await loadFolders(); renderExplorer(); toast('Folder created');
+  });
+  const renameFolder = (d) => nameModal('Rename folder', d.name, 'Rename', async (name) => {
+    const { error } = await supabase.from('project_folders').update({ name: name.slice(0, 80) }).eq('id', d.id);
+    if (error) return /unique|duplicate/i.test(error.message) ? 'There’s already a folder with that name here.' : error.message;
+    d.name = name.slice(0, 80); opts.onFolders?.(s.c, s.folders, fx.cur); renderExplorer();
+  });
+  const renameFile = (f) => nameModal('Rename file', f.name, 'Rename', async (name) => {
+    const keepExt = f.name.includes('.') && !name.includes('.') ? `${name}.${extOf(f.name)}` : name;
+    const { error } = await supabase.from('project_files').update({ name: keepExt.slice(0, 255) }).eq('id', f.id);
+    if (error) return error.message;
+    f.name = keepExt.slice(0, 255); renderExplorer();
+  });
+  function moveModal(kind, item) {
+    const blocked = kind === 'folder' ? new Set([item.id, ...descendants(item.id)]) : new Set();
+    const here = kind === 'folder' ? item.parent_id : item.folder_id;
+    const rows = [];
+    const walk = (pid, depth) => kids(pid).forEach((d) => {
+      if (blocked.has(d.id)) return;
+      rows.push(el('li', {}, el('button', { type: 'button', class: `fx-pick${d.id === here ? ' here' : ''}`, style: { paddingLeft: `${12 + depth * 18}px` }, disabled: d.id === here ? true : null,
+        onclick: async () => { m.close(); await moveItem(kind, item.id, d.id); } },
+        el('span', { class: 'fx-pick-ico', html: ICO.folder }), d.name, d.id === here ? el('small', { text: 'current' }) : null)));
+      walk(d.id, depth + 1);
+    });
+    walk(null, 0);
+    const m = modal(`Move “${item.name}” to…`, el('div', { class: 'crm-form' }, el('ul', { class: 'fx-picker' }, rows)));
+  }
+  async function deleteFolder(d) {
+    const sub = descendants(d.id);
+    const all = [d.id, ...sub];
+    const inside = files.filter((f) => all.includes(f.folder_id));
+    if ((sub.length || inside.length) && !owner) return toast('Empty the folder first', 'error');
+    if (inside.length) await supabase.storage.from(PF_BUCKET).remove(inside.map((f) => f.path));
+    if (inside.length) await supabase.from('project_files').delete().in('id', inside.map((f) => f.id));
+    // deepest folders first
+    const depth = (fid) => pathTo(fid).length;
+    for (const fid of [...all].sort((a, b) => depth(b) - depth(a))) {
+      const { error } = await supabase.from('project_folders').delete().eq('id', fid);
+      if (error) return toast(`Couldn’t delete: ${error.message}`, 'error');
+    }
+    toast(`Deleted ${d.name}${inside.length ? ` and ${inside.length} file${inside.length === 1 ? '' : 's'}` : ''}`);
+    await Promise.all([loadFolders(), loadFiles()]);
+    if (all.includes(fx.cur)) go(d.parent_id); else renderExplorer();
+  }
+  async function deleteFile(f) {
+    await supabase.storage.from(PF_BUCKET).remove([f.path]);
+    const { error } = await supabase.from('project_files').delete().eq('id', f.id);
+    if (error) return toast(`Couldn’t delete: ${error.message}`, 'error');
+    toast('File deleted');
+    await loadFiles(); renderExplorer();
+  }
+  const download = async (f, bucket = PF_BUCKET) => {
+    const { data, error } = await supabase.storage.from(bucket).createSignedUrl(f.path, 60 * 10, { download: f.name });
+    if (error) return toast(`Couldn’t open it: ${error.message}`, 'error');
+    location.assign(data.signedUrl);
+  };
 
+  /* ---------- pieces ---------- */
+  const iconBtn = (svg, label, onclick, extra = '') => el('button', { type: 'button', class: `pf-ib ${extra}`, 'aria-label': label, title: label, html: svg, onclick: (e) => { e.stopPropagation(); onclick(); } });
+  function confirmBtn(label, run) {
+    let timer;
+    const btn = el('button', { type: 'button', class: 'pf-ib pf-del', 'aria-label': label, title: label, html: ICO.trash });
+    const reset = () => { delete btn.dataset.armed; btn.innerHTML = ICO.trash; };
+    btn.addEventListener('click', async (e) => {
+      e.stopPropagation();
+      if (!btn.dataset.armed) { btn.dataset.armed = 'true'; btn.textContent = 'Delete?'; timer = setTimeout(reset, 4000); return; }
+      clearTimeout(timer); btn.disabled = true; await run(); btn.disabled = false;
+    });
+    return btn;
+  }
   function thumbFor(f, bucket = PF_BUCKET) {
     const ext = extOf(f.name);
     const box = el('span', { class: `pf-ico t-${EXT_TONE[ext] || 'other'}`, text: ext });
@@ -483,173 +607,206 @@ export async function contractPage(root, opts) {
     }
     return box;
   }
-  const download = async (f, bucket = PF_BUCKET) => {
-    const { data, error } = await supabase.storage.from(bucket).createSignedUrl(f.path, 60 * 10, { download: f.name });
-    if (error) return toast(`Couldn’t open it: ${error.message}`, 'error');
-    location.assign(data.signedUrl);
-  };
-  const iconBtn = (svg, label, onclick, extra = '') => el('button', { type: 'button', class: `pf-ib ${extra}`, 'aria-label': label, title: label, html: svg, onclick });
-
-  /** Trash icon that needs a second click (shows "Remove?" in between). */
-  function removeBtn(f) {
-    let timer;
-    const btn = el('button', { type: 'button', class: 'pf-ib pf-del', 'aria-label': `Remove ${f.name}`, title: 'Remove', html: ICO.trash });
-    const reset = () => { delete btn.dataset.armed; btn.innerHTML = ICO.trash; };
-    btn.addEventListener('click', async () => {
-      if (!btn.dataset.armed) { btn.dataset.armed = 'true'; btn.textContent = 'Remove?'; timer = setTimeout(reset, 4000); return; }
-      clearTimeout(timer); btn.disabled = true;
-      await supabase.storage.from(PF_BUCKET).remove([f.path]);
-      const { error } = await supabase.from('project_files').delete().eq('id', f.id);
-      btn.disabled = false;
-      if (error) { reset(); return toast(`Couldn’t remove: ${error.message}`, 'error'); }
-      toast('File removed');
-      await loadFiles(); renderFileList();
+  // anything you can drop a file or folder onto
+  function dropTarget(node, fid) {
+    node.addEventListener('dragover', (e) => {
+      const t = e.dataTransfer.types;
+      if ((t.includes('text/x-ws-file') || t.includes('text/x-ws-folder')) && isReal(fid)) { e.preventDefault(); node.classList.add('drop'); }
     });
-    return btn;
+    node.addEventListener('dragleave', () => node.classList.remove('drop'));
+    node.addEventListener('drop', (e) => {
+      const fileId = e.dataTransfer.getData('text/x-ws-file');
+      const folderId = e.dataTransfer.getData('text/x-ws-folder');
+      if (!fileId && !folderId) return;
+      e.preventDefault(); e.stopPropagation(); node.classList.remove('drop');
+      if (fileId) moveItem('file', fileId, fid); else moveItem('folder', folderId, fid);
+    });
+  }
+  const draggable = (node, type, itemId) => {
+    node.draggable = true;
+    node.addEventListener('dragstart', (e) => { e.dataTransfer.setData(type, itemId); e.dataTransfer.effectAllowed = 'move'; node.classList.add('dragging'); });
+    node.addEventListener('dragend', () => node.classList.remove('dragging'));
+  };
+
+  function folderRow(d, { virtual = false, count, name, onOpen } = {}) {
+    const open = onOpen || (() => go(d.id));
+    const row = el('li', { class: `fx-row fx-folder${virtual ? ' virtual' : ''}`, tabindex: 0, 'aria-label': `Folder ${name || d.name}` },
+      el('span', { class: 'fx-name' },
+        el('span', { class: 'fx-folder-ico', html: virtual ? ICO.lock : ICO.folder }),
+        el('button', { type: 'button', class: 'fx-open', text: name || d.name, title: name || d.name, onclick: (e) => { e.stopPropagation(); open(); } })),
+      el('span', { class: 'fx-note' }),
+      el('span', { class: 'fx-date', text: virtual ? 'Read only' : fmtDate(d.created_at, { month: 'short', day: 'numeric', year: 'numeric' }) }),
+      el('span', { class: 'fx-size', text: `${count ?? itemCount(d.id)} item${(count ?? itemCount(d.id)) === 1 ? '' : 's'}` }),
+      el('span', { class: 'pf-actions' }, virtual ? null : [
+        iconBtn(ICO.rename, 'Rename', () => renameFolder(d)),
+        iconBtn(ICO.move, 'Move', () => moveModal('folder', d)),
+        owner || d.created_by === opts.me.id ? confirmBtn(`Delete ${d.name}`, () => deleteFolder(d)) : null]));
+    row.addEventListener('dblclick', open);
+    row.addEventListener('keydown', (e) => { if (e.key === 'Enter' && e.target === row) open(); });
+    if (!virtual) { dropTarget(row, d.id); draggable(row, 'text/x-ws-folder', d.id); }
+    return row;
   }
 
-  function fileItem(f) {
+  function fileRow(f, { readonly = false, bucket = PF_BUCKET, showPath = false } = {}) {
     const mine = f.uploaded_by === opts.me.id;
-    const who = mine ? 'You' : f.uploader_role === 'owner' && !owner ? 'Landon' : f.uploader_name || 'Someone';
-    const move = el('select', { class: 'pf-move', 'aria-label': `Folder for ${f.name}`, title: 'Move to folder' },
-      el('option', { value: '', text: 'No folder', selected: f.folder ? null : true }),
-      folders().map((n) => el('option', { value: n, text: n, selected: f.folder === n ? true : null })),
-      el('option', { value: '__new', text: '+ New folder…' }));
-    move.addEventListener('change', () => {
-      if (move.value === '__new') { move.value = f.folder || ''; return newFolderModal((n) => saveFile(f, { folder: n }, `Moved to ${n}`)); }
-      saveFile(f, { folder: move.value || null }, move.value ? `Moved to ${move.value}` : 'Removed from folder');
-    });
-    const actions = el('span', { class: 'pf-actions' },
-      iconBtn(ICO.download, `Download ${f.name}`, () => download(f)),
-      iconBtn(ICO.note, f.note ? 'Edit note' : 'Add a note', () => { fv.editing = f.id; renderFileList(); }),
-      el('label', { class: 'pf-move-wrap', title: 'Move to folder' }, el('span', { class: 'pf-move-ico', html: ICO.folder }), move),
-      owner || mine ? removeBtn(f) : null);
-
+    const who = readonly ? `#${f.ticket.number}` : mine ? 'You' : f.uploader_role === 'owner' && !owner ? 'Landon' : f.uploader_name || 'Someone';
     let editor = null;
-    if (fv.editing === f.id) {
-      const area = el('textarea', { rows: 2, maxlength: 500, placeholder: 'e.g. Use this version · Final logo, dark background', 'aria-label': `Note for ${f.name}` });
+    if (fx.editing === f.id) {
+      const area = el('textarea', { rows: 2, maxlength: 500, placeholder: 'e.g. Final version · Use on dark backgrounds', 'aria-label': `Note for ${f.name}` });
       area.value = f.note || '';
-      const done = () => { fv.editing = null; renderFileList(); };
-      const saveNote = () => { fv.editing = null; saveFile(f, { note: area.value.trim() || null }, 'Note saved'); };
+      const done = () => { fx.editing = null; renderExplorer(); };
+      const saveNote = async () => {
+        fx.editing = null;
+        const { error } = await supabase.from('project_files').update({ note: area.value.trim() || null }).eq('id', f.id);
+        if (error) toast(`Couldn’t save: ${error.message}`, 'error'); else { f.note = area.value.trim() || null; toast('Note saved'); }
+        renderExplorer();
+      };
       area.addEventListener('keydown', (e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); saveNote(); } if (e.key === 'Escape') done(); });
-      editor = el('div', { class: 'pf-editor' }, area, el('div', { class: 'cv-row-end' },
-        f.note ? el('button', { type: 'button', class: 'link-btn danger', text: 'Clear', onclick: () => { fv.editing = null; saveFile(f, { note: null }, 'Note removed'); } }) : null,
+      editor = el('div', { class: 'pf-editor fx-editor' }, area, el('div', { class: 'cv-row-end' },
         el('button', { type: 'button', class: 'link-btn', text: 'Cancel', onclick: done }),
         el('button', { type: 'button', class: 'btn btn-primary btn-sm', text: 'Save note', onclick: saveNote })));
       setTimeout(() => area.focus(), 0);
     }
-
-    const item = el('li', { class: `pf-item${fv.editing === f.id ? ' editing' : ''}`, draggable: 'true', 'data-id': f.id },
-      thumbFor(f),
-      el('div', { class: 'pf-main' },
-        el('strong', { text: f.name, title: f.name }),
-        f.note && fv.editing !== f.id ? el('p', { class: 'pf-note', text: f.note }) : null,
-        el('small', {}, `${formatBytes(f.size)} · ${who} · ${timeAgo(f.created_at)}`,
-          f.folder && fv.folder === 'all' ? el('span', { class: 'pf-tag', text: f.folder }) : null)),
-      actions, editor);
-    item.addEventListener('dragstart', (e) => { e.dataTransfer.setData('text/x-ws-file', f.id); e.dataTransfer.effectAllowed = 'move'; item.classList.add('dragging'); });
-    item.addEventListener('dragend', () => item.classList.remove('dragging'));
-    return item;
+    const where = showPath ? (readonly ? `Ticket attachments / #${f.ticket.number}` : pathTo(f.folder_id).map((p) => p.name).join(' / ')) : null;
+    const row = el('li', { class: `fx-row fx-file${readonly ? ' readonly' : ''}${fx.editing === f.id ? ' editing' : ''}` },
+      el('span', { class: 'fx-name' }, thumbFor(f, bucket),
+        el('span', { class: 'fx-fname' }, el('strong', { text: f.name, title: f.name }), where ? el('small', { text: where }) : el('small', { class: 'fx-who', text: who }))),
+      el('span', { class: 'fx-note', title: f.note || '' }, f.note && fx.editing !== f.id ? f.note : ''),
+      el('span', { class: 'fx-date', text: fmtDate(f.created_at, { month: 'short', day: 'numeric', year: 'numeric' }) }),
+      el('span', { class: 'fx-size', text: formatBytes(f.size) }),
+      el('span', { class: 'pf-actions' },
+        iconBtn(ICO.download, `Download ${f.name}`, () => download(f, bucket)),
+        readonly ? null : [
+          iconBtn(ICO.note, f.note ? 'Edit note' : 'Add a note', () => { fx.editing = f.id; renderExplorer(); }),
+          iconBtn(ICO.rename, 'Rename', () => renameFile(f)),
+          iconBtn(ICO.move, 'Move', () => moveModal('file', f)),
+          owner || mine ? confirmBtn(`Delete ${f.name}`, () => deleteFile(f)) : null]),
+      editor);
+    row.addEventListener('dblclick', () => download(f, bucket));
+    if (!readonly) draggable(row, 'text/x-ws-file', f.id);
+    return row;
   }
 
-  function ticketItem(f) {
-    return el('li', { class: 'pf-item readonly' },
-      thumbFor(f, 'ticket-files'),
-      el('div', { class: 'pf-main' },
-        el('strong', { text: f.name, title: f.name }),
-        el('small', {}, `${formatBytes(f.size)} · `, el('a', { href: href('tickets', f.ticket.number), text: `#${f.ticket.number} ${f.ticket.title}` }))),
-      el('span', { class: 'pf-actions' }, iconBtn(ICO.download, `Download ${f.name}`, () => download(f, 'ticket-files'))));
-  }
-
-  let filesEls = null;
+  /* ---------- the explorer ---------- */
   function renderFiles() {
-    if (section !== 'files' || !filesState) return;
+    if (section !== 'files') return;
     const input = el('input', { type: 'file', multiple: true, hidden: true });
     const status = el('span', { class: 'pf-status', 'aria-live': 'polite' });
     const setStatus = (t) => { status.textContent = t; card.classList.toggle('busy', Boolean(t)); };
-    input.addEventListener('change', () => { const l = [...input.files]; input.value = ''; if (l.length) uploadProjectFiles(l, setStatus); });
-    const search = el('input', { type: 'search', placeholder: 'Search files and notes…', 'aria-label': 'Search files', value: fv.q });
-    search.addEventListener('input', () => { fv.q = search.value.trim().toLowerCase(); renderFileList(); });
-    const sort = el('select', { class: 'ct-sort pf-sort', 'aria-label': 'Sort files' }, PF_SORTS.map(([k, label]) => el('option', { value: k, text: label, selected: fv.sort === k ? true : null })));
-    sort.addEventListener('change', () => { fv.sort = sort.value; rememberView(); renderFileList(); });
-    const viewBtns = el('div', { class: 'pf-views', role: 'group', 'aria-label': 'View' },
-      ['list', 'grid'].map((v) => el('button', { type: 'button', class: 'pf-view', 'aria-pressed': String(fv.view === v), 'aria-label': `${v} view`, title: v === 'list' ? 'List' : 'Grid', html: ICO[v],
-        onclick: () => { fv.view = v; rememberView(); viewBtns.querySelectorAll('.pf-view').forEach((b) => b.setAttribute('aria-pressed', String(b.title.toLowerCase() === v))); renderFileList(); } })));
-
-    filesEls = { chips: el('div', { class: 'pf-chips', role: 'tablist', 'aria-label': 'Folders' }), list: el('div'), count: el('span', { class: 'cv-count mono' }), tickets: el('div') };
-    const card = el('section', { class: 'cv-card pf-card' },
-      el('div', { class: 'cv-card-head' }, el('h2', { text: 'Shared files' }), filesEls.count,
-        el('button', { type: 'button', class: 'btn btn-primary btn-sm pf-upload', html: `${ICO.upload}<span>Upload</span>`, onclick: () => input.click() }), input),
+    input.addEventListener('change', () => { const l = [...input.files]; input.value = ''; if (l.length) uploadInto(l, fx.cur, setStatus); });
+    const search = el('input', { type: 'search', placeholder: 'Search all files…', 'aria-label': 'Search all files', value: fx.q });
+    search.addEventListener('input', () => { fx.q = search.value.trim().toLowerCase(); renderExplorer(); });
+    const sort = el('select', { class: 'ct-sort pf-sort', 'aria-label': 'Sort' }, PF_SORTS.map(([k, label]) => el('option', { value: k, text: label, selected: fx.sort === k ? true : null })));
+    sort.addEventListener('change', () => { fx.sort = sort.value; rememberView(); renderExplorer(); });
+    const views = el('div', { class: 'pf-views', role: 'group', 'aria-label': 'View' }, ['list', 'grid'].map((v) => el('button', { type: 'button', class: 'pf-view', 'data-v': v, 'aria-pressed': String(fx.view === v), 'aria-label': `${v} view`, title: v === 'list' ? 'List' : 'Grid', html: ICO[v],
+      onclick: () => { fx.view = v; rememberView(); views.querySelectorAll('.pf-view').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.v === v))); renderExplorer(); } })));
+    const upBtn = el('button', { type: 'button', class: 'btn btn-primary btn-sm pf-upload', html: `${ICO.upload}<span>Upload</span>`, onclick: () => input.click() });
+    fxEls = {
+      crumbs: el('nav', { class: 'fx-crumbs', 'aria-label': 'Folder path' }),
+      pane: el('div', { class: 'fx-pane' }),
+      upBtn,
+      newBtn: el('button', { type: 'button', class: 'btn btn-ghost btn-sm fx-newfolder', html: `${ICO.newFolder}<span>New folder</span>`, onclick: newFolder }),
+    };
+    const card = el('section', { class: 'cv-card fx' },
+      el('div', { class: 'fx-top' }, fxEls.crumbs, el('div', { class: 'fx-top-actions' }, fxEls.newBtn, upBtn, input)),
       el('div', { class: 'pf-toolbar' },
-        el('label', { class: 'ct-search pf-search' }, el('span', { class: 'ct-search-ico', 'aria-hidden': 'true', html: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>' }), search),
-        sort, viewBtns),
-      filesEls.chips, status, filesEls.list,
-      el('div', { class: 'pf-dropveil', 'aria-hidden': 'true' }, el('span', { html: ICO.upload }), el('strong', { text: 'Drop to upload' })));
-    // drop files anywhere on the card
+        el('label', { class: 'ct-search pf-search' }, el('span', { class: 'ct-search-ico', 'aria-hidden': 'true', html: ICO.search }), search),
+        sort, views),
+      status, fxEls.pane,
+      el('div', { class: 'pf-dropveil', 'aria-hidden': 'true' }, el('span', { html: ICO.upload }), el('strong', { class: 'fx-veil-text' })));
+    // drop files from your computer onto the explorer: they upload into the open folder
     let depth = 0;
-    card.addEventListener('dragenter', (e) => { if (e.dataTransfer.types.includes('Files')) { depth++; card.classList.add('over'); } });
+    card.addEventListener('dragenter', (e) => { if (e.dataTransfer.types.includes('Files')) { depth++; card.querySelector('.fx-veil-text').textContent = isReal(fx.cur) ? `Drop to upload to ${folderById(fx.cur).name}` : 'Open a folder to upload into it'; card.classList.add('over'); } });
     card.addEventListener('dragleave', (e) => { if (e.dataTransfer.types.includes('Files') && --depth <= 0) { depth = 0; card.classList.remove('over'); } });
     card.addEventListener('dragover', (e) => { if (e.dataTransfer.types.includes('Files')) e.preventDefault(); });
     card.addEventListener('drop', (e) => {
       if (!e.dataTransfer.types.includes('Files')) return;
       e.preventDefault(); depth = 0; card.classList.remove('over');
-      const l = [...e.dataTransfer.files]; if (l.length) uploadProjectFiles(l, setStatus);
+      const l = [...e.dataTransfer.files]; if (l.length) uploadInto(l, fx.cur, setStatus);
     });
-    fill(body, card, filesEls.tickets);
-    renderFileList();
+    fill(body, card);
+    renderExplorer();
   }
 
-  function renderFileList() {
-    if (!filesEls || section !== 'files') return;
-    const { shared, fromTickets } = filesState;
-    const names = folders();
-    const inFolder = (f) => fv.folder === 'all' || (fv.folder === '__none' ? !f.folder : f.folder === fv.folder);
-    if (!['all', '__none'].includes(fv.folder) && !names.includes(fv.folder)) fv.folder = 'all';
+  function renderExplorer() {
+    if (!fxEls || section !== 'files') return;
+    if (fx.cur && !isReal(fx.cur) && !isTicketFolder(fx.cur)) fx.cur = null;
+    const real = isReal(fx.cur);
 
-    // folder chips (drop a file on one to move it there)
-    const chip = (key, label, n, extraCls = '') => {
-      const c = el('button', { type: 'button', role: 'tab', class: `pf-chip ${extraCls}`, 'aria-selected': String(fv.folder === key), onclick: () => { fv.folder = key; renderFileList(); } },
-        key !== 'all' && key !== '__none' ? el('span', { class: 'pf-chip-ico', html: ICO.folder }) : null, label, el('b', { text: n }));
-      if (key !== 'all') {
-        c.addEventListener('dragover', (e) => { if (e.dataTransfer.types.includes('text/x-ws-file')) { e.preventDefault(); c.classList.add('drop'); } });
-        c.addEventListener('dragleave', () => c.classList.remove('drop'));
-        c.addEventListener('drop', (e) => {
-          e.preventDefault(); c.classList.remove('drop');
-          const f = shared.find((x) => x.id === e.dataTransfer.getData('text/x-ws-file'));
-          const target = key === '__none' ? null : key;
-          if (f && f.folder !== target) saveFile(f, { folder: target }, target ? `Moved to ${target}` : 'Removed from folder');
-        });
-      }
+    // path bar: Files › A › B (each part is a drop target)
+    const crumb = (label, fid, last) => {
+      const c = el(last ? 'span' : 'button', { type: last ? null : 'button', class: `fx-crumb${last ? ' here' : ''}`, text: label, onclick: last ? null : () => go(fid) });
+      if (!last && (fid === null || isReal(fid))) dropTarget(c, fid);
       return c;
     };
-    fill(filesEls.chips,
-      chip('all', 'All', shared.length),
-      names.length ? chip('__none', 'Unsorted', shared.filter((f) => !f.folder).length) : null,
-      names.map((n) => chip(n, n, shared.filter((f) => f.folder === n).length)),
-      el('button', { type: 'button', class: 'pf-chip add', text: '+ New folder', onclick: () => newFolderModal((n) => { fv.folder = n; renderFileList(); }) }));
+    const parts = [['Files', null]];
+    if (isTicketFolder(fx.cur)) {
+      parts.push(['Ticket attachments', TICKETS]);
+      if (fx.cur !== TICKETS) { const t = s.tks.find((x) => `ticket-${x.number}` === fx.cur); parts.push([t ? `#${t.number} ${t.title}` : 'Ticket', fx.cur]); }
+    } else pathTo(fx.cur).forEach((p) => parts.push([p.name, p.id]));
+    fill(fxEls.crumbs, parts.map(([label, fid], i) => [i ? el('span', { class: 'fx-sep', text: '›' }) : null, crumb(label, fid, i === parts.length - 1)]));
+    fxEls.upBtn.disabled = !real;
+    fxEls.upBtn.title = real ? `Upload to ${folderById(fx.cur).name}` : 'Open a folder to upload into it';
+    fxEls.newBtn.hidden = isTicketFolder(fx.cur);
 
-    const sorter = (PF_SORTS.find((x) => x[0] === fv.sort) || PF_SORTS[0])[2];
-    const rows = shared.filter(inFolder)
-      .filter((f) => !fv.q || [f.name, f.note, f.folder, f.uploader_name].some((x) => x && x.toLowerCase().includes(fv.q)))
-      .sort(sorter);
-    const total = shared.reduce((n, f) => n + Number(f.size || 0), 0);
-    filesEls.count.textContent = shared.length ? `${shared.length} file${shared.length === 1 ? '' : 's'} · ${formatBytes(total)}` : '';
+    const sorter = (PF_SORTS.find((x) => x[0] === fx.sort) || PF_SORTS[0])[2];
+    const head = el('li', { class: 'fx-row fx-head', 'aria-hidden': 'true' },
+      el('span', { text: 'Name' }), el('span', { text: 'Note' }), el('span', { text: 'Added' }), el('span', { text: 'Size' }), el('span'));
+    const listOf = (items) => el('ul', { class: `fx-list ${fx.view}` }, fx.view === 'list' ? head : null, items);
 
-    fill(filesEls.list, rows.length
-      ? el('ul', { class: `pf-list ${fv.view}` }, rows.map(fileItem))
-      : el('div', { class: 'pf-empty' },
-        el('span', { class: 'pf-empty-ico', html: ICO.upload }),
-        el('strong', { text: fv.q ? 'Nothing matches' : shared.length ? 'This folder is empty' : 'No files yet' }),
-        el('p', { text: fv.q ? 'Try another name or word from a note.' : shared.length ? 'Drag files onto the folder, or upload while it’s open.' : 'Upload stylesheets, spreadsheets, PDFs, images, anything for this project, or drop them here. Up to 50 MB each.' })));
+    // searching looks through everything
+    if (fx.q) {
+      const hits = [
+        ...files.filter((f) => [f.name, f.note].some((x) => x && x.toLowerCase().includes(fx.q))).sort(sorter).map((f) => fileRow(f, { showPath: true })),
+        ...ticketFiles.filter((f) => f.name.toLowerCase().includes(fx.q)).map((f) => fileRow(f, { readonly: true, bucket: 'ticket-files', showPath: true })),
+      ];
+      const folderHits = s.folders.filter((d) => d.name.toLowerCase().includes(fx.q)).map((d) => folderRow(d));
+      fill(fxEls.pane, folderHits.length || hits.length ? listOf([...folderHits, ...hits]) : empty('Nothing matches', 'Try another name, or a word from a note.'));
+      return;
+    }
 
-    fill(filesEls.tickets, fromTickets.length ? el('section', { class: 'cv-card pf-card' },
-      el('div', { class: 'cv-card-head' }, el('h2', { text: 'From tickets' }), el('span', { class: 'cv-count mono', text: `${fromTickets.length} file${fromTickets.length === 1 ? '' : 's'}` })),
-      el('ul', { class: `pf-list ${fv.view}` }, fromTickets.map(ticketItem))) : null);
+    const rows = [];
+    if (fx.cur) {
+      const parent = isTicketFolder(fx.cur) ? (fx.cur === TICKETS ? null : TICKETS) : folderById(fx.cur)?.parent_id || null;
+      const up = el('li', { class: 'fx-row fx-up', tabindex: 0 },
+        el('span', { class: 'fx-name' }, el('span', { class: 'fx-folder-ico', html: ICO.up }), el('button', { type: 'button', class: 'fx-open', text: 'Back', onclick: () => go(parent) })),
+        el('span'), el('span'), el('span'), el('span'));
+      up.addEventListener('dblclick', () => go(parent));
+      if (parent === null || isReal(parent)) dropTarget(up, parent);
+      rows.push(up);
+    }
+    if (fx.cur === TICKETS) {
+      const byTicket = new Map();
+      ticketFiles.forEach((f) => byTicket.set(f.ticket.number, [...(byTicket.get(f.ticket.number) || []), f]));
+      [...byTicket.entries()].forEach(([n, list]) => {
+        const t = list[0].ticket;
+        rows.push(folderRow({ id: `ticket-${n}`, created_at: t.created_at }, { virtual: true, count: list.length, name: `#${n} ${t.title}`, onOpen: () => go(`ticket-${n}`) }));
+      });
+    } else if (String(fx.cur || '').startsWith('ticket-')) {
+      ticketFiles.filter((f) => `ticket-${f.ticket.number}` === fx.cur).sort(sorter).forEach((f) => rows.push(fileRow(f, { readonly: true, bucket: 'ticket-files' })));
+    } else {
+      kids(fx.cur).forEach((d) => rows.push(folderRow(d)));
+      if (!fx.cur && ticketFiles.length) rows.push(folderRow({ id: TICKETS, created_at: s.c.created_at }, { virtual: true, count: new Set(ticketFiles.map((f) => f.ticket.number)).size, name: 'Ticket attachments', onOpen: () => go(TICKETS) }));
+      if (real) filesIn(fx.cur).sort(sorter).forEach((f) => rows.push(fileRow(f)));
+    }
+    const hasContent = rows.some((r) => !r.classList.contains('fx-up'));
+    fill(fxEls.pane, hasContent ? listOf(rows)
+      : [listOf(rows), real ? empty('This folder is empty', 'Upload files, drop them here, or drag files in from another folder.', true) : empty('No folders yet', 'Create a folder to start organizing.')]);
+  }
+
+  function empty(title, text, withUpload = false) {
+    return el('div', { class: 'pf-empty fx-empty' },
+      el('span', { class: 'pf-empty-ico', html: withUpload ? ICO.upload : ICO.folder }),
+      el('strong', { text: title }), el('p', { text }),
+      withUpload ? el('button', { type: 'button', class: 'btn btn-primary btn-sm', text: 'Upload files', onclick: () => fxEls.upBtn.click() }) : null);
   }
 
   async function filesSection() {
-    fill(body, el('div', { class: 'cv-loading', text: 'Gathering files…' }));
-    await loadFiles();
+    fill(body, el('div', { class: 'cv-loading', text: 'Opening files…' }));
+    fx.cur = opts.sub || null;
+    await Promise.all([loadFolders(), loadFiles()]);
+    await ensureDefaults();
+    opts.onFolders?.(s.c, s.folders, fx.cur);
     renderFiles();
   }
 
@@ -681,7 +838,13 @@ export async function contractPage(root, opts) {
       }
     })
     .on('postgres_changes', { event: '*', schema: 'public', table: 'project_files', filter: `contract_id=eq.${id}` }, async () => {
-      if (section === 'files' && !fv.editing) { await loadFiles(); renderFileList(); }
+      if (section === 'files' && !fx.editing) { await loadFiles(); renderExplorer(); }
+    })
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'project_folders', filter: `contract_id=eq.${id}` }, async () => {
+      const { data } = await supabase.from('project_folders').select('*').eq('contract_id', id);
+      s.folders = data || [];
+      opts.onFolders?.(s.c, s.folders, section === 'files' ? fx.cur : undefined);
+      if (section === 'files' && !fx.editing) renderExplorer();
     })
     .on('postgres_changes', { event: '*', schema: 'public', table: 'events', filter: `contract_id=eq.${id}` }, async () => {
       const { data } = await supabase.from('events').select('*').eq('contract_id', id).order('starts_at');

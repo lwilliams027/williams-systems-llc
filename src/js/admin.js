@@ -51,7 +51,7 @@ const state = {
   inquiries: [],
   requests: [],
   upcoming: [],
-  tickets: [], tFilter: 'active', tQuery: '', tSelected: null, projCounts: {},
+  tickets: [], tFilter: 'active', tQuery: '', tSelected: null, projCounts: {}, projFolders: {},
   // inquiries inbox
   selectedId: null, filter: 'all', query: '', notes: [],
   // contracts list
@@ -111,6 +111,25 @@ function renderNav() {
   updateCounts();
 }
 
+/** The project's folders, nested, under Files in the sidebar: click to open one. */
+function folderTree(c) {
+  const info = state.projFolders[c.id];
+  if (!info || !info.folders.length) return null;
+  const curSection = (state.project || [])[1];
+  const kidsOf = (pid) => info.folders.filter((f) => (f.parent_id || null) === (pid || null)).sort((a, b) => a.name.localeCompare(b.name));
+  const branch = (pid, depth) => {
+    const list = kidsOf(pid);
+    if (!list.length) return null;
+    return el('ul', { class: 'crm-tree' }, list.map((f) => el('li', {},
+      el('a', { href: projectHref(c, 'files', f.id), class: 'crm-tree-link', style: { paddingLeft: `${10 + depth * 12}px` }, title: f.name,
+        'aria-current': curSection === 'files' && info.cur === f.id ? 'page' : 'false' },
+        el('span', { class: 'crm-tree-ico', html: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>' }),
+        el('span', { class: 'crm-tree-label', text: f.name })),
+      branch(f.id, depth + 1))));
+  };
+  return branch(null, 0);
+}
+
 /** Every live or pending contract gets its own workspace in the sidebar. */
 function renderProjectsNav() {
   const box = $('#crmProjects');
@@ -128,10 +147,12 @@ function renderProjectsNav() {
         el('i', { class: `crm-proj-dot st-${c.status}` }), el('span', { text: c.title }), n ? el('b', { class: 'crm-proj-n', title: `${n} new ticket${n === 1 ? '' : 's'}`, text: n }) : null),
       on ? el('ul', { class: 'crm-proj-sub' }, SECTIONS.map(([k, label]) => {
         const cnt = (state.projCounts[c.id] || {})[k];
+        const tree = k === 'files' ? folderTree(c) : null;
         return el('li', {},
-          el('a', { href: projectHref(c, k), 'aria-current': (curSection || 'overview') === k ? 'page' : 'false' },
+          el('a', { href: projectHref(c, k), 'aria-current': (curSection || 'overview') === k && !(k === 'files' && (state.projFolders[c.id] || {}).cur) ? 'page' : 'false' },
             el('span', { class: 'crm-sub-ico', html: icon[k] }), el('span', { class: 'crm-sub-label', text: label }),
-            cnt ? el('b', { class: `crm-proj-n${k === 'tickets' ? '' : ' soft'}`, text: cnt }) : null));
+            cnt ? el('b', { class: `crm-proj-n${k === 'tickets' ? '' : ' soft'}`, text: cnt }) : null),
+          tree);
       })) : null);
   };
   fill(box, 
@@ -217,6 +238,12 @@ async function routeProject([slug, section = 'overview', sub]) {
   const token = (state.routeToken = Symbol('route'));
   const stop = await contractPage($('#view-contract'), {
     slug, section, sub, owner: true, me: state.me,
+    onFolders: (c, folders, cur) => {
+      const prev = state.projFolders[c.id];
+      const next = { folders, cur: cur === undefined ? (prev ? null : null) : cur };
+      state.projFolders[c.id] = next;
+      renderProjectsNav();
+    },
     onCounts: (c, counts) => {
       const prev = JSON.stringify(state.projCounts[c.id] || {});
       state.projCounts[c.id] = counts;
