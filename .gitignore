@@ -15,3 +15,6 @@ ADMIN-LOGIN.txt
 # private backup server: its data, and the key only you hold
 backup-server/data/
 .backup-token
+
+# Stripe secret key (npm run stripe:setup reads it)
+.stripe-key

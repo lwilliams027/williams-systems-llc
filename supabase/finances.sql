@@ -77,3 +77,10 @@ drop trigger if exists hold_guard on public.tickets;
 create trigger hold_guard before insert on public.tickets for each row execute function public.hold_guard();
 drop trigger if exists hold_guard on public.events;
 create trigger hold_guard before insert on public.events for each row execute function public.hold_guard();
+
+-- ---------- Stripe ----------
+-- Each unpaid invoice can have its own Stripe payment link (made by the
+-- stripe-link function); the stripe-webhook function marks it paid.
+alter table public.invoices add column if not exists stripe_link_id text;
+alter table public.invoices add column if not exists stripe_payment_id text;
+alter table public.invoices add column if not exists paid_via text check (paid_via in ('stripe', 'manual'));

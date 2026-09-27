@@ -3,6 +3,7 @@
 
      Home       charts and analytics, live contracts, what needs attention
      Contracts  every contract and its status
+     Clients    solo and group accounts, their people, invite links
      Projects   in the sidebar: each contract is its own workspace at
                 #/<project>/<section> (Overview, Tickets, Chat, Schedule, Files)
      Requests   project inquiries from the website + account requests
@@ -28,6 +29,7 @@ import { notificationBell } from './crm/notifications.js';
 import { accountMenu } from './crm/account-menu.js';
 import { messenger } from './crm/chat-bubble.js';
 import { financesView } from './crm/finances.js';
+import { accountsView, accountWizard } from './crm/accounts.js';
 import { pastDueDays, causesHold, clientKey, clientName, HOLD_DAYS } from './crm/billing.js';
 import { ticketView, ticketForm, ticketPill, statusIcon, priorityIcon, T_KIND, T_PRIORITY, T_STATUS, OPEN_STATES } from './crm/tickets.js';
 
@@ -42,13 +44,14 @@ const INQ_LABEL = Object.fromEntries(INQ_STATUSES);
 const NAV = [
   ['home', 'Home', icon.home],
   ['contracts', 'Contracts', icon.contracts],
+  ['clients', 'Clients', icon.clients],
   ['requests', 'Requests', icon.requests],
   ['tickets', 'Tickets', icon.tickets],
   ['pending', 'Pending', icon.pending],
   ['calendar', 'Calendar', icon.calendar],
   ['finances', 'Finances', icon.finances],
 ];
-const TITLES = { home: 'Home', contracts: 'Contracts', contract: 'Contract', requests: 'Requests', tickets: 'Tickets', pending: 'Pending deals', calendar: 'Calendar', finances: 'Finances' };
+const TITLES = { home: 'Home', contracts: 'Contracts', contract: 'Contract', requests: 'Requests', tickets: 'Tickets', pending: 'Pending deals', calendar: 'Calendar', finances: 'Finances', clients: 'Clients' };
 const STATUS_COLOR = { proposal: '#7CB7FF', negotiating: '#A06BFF', awaiting_signature: '#F5B84B', active: '#3DDC84', on_hold: '#8A93A6', complete: '#2E9BFF', lost: '#FF6B6B' };
 
 const state = {
@@ -219,7 +222,7 @@ function route() {
   const navKey = v === 'contract' ? 'contracts' : v;
   $$('.crm-nav-link').forEach((a) => a.setAttribute('aria-current', a.dataset.route === navKey ? 'page' : 'false'));
   $('#viewTitle').textContent = TITLES[v];
-  document.querySelector('.crm-top').classList.toggle('has-page-head', ['home', 'contracts', 'requests', 'tickets', 'pending', 'calendar', 'finances'].includes(v));
+  document.querySelector('.crm-top').classList.toggle('has-page-head', ['home', 'contracts', 'requests', 'tickets', 'pending', 'calendar', 'finances', 'clients'].includes(v));
   $('#newContractBtn').querySelector('span').textContent = v === 'pending' ? 'New deal' : 'New contract';
   document.title = `${TITLES[v]} — Williams Systems LLC`;
   window.scrollTo(0, 0);
@@ -230,6 +233,10 @@ function route() {
   else if (v === 'requests') switchRequests(arg === 'accounts' ? 'access' : 'inbox');
   else if (v === 'tickets') renderTickets(arg);
   else if (v === 'pending') renderPending();
+  else if (v === 'clients') {
+    if (!state.clients) state.clients = accountsView($('#view-clients'), { getContracts: () => state.contracts, projectHref, onChanged: () => loadContracts() });
+    else state.clients.reload();
+  }
   else if (v === 'finances') {
     if (!state.finances) state.finances = financesView($('#view-finances'), { getContracts: () => state.contracts, projectHref });
     else state.finances.reload();
@@ -351,6 +358,7 @@ function subscribe() {
       if (state.view === 'home') renderHome();
       if (state.view === 'contracts') renderContracts();
       if (state.view === 'pending') renderPending();
+      if (state.view === 'clients') state.clients?.render();
     }))
     .on('postgres_changes', { event: '*', schema: 'public', table: 'tickets' }, () => soon(async () => {
       await loadTickets();
@@ -1220,7 +1228,11 @@ function renderRequests() {
         r.message ? el('p', { class: 'access-msg', text: r.message }) : null,
         el('span', { class: 'access-meta', text: `${new Date(r.created_at).toLocaleString()}${r.status !== 'new' ? ` · ${r.status}` : ''}` })),
       el('div', { class: 'access-actions' },
-        r.status === 'new' ? el('button', { class: 'btn btn-primary btn-sm', type: 'button', text: 'Invite', onclick: () => invite(r.email, 'client', r) }) : null,
+        r.status === 'new' ? el('button', { class: 'btn btn-primary btn-sm', type: 'button', text: 'Set up account', onclick: () => accountWizard({
+          contracts: state.contracts,
+          preset: { kind: r.company ? 'group' : 'solo', name: r.company || r.name, people: [{ name: r.name, email: r.email }], contractIds: state.contracts.filter((c) => c.request_id === r.id && !c.account_id).map((c) => c.id) },
+          onDone: async () => { await setRequest(r, 'invited'); loadContracts(); },
+        }) }) : null,
         deal ? el('a', { class: 'btn btn-ghost btn-sm', href: `#contract/${deal.id}`, text: 'Open deal →' })
           : el('button', { class: 'btn btn-ghost btn-sm', type: 'button', text: 'Create deal', onclick: () => contractForm(
             { title: `Project for ${r.company || r.name}`, client_name: r.name, client_email: r.email, company: r.company, scope: r.message, status: 'proposal', request_id: r.id },

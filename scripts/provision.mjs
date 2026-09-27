@@ -128,6 +128,7 @@ await sql(readFileSync(p('supabase/tickets.sql'), 'utf8'));
 await sql(readFileSync(p('supabase/files.sql'), 'utf8'));
 await sql(readFileSync(p('supabase/account.sql'), 'utf8'));
 await sql(readFileSync(p('supabase/finances.sql'), 'utf8'));
+await sql(readFileSync(p('supabase/accounts.sql'), 'utf8'));
 console.log('  tables, security rules, storage bucket, and realtime ready');
 
 // ---------- 5. auth settings ----------
@@ -136,6 +137,9 @@ await api(`/v1/projects/${state.ref}/config/auth`, {
   method: 'PATCH',
   body: {
     disable_signup: false,
+    // the invite link's token is required to sign up (accounts.sql), so no confirmation email is needed
+    mailer_autoconfirm: true,
+    password_min_length: 8,
     site_url: SITE_URL,
     uri_allow_list: `${SITE_URL}**,http://127.0.0.1:5173/**,http://localhost:5173/**`,
   },
@@ -153,10 +157,12 @@ const authHeaders = serviceKey.startsWith('sb_')
   : { apikey: serviceKey, Authorization: `Bearer ${serviceKey}` };
 if (!state.adminPassword) {
   state.adminPassword = randomBytes(12).toString('base64url');
+  // email sign-ups must carry their invite's token (see accounts.sql)
+  const [inv] = await sql(`select token from public.invites where lower(email) = lower('${ADMIN_EMAIL.replace(/'/g, "''")}') and accepted_at is null order by created_at desc limit 1;`);
   const res = await fetch(`${URL_BASE}/auth/v1/admin/users`, {
     method: 'POST',
     headers: { ...authHeaders, 'Content-Type': 'application/json' },
-    body: JSON.stringify({ email: ADMIN_EMAIL, password: state.adminPassword, email_confirm: true }),
+    body: JSON.stringify({ email: ADMIN_EMAIL, password: state.adminPassword, email_confirm: true, user_metadata: { invite_token: inv?.token } }),
   });
   if (!res.ok) {
     const body = await res.text();

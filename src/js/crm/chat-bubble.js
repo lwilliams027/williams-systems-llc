@@ -3,9 +3,11 @@
      · Inbox: every conversation (one per project), most recent first,
        with the last message, time and an unread count.
      · Tap one to open the thread; ‹ goes back to the inbox.
-     · Opening a thread marks its messages read; your last message shows
-       "Delivered" or "Read".
-     · A typing bubble (•••) shows while the other person is writing.
+     · Group accounts are a group chat: Landon and everyone on the
+       account, names over each person's messages, "Seen by …" receipts.
+     · Opening a thread marks it read (chat_reads: one "read up to" time
+       per person); your last message shows Delivered / Read / Seen by.
+     · A typing bubble (•••) shows while someone is writing.
    Owners get the inbox on every page. A client with a single project
    goes straight into that conversation.
    ===================================================================== */
@@ -15,19 +17,33 @@ import { el, fill, REDUCED, toast, fmtDate, fmtTime, initials, richText, icon } 
 
 const BACK = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>';
 const TYPING_TTL = 4000;
+const first = (n = '') => n.trim().split(/\s+/)[0] || n;
 
 export function messenger({ me, owner, getContracts, onRead }) {
-  const st = { open: false, view: 'list', cur: null, msgs: [], loaded: false, typing: new Map(), q: '' };
+  const st = { open: false, view: 'list', cur: null, msgs: [], reads: [], accts: new Map(), members: [], names: new Map(), loaded: false, typing: new Map(), q: '' };
   const myName = { value: '' };
   supabase.from('profiles').select('full_name').eq('id', me.id).maybeSingle().then(({ data }) => { myName.value = data?.full_name || ''; });
 
   const convos = () => (getContracts() || []).filter((c) => c.status !== 'lost');
   const single = () => !owner && convos().length === 1;
-  const who = (c) => (owner ? c.client_name || c.client_email || 'Client' : 'Landon Williams');
+  const acctOf = (c) => (c.account_id ? st.accts.get(c.account_id) : null);
+  const peopleOf = (c) => st.members.filter((m) => m.account_id === c.account_id);
+  const isGroup = (c) => acctOf(c)?.kind === 'group';
+  const who = (c) => (isGroup(c) ? acctOf(c).name : owner ? c.client_name || acctOf(c)?.name || c.client_email || 'Client' : 'Landon Williams');
+  const subOf = (c) => (isGroup(c) ? `${c.title} · ${peopleOf(c).length + 1} people` : c.title);
   const threadOf = (cid) => st.msgs.filter((m) => m.contract_id === cid);
-  const unreadIn = (cid) => st.msgs.filter((m) => m.contract_id === cid && m.sender_id !== me.id && !m.read_at).length;
-  const totalUnread = () => st.msgs.filter((m) => m.sender_id !== me.id && !m.read_at && convos().some((c) => c.id === m.contract_id)).length;
-  const isTyping = (cid) => (st.typing.get(cid) || 0) > Date.now() - TYPING_TTL;
+  const readAt = (cid, uid) => st.reads.find((r) => r.contract_id === cid && r.user_id === uid)?.read_at || null;
+  const unreadIn = (cid) => { const r = readAt(cid, me.id); return st.msgs.filter((m) => m.contract_id === cid && m.sender_id !== me.id && (!r || m.created_at > r)).length; };
+  const totalUnread = () => convos().reduce((n, c) => n + unreadIn(c.id), 0);
+  const typers = (cid) => [...(st.typing.get(cid) || new Map()).values()].filter((t) => t.at > Date.now() - TYPING_TTL);
+  const isTyping = (cid) => typers(cid).length > 0;
+  const nameOf = (uid) => st.names.get(uid) || '';
+
+  const avatar = (c, cls = '') => {
+    if (!isGroup(c)) return el('span', { class: `mx-av ${cls}`, text: initials(who(c)) });
+    const ppl = peopleOf(c).slice(0, 2);
+    return el('span', { class: `mx-av-group ${cls}` }, ppl.map((p) => el('span', { class: 'mx-av', text: initials(p.name || p.email) })));
+  };
 
   /* ---------- shell ---------- */
   const badge = el('span', { class: 'cb-badge', hidden: true });
@@ -64,9 +80,21 @@ export function messenger({ me, owner, getContracts, onRead }) {
   }
 
   async function load() {
-    const { data, error } = await supabase.from('contract_messages').select('*').order('created_at').limit(3000);
-    if (error) { toast(`Couldn’t load messages: ${error.message}`, 'error'); return; }
-    st.msgs = data || [];
+    const [msgs, reads, accts, members, names] = await Promise.all([
+      supabase.from('contract_messages').select('*').order('created_at').limit(3000),
+      supabase.from('chat_reads').select('*'),
+      supabase.from('client_accounts').select('id, name, kind'),
+      supabase.from('account_members').select('id, account_id, name, email, user_id'),
+      supabase.from('profiles').select('id, full_name, email, role'),
+    ]);
+    if (msgs.error) { toast(`Couldn’t load messages: ${msgs.error.message}`, 'error'); return; }
+    st.msgs = msgs.data || [];
+    st.reads = reads.data || [];
+    st.accts = new Map((accts.data || []).map((a) => [a.id, a]));
+    st.members = members.data || [];
+    st.names = new Map((names.data || []).map((p) => [p.id, p.full_name || p.email]));
+    st.owners = (names.data || []).filter((p) => p.role === 'owner').map((p) => p.id);
+    for (const m of st.members) if (m.user_id && m.name && !st.names.get(m.user_id)) st.names.set(m.user_id, m.name);
     st.loaded = true;
     badgeUpdate();
   }
@@ -76,13 +104,19 @@ export function messenger({ me, owner, getContracts, onRead }) {
     if (st.view === 'thread' && st.cur && convos().some((c) => c.id === st.cur)) renderThread(); else renderList();
   }
 
+  const typingLabel = (c) => {
+    const t = typers(c.id);
+    if (!isGroup(c) || !t.length) return 'typing…';
+    return t.length > 1 ? 'several people are typing…' : `${first(t[0].name || 'Someone')} is typing…`;
+  };
+
   function renderList() {
     st.view = 'list';
     const list = convos().map((c) => {
       const t = threadOf(c.id);
       const last = t[t.length - 1];
       return { c, last, at: last ? new Date(last.created_at).getTime() : 0 };
-    }).filter((x) => !st.q || [who(x.c), x.c.title, x.c.company].some((s) => s && s.toLowerCase().includes(st.q)))
+    }).filter((x) => !st.q || [who(x.c), x.c.title, x.c.company, ...peopleOf(x.c).map((p) => p.name)].some((s) => s && s.toLowerCase().includes(st.q)))
       .sort((a, b) => b.at - a.at || a.c.title.localeCompare(b.c.title));
     const search = el('input', { type: 'search', class: 'mx-search', placeholder: owner ? 'Search clients…' : 'Search…', value: st.q, 'aria-label': 'Search conversations' });
     search.addEventListener('input', () => { st.q = search.value.trim().toLowerCase(); const pos = search.selectionStart; renderList(); const s = panel.querySelector('.mx-search'); s.focus(); s.setSelectionRange(pos, pos); });
@@ -93,13 +127,14 @@ export function messenger({ me, owner, getContracts, onRead }) {
       convos().length > 5 ? el('div', { class: 'mx-search-wrap' }, search) : null,
       list.length ? el('ul', { class: 'mx-list' }, list.map(({ c, last }) => {
         const n = unreadIn(c.id);
-        const preview = isTyping(c.id) ? el('span', { class: 'mx-typing-text', text: 'typing…' })
-          : last ? `${last.sender_id === me.id ? 'You: ' : ''}${last.body}` : owner ? 'No messages yet' : 'Say hello';
+        const from = last && (last.sender_id === me.id ? 'You: ' : isGroup(c) ? `${first(last.sender_name || nameOf(last.sender_id))}: ` : '');
+        const preview = isTyping(c.id) ? el('span', { class: 'mx-typing-text', text: typingLabel(c) })
+          : last ? `${from}${last.body}` : owner ? 'No messages yet' : 'Say hello';
         return el('li', {}, el('button', { type: 'button', class: `mx-row${n ? ' unread' : ''}`, onclick: () => openThread(c.id) },
-          el('span', { class: 'mx-av', text: initials(who(c)) }),
+          avatar(c),
           el('span', { class: 'mx-row-main' },
             el('span', { class: 'mx-row-top' }, el('strong', { text: who(c) }), el('time', { text: last ? shortTime(last.created_at) : '' })),
-            el('span', { class: 'mx-row-sub' }, el('span', { class: 'mx-proj', text: c.title })),
+            el('span', { class: 'mx-row-sub' }, el('span', { class: 'mx-proj', text: subOf(c) })),
             el('span', { class: 'mx-row-bottom' }, el('span', { class: 'mx-preview' }, preview), n ? el('b', { class: 'mx-unread', text: n > 9 ? '9+' : n }) : null))));
       })) : el('p', { class: 'mx-empty', text: owner ? 'Conversations appear here, one per project.' : 'Your conversation with Landon shows up here once your project starts.' }));
   }
@@ -108,9 +143,10 @@ export function messenger({ me, owner, getContracts, onRead }) {
   function renderThread() {
     const c = convos().find((x) => x.id === st.cur);
     st.view = 'thread';
-    listEl = el('ol', { class: 'chat-list cb-list mx-thread', 'aria-live': 'polite' });
-    typingEl = el('li', { class: 'mx-typing', hidden: true, 'aria-label': `${who(c)} is typing` }, el('span', { class: 'mx-dots' }, el('i'), el('i'), el('i')));
-    const box = el('textarea', { rows: 1, maxlength: 4000, placeholder: 'Message', 'aria-label': 'Message' });
+    listEl = el('ol', { class: `chat-list cb-list mx-thread${isGroup(c) ? ' group' : ''}`, 'aria-live': 'polite' });
+    typingEl = el('li', { class: 'mx-typing', hidden: true },
+      el('small', { class: 'mx-typing-who' }), el('span', { class: 'mx-dots' }, el('i'), el('i'), el('i')));
+    const box = el('textarea', { rows: 1, maxlength: 4000, placeholder: isGroup(c) ? `Message ${who(c)}` : 'Message', 'aria-label': 'Message' });
     const send = el('button', { type: 'submit', class: 'chat-send mx-send', 'aria-label': 'Send', html: icon.send, disabled: true });
     box.addEventListener('input', () => {
       box.style.height = 'auto'; box.style.height = `${Math.min(box.scrollHeight, 120)}px`;
@@ -118,41 +154,76 @@ export function messenger({ me, owner, getContracts, onRead }) {
       sendTyping(c.id);
     });
     box.addEventListener('keydown', (e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); post(c.id, box, send); } });
+    const ppl = peopleOf(c);
+    const waiting = owner ? (isGroup(c) ? ppl.filter((p) => !p.user_id).length : c.client_id ? 0 : 1) : 0;
     fill(panel,
       el('header', { class: 'mx-head thread' },
         single() ? null : el('button', { type: 'button', class: 'mx-back', 'aria-label': 'Back to messages', html: BACK, onclick: back }),
-        el('span', { class: 'mx-av sm', text: initials(who(c)) }),
-        el('div', { class: 'mx-title' }, el('strong', { text: who(c) }), el('small', { text: c.title })),
+        avatar(c, 'sm'),
+        el('div', { class: 'mx-title' }, el('strong', { text: who(c) }),
+          el('small', { text: isGroup(c) ? ['Landon', ...ppl.map((p) => first(p.name || p.email.split('@')[0]))].filter((n, i, a) => a.indexOf(n) === i).join(', ') : c.title, title: subOf(c) })),
         el('button', { type: 'button', class: 'cb-close', 'aria-label': 'Close messages', html: '&times;', onclick: () => toggle(false) })),
       listEl,
       el('form', { class: 'chat-form cb-form mx-form', onsubmit: (e) => { e.preventDefault(); post(c.id, box, send); } }, box, send),
-      owner && !c.client_id ? el('p', { class: 'chat-note cb-note', text: 'They’ll see this once they create their account.' }) : null);
+      waiting ? el('p', { class: 'chat-note cb-note', text: isGroup(c) ? `${waiting} ${waiting === 1 ? 'person hasn’t' : 'people haven’t'} signed up yet; they’ll see this when they do.` : 'They’ll see this once they create their account.' }) : null);
     drawMessages();
     setTimeout(() => box.focus({ preventScroll: true }), 30);
   }
 
+  /** Who has read up to this message (everyone but the sender). */
+  function receipt(c, m) {
+    const others = st.reads.filter((r) => r.contract_id === c.id && r.user_id !== me.id && r.read_at >= m.created_at);
+    if (!isGroup(c)) {
+      const r = others.sort((a, b) => a.read_at.localeCompare(b.read_at))[0];
+      return r ? ['read', `Read ${fmtTime(r.read_at)}`] : ['', 'Delivered'];
+    }
+    // everyone in the group chat: the account's people who've joined, plus Landon
+    const audience = new Set([...peopleOf(c).filter((p) => p.user_id).map((p) => p.user_id), ...(st.owners || [])]);
+    audience.delete(me.id);
+    const seen = others.map((r) => r.user_id).filter((u) => audience.has(u));
+    if (!seen.length) return ['', 'Delivered'];
+    if (seen.length >= audience.size) return ['read', 'Seen by everyone'];
+    const names = seen.map((u) => first(nameOf(u) || 'Someone'));
+    return ['read', `Seen by ${names.length > 2 ? `${names.slice(0, 2).join(', ')} +${names.length - 2}` : names.join(' & ')}`];
+  }
+
   function drawMessages() {
     if (!listEl) return;
+    const c = convos().find((x) => x.id === st.cur);
+    if (!c) return;
+    const group = isGroup(c);
     const t = threadOf(st.cur);
     const mineLast = [...t].reverse().find((m) => m.sender_id === me.id);
     const nodes = [];
     let lastDay = '';
     t.forEach((m, i) => {
       const d = new Date(m.created_at).toDateString();
-      if (d !== lastDay) { nodes.push(el('li', { class: 'chat-day', text: dayLabel(m.created_at) })); lastDay = d; }
+      const newDay = d !== lastDay;
+      if (newDay) { nodes.push(el('li', { class: 'chat-day', text: dayLabel(m.created_at) })); lastDay = d; }
       const mine = m.sender_id === me.id;
-      const next = t[i + 1];
+      const prev = t[i - 1], next = t[i + 1];
+      const head = newDay || !prev || prev.sender_id !== m.sender_id;                                                   // first in a run
       const tail = !next || next.sender_id !== m.sender_id || new Date(next.created_at).toDateString() !== d;   // last in a run
-      nodes.push(el('li', { class: `mx-msg${mine ? ' mine' : ''}${tail ? ' tail' : ''}`, 'data-id': m.id },
-        richText(m.body, 'p', { class: 'mx-bubble', title: fmtTime(m.created_at) }),
+      const [rcls, rtext] = mine && m === mineLast ? receipt(c, m) : [];
+      nodes.push(el('li', { class: `mx-msg${mine ? ' mine' : ''}${tail ? ' tail' : ''}${group && !mine ? ' has-av' : ''}`, 'data-id': m.id },
+        group && !mine && head ? el('span', { class: 'mx-sender', text: m.sender_role === 'owner' ? 'Landon' : first(m.sender_name || nameOf(m.sender_id) || 'Client') }) : null,
+        el('div', { class: 'mx-line' },
+          group && !mine ? (tail ? el('span', { class: 'mx-av xs', text: initials(m.sender_name || nameOf(m.sender_id) || '?') }) : el('span', { class: 'mx-av-space' })) : null,
+          richText(m.body, 'p', { class: 'mx-bubble', title: fmtTime(m.created_at) })),
         tail ? el('span', { class: 'mx-meta', text: fmtTime(m.created_at) }) : null,
-        mine && m === mineLast ? el('span', { class: `mx-receipt${m.read_at ? ' read' : ''}`, text: m.read_at ? `Read ${fmtTime(m.read_at)}` : 'Delivered' }) : null));
+        rtext ? el('span', { class: `mx-receipt ${rcls}`, text: rtext }) : null));
     });
-    if (!t.length) nodes.push(el('li', { class: 'chat-empty', text: owner ? 'No messages yet. Say hello.' : 'Questions, feedback, links: send them here and Landon will reply.' }));
+    if (!t.length) nodes.push(el('li', { class: 'chat-empty', text: group ? `This is the group chat for ${who(c)}. Every message goes to everyone here.` : owner ? 'No messages yet. Say hello.' : 'Questions, feedback, links: send them here and Landon will reply.' }));
     nodes.push(typingEl);
     fill(listEl, nodes);
-    typingEl.hidden = !isTyping(st.cur);
+    showTypingIn(c);
     listEl.scrollTop = listEl.scrollHeight;
+  }
+  function showTypingIn(c) {
+    if (!typingEl) return;
+    const on = isTyping(c.id);
+    typingEl.hidden = !on;
+    typingEl.querySelector('.mx-typing-who').textContent = on && isGroup(c) ? typingLabel(c).replace('…', '') : '';
   }
 
   function openThread(cid) {
@@ -163,12 +234,15 @@ export function messenger({ me, owner, getContracts, onRead }) {
   function back() { st.view = 'list'; st.cur = null; listEl = null; renderList(); }
 
   async function markRead(cid) {
-    const ids = st.msgs.filter((m) => m.contract_id === cid && m.sender_id !== me.id && !m.read_at);
-    if (!ids.length) return;
+    const t = threadOf(cid);
+    const last = t[t.length - 1];
+    const mine = readAt(cid, me.id);
+    if (!last || (mine && mine >= last.created_at)) return;
     const now = new Date().toISOString();
-    ids.forEach((m) => { m.read_at = now; });
+    const row = st.reads.find((r) => r.contract_id === cid && r.user_id === me.id);
+    if (row) row.read_at = now; else st.reads.push({ contract_id: cid, user_id: me.id, read_at: now });
     badgeUpdate();
-    await supabase.from('contract_messages').update({ read_at: now }).eq('contract_id', cid).neq('sender_id', me.id).is('read_at', null);
+    await supabase.from('chat_reads').upsert({ contract_id: cid, user_id: me.id, read_at: now });
     await supabase.from('notifications').update({ read_at: now }).eq('contract_id', cid).eq('kind', 'message').is('read_at', null);
     onRead?.();
   }
@@ -196,7 +270,8 @@ export function messenger({ me, owner, getContracts, onRead }) {
       const ch = supabase.channel(`typing:${cid}`, { config: { broadcast: { self: false } } })
         .on('broadcast', { event: 'typing' }, ({ payload }) => {
           if (!payload || payload.from === me.id) return;
-          st.typing.set(cid, Date.now());
+          if (!st.typing.has(cid)) st.typing.set(cid, new Map());
+          st.typing.get(cid).set(payload.from, { at: Date.now(), name: payload.name || nameOf(payload.from) });
           showTyping(cid);
           setTimeout(() => showTyping(cid), TYPING_TTL + 50);
         })
@@ -211,19 +286,28 @@ export function messenger({ me, owner, getContracts, onRead }) {
   }
   function showTyping(cid) {
     if (!st.open) return;
+    const c = convos().find((x) => x.id === cid);
+    if (!c) return;
     if (st.view === 'thread' && st.cur === cid && typingEl) {
       const was = !typingEl.hidden;
-      typingEl.hidden = !isTyping(cid);
+      showTypingIn(c);
       if (!typingEl.hidden && !was && listEl) listEl.scrollTop = listEl.scrollHeight;
     } else if (st.view === 'list') renderList();
   }
 
   /* ---------- live messages + read receipts ---------- */
+  const onReadRow = ({ new: r }) => {
+    if (!r?.contract_id) return;
+    const x = st.reads.find((y) => y.contract_id === r.contract_id && y.user_id === r.user_id);
+    if (x) x.read_at = r.read_at; else st.reads.push(r);
+    if (st.open && st.view === 'thread' && st.cur === r.contract_id) drawMessages();
+    badgeUpdate();
+  };
   const channel = supabase.channel(`msgr-${me.id}-${Math.random().toString(36).slice(2, 7)}`)
     .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'contract_messages' }, ({ new: m }) => {
       if (st.msgs.some((x) => x.id === m.id)) return;
       st.msgs.push(m);
-      st.typing.delete(m.contract_id);
+      st.typing.get(m.contract_id)?.delete(m.sender_id);
       const viewing = st.open && st.view === 'thread' && st.cur === m.contract_id;
       if (viewing) { drawMessages(); if (m.sender_id !== me.id) markRead(m.contract_id); }
       else if (st.open && st.view === 'list') renderList();
@@ -232,13 +316,9 @@ export function messenger({ me, owner, getContracts, onRead }) {
         if (!REDUCED) gsap.fromTo(btn, { scale: 0.85 }, { scale: 1, duration: 0.6, ease: 'elastic.out(1, 0.4)' });
       }
     })
-    .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'contract_messages' }, ({ new: m }) => {
-      const x = st.msgs.find((y) => y.id === m.id);
-      if (!x) return;
-      x.read_at = m.read_at;
-      if (st.open && st.view === 'thread' && st.cur === m.contract_id) drawMessages();
-      badgeUpdate();
-    })
+    .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'chat_reads' }, onReadRow)
+    .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'chat_reads' }, onReadRow)
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'account_members' }, async () => { await load(); if (st.open) render(); })
     .subscribe();
 
   load();
@@ -250,7 +330,7 @@ export function messenger({ me, owner, getContracts, onRead }) {
       if (!st.open) await toggle(true);
       if (cid && convos().some((c) => c.id === cid)) openThread(cid);
     },
-    refresh: () => { syncTypingChannels(); badgeUpdate(); if (st.open) render(); },
+    refresh: async () => { syncTypingChannels(); if (st.loaded) await load(); badgeUpdate(); if (st.open) render(); },
     destroy: () => {
       supabase.removeChannel(channel);
       for (const ch of typingChannels.values()) supabase.removeChannel(ch);

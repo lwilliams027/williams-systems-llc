@@ -226,7 +226,9 @@ export function openSettings(ctx) {
       });
       fill(box, f,
         el('section', { class: 'st-block' }, el('h4', { text: 'Payments' }),
-          row('Payment processor', 'Invoices use payment links for now. Once Stripe is connected, paid bills can mark themselves paid.', el('span', { class: 'st-chip', text: 'Links only' })),
+          d.stripe?.connected
+            ? row('Stripe', `Connected to ${d.stripe.account || 'your account'} in ${d.stripe.mode} mode. Every bill you send gets its own payment link, and paid bills mark themselves paid.`, el('span', { class: 'st-chip on', text: d.stripe.mode === 'test' ? 'Test mode' : 'Live' }))
+            : row('Stripe', 'Not connected yet. Once it is, every bill gets a payment link for its exact amount and marks itself paid. Until then, paste a payment link above.', el('span', { class: 'st-chip', text: 'Not connected' })),
           row('Account hold', `A bill more than ${HOLD_DAYS} days past due puts that client on hold: no new tickets or meeting requests until it’s paid.`, el('span', { class: 'st-chip on', text: 'On' })),
           row('Invoices and money', 'Bills, who owes what, expenses and profit.', el('a', { class: 'btn btn-ghost btn-sm', href: '#finances', onclick: () => m.close(), text: 'Open Finances' }))));
     });

@@ -21,6 +21,7 @@ import {
 import { ticketRows, ticketForm, ticketView, fileList, OPEN_STATES } from './tickets.js';
 import { calendarView } from './calendar.js';
 import { billingView, holdFor, holdBanner } from './billing.js';
+import { accountWizard, manageAccount } from './accounts.js';
 
 const SITE = new URL('./', location.href).href;
 export const SECTIONS = [
@@ -53,15 +54,28 @@ export async function contractPage(root, opts) {
     return () => {};
   }
   const id = c.data.id;
-  const [msgs, evs, acts, tks, fds, invs] = await Promise.all([
+  const [msgs, evs, acts, tks, fds, invs, mems, acct] = await Promise.all([
     { data: [] },
     supabase.from('events').select('*').eq('contract_id', id).order('starts_at'),
     section === 'overview' ? supabase.from('activity').select('*').eq('contract_id', id).order('created_at', { ascending: false }).limit(60) : { data: [] },
     supabase.from('tickets').select('*').eq('contract_id', id).order('updated_at', { ascending: false }),
     supabase.from('project_folders').select('*').eq('contract_id', id),
     supabase.from('invoices').select('*').eq('status', 'sent'),
+    owner && c.data.account_id ? supabase.from('account_members').select('*').eq('account_id', c.data.account_id).order('created_at') : { data: [] },
+    owner && c.data.account_id ? supabase.from('client_accounts').select('*').eq('id', c.data.account_id).maybeSingle() : { data: null },
   ]);
-  const s = { c: c.data, msgs: msgs.data || [], evs: evs.data || [], acts: acts.data || [], tks: tks.data || [], folders: fds.data || [], invs: invs.data || [] };
+  const s = { c: c.data, msgs: msgs.data || [], evs: evs.data || [], acts: acts.data || [], tks: tks.data || [], folders: fds.data || [], invs: invs.data || [], members: mems.data || [], acct: acct.data || null };
+  const reloadAccount = async () => {
+    if (!owner) return;
+    const { data: c2 } = await supabase.from('contracts').select('*').eq('id', id).single();
+    if (c2) s.c = c2;
+    const [m2, a2] = s.c.account_id ? await Promise.all([
+      supabase.from('account_members').select('*').eq('account_id', s.c.account_id).order('created_at'),
+      supabase.from('client_accounts').select('*').eq('id', s.c.account_id).maybeSingle(),
+    ]) : [{ data: [] }, { data: null }];
+    s.members = m2.data || []; s.acct = a2.data || null;
+    renderHead(); opts.onChanged?.(s.c);
+  };
   const allContracts = () => { const list = opts.getContracts?.() || []; return list.some((x) => x.id === id) ? list : [...list, s.c]; };
   const onHold = () => holdFor(s.c, allContracts(), s.invs);
   const href = (sec, sub) => projectHref(s.c, sec, sub);
@@ -111,13 +125,17 @@ export async function contractPage(root, opts) {
     const person = owner
       ? { name: c.client_name || c.client_email || 'No client yet', sub: c.company || (c.client_email && c.client_name ? null : ''), email: c.client_email }
       : { name: 'Landon Williams', sub: 'Williams Systems LLC', email: 'lwilliams@williamssystems.dev', phone: '(810) 214-5388' };
+    const all = () => opts.getContracts?.() || [s.c];
+    const joined = s.members.filter((m) => m.user_id).length;
     const portal = owner
-      ? (c.client_id
-        ? el('p', { class: 'pv-portal ok' }, el('i'), 'Portal active')
-        : c.client_email
-          ? el('div', { class: 'pv-portal-row' }, el('p', { class: 'pv-portal warn' }, el('i'), 'Hasn’t signed up yet'),
-            el('button', { type: 'button', class: 'link-btn pv-invite', text: 'Invite', onclick: () => inviteClient(c.client_email) }))
-          : el('p', { class: 'pv-portal' }, el('i'), 'No email on file'))
+      ? (s.acct
+        ? el('div', { class: 'pv-account' },
+          el('div', { class: 'pv-account-top' },
+            el('span', { class: 'pv-faces' }, s.members.slice(0, 5).map((m) => el('span', { class: `ac-av${m.user_id ? '' : ' wait'}`, title: `${m.name || m.email}${m.user_id ? '' : ' (not signed up yet)'}`, text: initials(m.name || m.email) }))),
+            el('span', { text: `${s.acct.kind === 'group' ? 'Group' : 'Solo'} · ${joined}/${s.members.length} signed up` })),
+          el('button', { type: 'button', class: 'link-btn pv-invite', text: joined < s.members.length ? 'People & invite links' : 'Manage people', onclick: () => manageAccount(s.acct.id, { contracts: all(), onChanged: reloadAccount }) }))
+        : el('div', { class: 'pv-portal-row' }, el('p', { class: 'pv-portal warn' }, el('i'), 'No client account'),
+          el('button', { type: 'button', class: 'link-btn pv-invite', text: 'Set up', onclick: () => accountWizard({ contracts: all(), preset: { kind: c.company ? 'group' : 'solo', name: c.company || c.client_name || '', people: c.client_email ? [{ name: c.client_name, email: c.client_email }] : [], contractIds: [c.id] }, onDone: reloadAccount }) })))
       : null;
 
     const client = el('section', { class: 'pv-card' },

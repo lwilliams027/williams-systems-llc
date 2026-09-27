@@ -10,7 +10,9 @@
     "preview": "vite preview",
     "provision": "node scripts/provision.mjs",
     "backup:server": "node backup-server/server.mjs",
-    "backup": "node scripts/backup.mjs"
+    "backup": "node scripts/backup.mjs",
+    "stripe:setup": "node scripts/stripe-setup.mjs",
+    "functions:deploy": "node scripts/stripe-setup.mjs --deploy-only"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.117.1",

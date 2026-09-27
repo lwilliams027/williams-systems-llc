@@ -43,6 +43,7 @@ function friendly(err) {
   const m = String(err?.message || err || '');
   if (/invalid login credentials/i.test(m)) return 'Wrong email or password.';
   if (/email not confirmed/i.test(m)) return 'Please confirm your email first. Check your inbox for the link.';
+  if (/invite_link_required/i.test(m)) return 'Please use the invite link you were sent to create your account.';
   if (/invite_required|database error saving new user/i.test(m)) return 'That email doesn’t have an invite yet. Request a spot and we’ll get back to you.';
   if (/already registered|already been registered/i.test(m)) return 'There’s already an account for this email. Sign in instead.';
   if (/rate limit|too many/i.test(m)) return 'Too many tries. Wait a minute and try again.';
@@ -167,7 +168,11 @@ async function signupPage() {
   form.email.value = invite.email;
   $('#inviteFor').textContent = invite.role === 'owner'
     ? `This invite gives ${invite.email} owner access to the team dashboard.`
-    : `This invite is for your client account at ${invite.email}.`;
+    : invite.account && invite.kind === 'group'
+      ? `You’re joining ${invite.account} as ${invite.email}. You’ll see every project on the account with the rest of your team.`
+      : invite.account
+        ? `Your project page for ${invite.account} is ready. Set a password for ${invite.email} and you’re in.`
+        : `This invite is for your client account at ${invite.email}.`;
   wireGoogle('account.html', form);
   show('create');
   const err = urlError();
@@ -184,11 +189,15 @@ async function signupPage() {
     const { data: res, error } = await supabase.auth.signUp({
       email: invite.email,
       password,
-      options: { data: { full_name: name }, emailRedirectTo: BASE + 'account.html' },
+      // the token proves this came from the invite link (the database checks it)
+      options: { data: { full_name: name, invite_token: token }, emailRedirectTo: BASE + 'account.html' },
     });
     busy(form, false);
     if (error) return say(form, friendly(error));
     if (res.session) return goHome();
+    // no session: sign straight in with the new password
+    const signIn = await supabase.auth.signInWithPassword({ email: invite.email, password });
+    if (!signIn.error) return goHome();
     $('#sentTo').textContent = invite.email;
     show('checkEmail');
   });

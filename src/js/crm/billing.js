@@ -62,8 +62,23 @@ export function invStatus(i, owner = false) {
 /* ---------- workspace billing settings (owners set, everyone reads) ---------- */
 export const BILLING_DEFAULTS = { payLink: '', invoiceNote: '', portalLink: '', dueDays: 14 };
 export async function loadBillingSettings() {
-  const { data } = await supabase.from('app_settings').select('value').eq('key', 'billing').maybeSingle();
-  return { ...BILLING_DEFAULTS, ...(data?.value || {}) };
+  const { data } = await supabase.from('app_settings').select('key, value').in('key', ['billing', 'stripe']);
+  const get = (k) => (data || []).find((r) => r.key === k)?.value;
+  return { ...BILLING_DEFAULTS, ...(get('billing') || {}), stripe: get('stripe') || null };
+}
+
+/** Ask Stripe (through the stripe-link function) for this invoice's payment link. */
+export async function stripeLink(invoiceId, contract, action = 'create') {
+  const SITE = new URL('./', location.href).href;
+  const return_url = contract ? `${SITE}portal.html?paid=1#/${contract.slug || contract.id}/billing` : null;
+  const { data, error } = await supabase.functions.invoke('stripe-link', { body: { invoice_id: invoiceId, action, return_url } });
+  if (error || data?.error) {
+    let msg = data?.error || error?.message;
+    try { msg = (await error?.context?.json?.())?.error || msg; } catch { /* keep msg */ }
+    if (action === 'create') toast(`Stripe: ${msg || 'couldn’t make the payment link'}`, 'error');
+    return null;
+  }
+  return data?.url || true;
 }
 export async function saveBillingSettings(value) {
   const { error } = await supabase.from('app_settings').upsert({ key: 'billing', value, updated_at: new Date().toISOString() });
@@ -91,9 +106,12 @@ export function holdBanner(bills, { owner, contracts = [] } = {}) {
 /* ---------- one invoice row ---------- */
 export function invoiceRow(i, { owner, contracts = [], showProject = true, onChanged, defaults } = {}) {
   const proj = contracts.find((c) => c.id === i.contract_id);
+  const stripeOn = Boolean(defaults?.stripe?.connected);
   const act = async (patch, msg) => {
     const { error } = await supabase.from('invoices').update(patch).eq('id', i.id);
     if (error) return toast(`Couldn’t save: ${error.message}`, 'error');
+    if (stripeOn && patch.status === 'sent' && !i.pay_link) await stripeLink(i.id, proj);
+    if (patch.status === 'paid' && i.stripe_link_id) await stripeLink(i.id, proj, 'deactivate');
     toast(msg); onChanged?.();
   };
   const late = pastDueDays(i);
@@ -105,11 +123,11 @@ export function invoiceRow(i, { owner, contracts = [], showProject = true, onCha
         .filter((x, n, a) => x && a.indexOf(x) === n).join(' · ') }),
       i.note && !owner ? el('p', { class: 'inv-note', text: i.note }) : null),
     el('b', { class: 'inv-amt mono', text: money(i.amount) }),
-    invStatus(i, owner),
+    el('span', { class: 'inv-tags' }, invStatus(i, owner), owner && (i.stripe_link_id || i.paid_via === 'stripe') ? el('span', { class: 'inv-stripe', title: i.paid_via === 'stripe' ? 'Paid through Stripe' : 'Stripe payment link', text: 'Stripe' }) : null),
     owner
       ? el('span', { class: 'inv-actions' },
         i.status === 'draft' ? el('button', { type: 'button', class: 'btn btn-primary btn-sm', text: 'Send', onclick: () => act({ status: 'sent' }, 'Sent. The client was notified.') }) : null,
-        i.status === 'sent' ? el('button', { type: 'button', class: 'btn btn-ghost btn-sm', text: 'Mark paid', onclick: () => act({ status: 'paid' }, 'Marked paid') }) : null,
+        i.status === 'sent' ? el('button', { type: 'button', class: 'btn btn-ghost btn-sm', text: 'Mark paid', onclick: () => act({ status: 'paid', paid_via: 'manual' }, 'Marked paid') }) : null,
         el('button', { type: 'button', class: 'link-btn', text: 'Edit', onclick: () => invoiceForm(i, { contracts, defaults, onSaved: onChanged }) }))
       : i.status === 'sent' && i.pay_link ? el('a', { class: 'btn btn-primary btn-sm', href: i.pay_link, target: '_blank', rel: 'noopener noreferrer', text: 'Pay now' }) : el('span'));
 }
@@ -124,7 +142,13 @@ export async function invoiceForm(inv, { contracts, contractId, defaults, onSave
   const title = el('input', { maxlength: 160, value: inv?.title || '', placeholder: 'e.g. Website build · first half' });
   const amount = el('input', { type: 'number', min: 0, step: 50, inputmode: 'decimal', value: inv ? inv.amount : '' });
   const due = el('input', { type: 'date', value: inv?.due_date || ymd(Date.now() + (Number(d.dueDays) || 14) * DAY) });
-  const link = el('input', { type: 'url', maxlength: 500, value: inv?.pay_link ?? d.payLink ?? '', placeholder: 'https://buy.stripe.com/…' });
+  const stripeOn = Boolean(d.stripe?.connected);
+  // with Stripe connected, each bill gets its own link for its exact amount (unless you paste one)
+  const auto = el('input', { type: 'checkbox', checked: stripeOn && (!inv || !inv.pay_link || inv.stripe_link_id) ? true : null });
+  const link = el('input', { type: 'url', maxlength: 500, value: inv?.stripe_link_id ? '' : inv?.pay_link ?? (stripeOn ? '' : d.payLink) ?? '', placeholder: 'https://…' });
+  const linkField = field('Payment link', link, stripeOn ? 'Only if you want to use your own link instead' : 'Where the client pays, e.g. a Stripe payment link');
+  const syncAuto = () => { linkField.hidden = stripeOn && auto.checked; };
+  auto.addEventListener('change', syncAuto);
   const note = el('textarea', { rows: 2, maxlength: 2000 });
   note.value = inv?.note ?? d.invoiceNote ?? '';
   const fillFromProject = () => {
@@ -140,7 +164,9 @@ export async function invoiceForm(inv, { contracts, contractId, defaults, onSave
     contracts.length > 1 || !contractId ? field('Project', proj) : null,
     field('What it’s for', title),
     el('div', { class: 'crm-form-row' }, field('Amount (USD)', amount), field('Due', due)),
-    field('Payment link', link, 'Where the client pays, e.g. a Stripe payment link'),
+    stripeOn ? el('label', { class: 'inv-auto' }, auto,
+      el('span', {}, el('strong', { text: 'Stripe payment link' }), el('small', { text: `Made automatically for this amount when the bill is sent${d.stripe.mode === 'test' ? ' (test mode)' : ''}. It shows as Pay now for the client, and the bill marks itself paid.` }))) : null,
+    linkField,
     field('Note', note),
     msg,
     el('div', { class: 'crm-form-actions' },
@@ -153,18 +179,31 @@ export async function invoiceForm(inv, { contracts, contractId, defaults, onSave
       isNew ? el('button', { type: 'submit', class: 'btn btn-ghost', 'data-status': 'draft', text: 'Save draft' }) : null,
       el('button', { type: 'submit', class: 'btn btn-primary', 'data-status': isNew ? 'sent' : '', text: isNew ? 'Send invoice' : 'Save' })));
   const m = modal(isNew ? 'New invoice' : `Invoice #${inv.number}`, f);
+  syncAuto();
   f.addEventListener('submit', async (e) => {
     e.preventDefault();
     const say = (t) => { msg.textContent = t; msg.hidden = !t; };
     const status = e.submitter?.dataset.status;
     if (!title.value.trim()) return say('Say what the invoice is for.');
     if (!(Number(amount.value) > 0)) return say('Enter an amount.');
-    if (link.value.trim() && !/^https:\/\//i.test(link.value.trim())) return say('The payment link should start with https://');
-    const row = { contract_id: proj.value, title: title.value.trim(), amount: Number(amount.value), due_date: due.value || null, pay_link: link.value.trim() || null, note: note.value.trim() || null };
+    const useStripe = stripeOn && auto.checked;
+    let linkFailed = false;
+    if (!useStripe && link.value.trim() && !/^https:\/\//i.test(link.value.trim())) return say('The payment link should start with https://');
+    if (useStripe && Number(amount.value) < 0.5) return say('Stripe needs at least $0.50.');
+    const row = { contract_id: proj.value, title: title.value.trim(), amount: Number(amount.value), due_date: due.value || null, note: note.value.trim() || null };
+    // your own link replaces a Stripe one; with Stripe on, the link is made below
+    if (!useStripe) Object.assign(row, { pay_link: link.value.trim() || null, stripe_link_id: null });
     if (status) row.status = status;
-    const { error } = isNew ? await supabase.from('invoices').insert(row) : await supabase.from('invoices').update(row).eq('id', inv.id);
-    if (error) return say(error.message);
+    const saveBtn = e.submitter; if (saveBtn) { saveBtn.disabled = true; saveBtn.textContent = useStripe ? 'Making the payment link…' : 'Saving…'; }
+    const { data: saved, error } = isNew ? await supabase.from('invoices').insert(row).select().single() : await supabase.from('invoices').update(row).eq('id', inv.id).select().single();
+    if (error) { if (saveBtn) saveBtn.disabled = false; return say(error.message); }
+    if (!useStripe && inv?.stripe_link_id) await stripeLink(saved.id, null, 'deactivate');
+    // a link for bills that are out (or going out), and a fresh one if the amount changed
+    if (useStripe && saved.status === 'sent' && (!saved.stripe_link_id || Number(inv?.amount) !== Number(saved.amount))) {
+      linkFailed = !(await stripeLink(saved.id, contracts.find((c) => c.id === saved.contract_id)));
+    }
     m.close();
+    if (linkFailed) { onSaved?.(); return; }   // the Stripe error stays on screen
     toast(isNew ? (status === 'sent' ? 'Invoice sent. The client was notified.' : 'Draft saved') : 'Invoice saved');
     onSaved?.();
   });
