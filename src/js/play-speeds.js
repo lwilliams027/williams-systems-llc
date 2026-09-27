@@ -34,7 +34,7 @@ export const HOME = {
   },
   everyPiece:  1,   // the window stack turns → "Every piece. One build."
   website:     1,   // into the website, scroll down it, onto the desk
-  lightbulb:   1,   // the bulb drops in → "Make it yours."
+  lightbulb:   1.5, // the bulb drops in → "Make it yours."
   security:    1,   // the bulb falls, sign-in refused, padlock → "Locked down from day one."
   howWeWork:   1,   // through the keyhole → "From first call to launch."
   discover:    1,   // How we work, step 1
