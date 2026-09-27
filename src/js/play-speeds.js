@@ -8,7 +8,7 @@
 /** The home page, in the order you scroll through it. */
 export const HOME = {
   fall:        1.15, // the logo falls in → "Software your business runs on."
-  whatWeBuild: 1,   // → "Everything it takes to ship software."
+  whatWeBuild: 1.1, // → "Everything it takes to ship software."
   services1:   1,   // → Front end + Back end & APIs
   services2:   1,   // → SaaS platforms + Mobile apps
   services3:   1,   // → Cloud & DevOps + Personalized AI
