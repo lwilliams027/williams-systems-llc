@@ -17,26 +17,40 @@
 <body class="admin portal">
   <svg class="brand-defs" width="0" height="0" aria-hidden="true" focusable="false" style="position:absolute"><defs><linearGradient id="bpL" gradientUnits="userSpaceOnUse" x1="530" y1="-45" x2="860" y2="805"><stop offset="0" stop-color="#2E9BFF"/><stop offset="1" stop-color="#A06BFF"/></linearGradient></defs></svg>
 
-  <header class="portal-top">
-    <a href="./" class="brand" aria-label="Williams Systems website">
-      <span class="brand-mark" aria-hidden="true"><svg class="logo" viewBox="130 -45 1500 850" fill="currentColor"><path d="M500 805L500 691.86L243.14 435L500 178.14L500 65L130 435Z"/><path fill="url(#bpL)" d="M610 611.86L610 -45L530 35L530 805L858.79 476.21L802.22 419.64Z"/><path d="M806.72 381.72L863.28 325.15L1150 611.86L1150 -45L1230 35L1230 805Z"/><path d="M1260 805L1260 691.86L1516.86 435L1260 178.14L1260 65L1630 435Z"/></svg></span>
-      <span class="brand-name">Williams<span class="brand-thin"> Systems</span></span>
-    </a>
-    <span class="portal-tag mono">Client portal</span>
-    <div class="crm-top-actions">
-      <span class="crm-me" id="whoami"></span>
-      <div id="bellMount"></div>
-      <button class="btn btn-ghost btn-sm" id="signOut" type="button">Sign out</button>
+  <div class="crm-app">
+    <aside class="crm-side">
+      <a href="./" class="brand" aria-label="Williams Systems website">
+        <span class="brand-mark" aria-hidden="true"><svg class="logo" viewBox="130 -45 1500 850" fill="currentColor"><path d="M500 805L500 691.86L243.14 435L500 178.14L500 65L130 435Z"/><path fill="url(#bpL)" d="M610 611.86L610 -45L530 35L530 805L858.79 476.21L802.22 419.64Z"/><path d="M806.72 381.72L863.28 325.15L1150 611.86L1150 -45L1230 35L1230 805Z"/><path d="M1260 805L1260 691.86L1516.86 435L1260 178.14L1260 65L1630 435Z"/></svg></span>
+        <span class="brand-name">Williams<span class="brand-thin"> Systems</span></span>
+      </a>
+      <!-- this project's sections: Overview, Tickets, Chat, Schedule, Files -->
+      <nav class="crm-nav" id="portalNav" aria-label="Project sections"></nav>
+      <!-- other projects, when there's more than one -->
+      <nav class="crm-projects" id="portalProjects" aria-label="Your projects" hidden></nav>
+      <div class="crm-side-foot">
+        <span class="crm-me" id="whoami"></span>
+        <a class="crm-side-link" href="./">View website</a>
+        <button class="crm-side-link" id="signOut" type="button">Sign out</button>
+      </div>
+    </aside>
+
+    <div class="crm-body">
+      <header class="crm-top has-page-head">
+        <h1 class="crm-view-title" id="viewTitle">Your project</h1>
+        <div class="crm-top-actions">
+          <span class="portal-tag mono">Client portal</span>
+          <div id="bellMount"></div>
+          <button class="crm-signout-sm" id="signOutSm" type="button" aria-label="Sign out"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/></svg></button>
+        </div>
+      </header>
+
+      <main class="crm-view" id="portalMain">
+        <div class="cv-loading">Loading your project…</div>
+      </main>
+
+      <p class="portal-credit">© <span data-year></span> Williams Systems LLC · Built by Williams Systems LLC.</p>
     </div>
-  </header>
-
-  <nav class="portal-tabs" id="portalTabs" aria-label="Your projects" hidden></nav>
-
-  <main class="portal-main" id="portalMain">
-    <div class="cv-loading">Loading your project…</div>
-  </main>
-
-  <p class="auth-credit portal-credit">© <span data-year></span> Williams Systems LLC · Built by Williams Systems LLC.</p>
+  </div>
 
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
   <script type="module" src="/src/js/portal.js"></script>

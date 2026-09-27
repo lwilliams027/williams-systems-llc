@@ -51,7 +51,7 @@ const state = {
   inquiries: [],
   requests: [],
   upcoming: [],
-  tickets: [], tFilter: 'active', tQuery: '', tSelected: null,
+  tickets: [], tFilter: 'active', tQuery: '', tSelected: null, projCounts: {},
   // inquiries inbox
   selectedId: null, filter: 'all', query: '', notes: [],
   // contracts list
@@ -126,9 +126,13 @@ function renderProjectsNav() {
     return el('li', { class: on ? 'on' : '' },
       el('a', { href: projectHref(c), class: 'crm-proj', 'aria-current': on && (!curSection || curSection === 'overview') ? 'page' : 'false', title: c.title },
         el('i', { class: `crm-proj-dot st-${c.status}` }), el('span', { text: c.title }), n ? el('b', { class: 'crm-proj-n', title: `${n} new ticket${n === 1 ? '' : 's'}`, text: n }) : null),
-      on ? el('ul', { class: 'crm-proj-sub' }, SECTIONS.map(([k, label]) => el('li', {},
-        el('a', { href: projectHref(c, k), 'aria-current': (curSection || 'overview') === k ? 'page' : 'false' }, label,
-          k === 'tickets' && n ? el('b', { class: 'crm-proj-n', text: n }) : null)))) : null);
+      on ? el('ul', { class: 'crm-proj-sub' }, SECTIONS.map(([k, label]) => {
+        const cnt = (state.projCounts[c.id] || {})[k];
+        return el('li', {},
+          el('a', { href: projectHref(c, k), 'aria-current': (curSection || 'overview') === k ? 'page' : 'false' },
+            el('span', { class: 'crm-sub-ico', html: icon[k] }), el('span', { class: 'crm-sub-label', text: label }),
+            cnt ? el('b', { class: `crm-proj-n${k === 'tickets' ? '' : ' soft'}`, text: cnt }) : null));
+      })) : null);
   };
   fill(box, 
     el('div', { class: 'crm-projects-head' }, el('span', { text: 'Projects' }),
@@ -213,6 +217,11 @@ async function routeProject([slug, section = 'overview', sub]) {
   const token = (state.routeToken = Symbol('route'));
   const stop = await contractPage($('#view-contract'), {
     slug, section, sub, owner: true, me: state.me,
+    onCounts: (c, counts) => {
+      const prev = JSON.stringify(state.projCounts[c.id] || {});
+      state.projCounts[c.id] = counts;
+      if (prev !== JSON.stringify(counts)) renderProjectsNav();
+    },
     onChanged: (d) => { upsertContract(d); if (d.slug !== slug) history.replaceState(null, '', projectHref(d, section, sub)); },
     onDeleted: () => { state.contracts = state.contracts.filter((x) => x.slug !== slug); updateCounts(); location.hash = '#contracts'; },
     onRead: () => state.bell?.refresh(),

@@ -1199,3 +1199,26 @@ a.ct-row:hover .ct-go { color: var(--text); transform: translateX(2px); }
 .pv-duo { grid-template-columns: 1fr; }
 @media (min-width: 1560px) { .pv-duo { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 @media (max-width: 1200px) { .pv-manage { grid-column: auto; justify-content: space-between; gap: 12px; } }
+
+/* =====================================================================
+   Project sections live in the left sidebar (admin + portal);
+   the row of tabs above the page only shows on phones
+   ===================================================================== */
+@media (min-width: 900px) { .cv-tabs { display: none; } }
+.crm-proj-sub a { justify-content: flex-start; gap: 10px; }
+.crm-sub-ico { width: 16px; height: 16px; flex: none; display: grid; opacity: 0.85; }
+.crm-sub-ico svg { width: 100%; height: 100%; }
+.crm-sub-label { flex: 1; }
+.crm-proj-sub a[aria-current="page"] .crm-sub-ico { color: var(--accent-fg); opacity: 1; }
+.crm-proj-n.soft { color: var(--text-2); background: var(--surface-2); }
+
+/* the portal uses the same shell as the dashboard */
+.portal .crm-top .portal-tag { padding: 0 12px 0 0; border-left: 0; }
+.portal .portal-credit { margin-top: auto; }
+.portal .crm-view > .portal-empty { margin-top: 6vh; }
+@media (max-width: 899.98px) {
+  .portal .portal-tag { display: none; }
+  .portal .crm-top.has-page-head .crm-view-title { visibility: visible; font-size: 1.05rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
+  .portal .cv-tabs { display: none; }       /* the bottom bar is the section nav on phones */
+  .portal .pv-head h1 { font-size: 1.7rem; }
+}

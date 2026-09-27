@@ -159,6 +159,7 @@ export async function contractPage(root, opts) {
     const open = s.tks.filter((t) => OPEN_STATES.includes(t.status)).length;
     const upcoming = s.evs.filter((e) => new Date(e.starts_at) >= new Date(new Date().setHours(0, 0, 0, 0))).length;
     const counts = { tickets: open, schedule: upcoming };
+    opts.onCounts?.(s.c, counts);
     fill(tabs, SECTIONS.map(([k, label]) => el('a', { href: href(k), class: 'cv-tab', 'aria-current': k === section ? 'page' : 'false' },
       label, counts[k] ? el('span', { class: 'cv-tab-n', text: counts[k] }) : null)));
   }
