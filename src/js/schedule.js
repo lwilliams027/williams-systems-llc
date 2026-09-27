@@ -4,7 +4,7 @@
    (it opens the visitor's email app with everything filled in). When a
    calendar tool (Cal.com, Calendly) or Supabase is connected, swap send().
    ===================================================================== */
-const EMAIL = 'lwilliams24270@gmail.com';
+const EMAIL = 'lwilliams@williamssystems.dev';
 const $ = (s, r = document) => r.querySelector(s);
 
 const form = $('#schedForm');

@@ -384,7 +384,7 @@ function assemble(f, P) {
           <p class="scene-eyebrow mono">Questions</p>
           <h2 class="pg-h2 qa-title">${name}, <span>answered.</span></h2>
           <p class="pg-p">Straight answers to what people ask before we start.</p>
-          <div class="qa-ask"><p>Don't see your question?</p><a class="btn btn-primary btn-sm" href="contact.html#book">Ask us on a free call</a><a class="qa-mail" href="mailto:lwilliams24270@gmail.com">lwilliams24270@gmail.com</a></div>
+          <div class="qa-ask"><p>Don't see your question?</p><a class="btn btn-primary btn-sm" href="contact.html#book">Ask us on a free call</a><a class="qa-mail" href="mailto:lwilliams@williamssystems.dev">lwilliams@williamssystems.dev</a></div>
         </div>
         <div class="faq-list qa-list">
 ${faqs.map(([q, a], i) => `          <details class="faq-item qa-item"${i === 0 ? ' open' : ''}><summary><span class="qa-q">${q}</span><span class="qa-icon" aria-hidden="true"></span></summary><div class="qa-a"><p>${a}</p></div></details>`).join('\n')}

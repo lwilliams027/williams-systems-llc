@@ -11,8 +11,8 @@ const JCSS = "'/src/styles/story-journey.css', '/src/styles/flip-journey.css'";
 let s = read('scripts/build-about-section.cjs');
 if (!s.includes("const J = (name)")) {
   // loader: journeys are template literals (they can use ${...})
-  s = s.replace("const PHONE = '(947) 267-4788', TEL = '+19472674788';",
-    "const PHONE = '(947) 267-4788', TEL = '+19472674788';\n// Flip journeys live in scripts/journeys/*.html and may use ${...} expressions.\nconst J = (name) => new Function(`return \\`${fs.readFileSync(path.join(__dirname, 'journeys', name + '.html'), 'utf8').replace(/\\r\\n/g, '\\n').trimEnd()}\\`;`)();");
+  s = s.replace("const PHONE = '(810) 214-5388', TEL = '+18102145388';",
+    "const PHONE = '(810) 214-5388', TEL = '+18102145388';\n// Flip journeys live in scripts/journeys/*.html and may use ${...} expressions.\nconst J = (name) => new Function(`return \\`${fs.readFileSync(path.join(__dirname, 'journeys', name + '.html'), 'utf8').replace(/\\r\\n/g, '\\n').trimEnd()}\\`;`)();");
   // the old sample-project tour is no longer used
   const a = s.indexOf("/* ------------------------------------------------------------------ keep the sample-project tour for How we work */");
   const b = s.indexOf('/* ------------------------------------------------------------------ about.html */');

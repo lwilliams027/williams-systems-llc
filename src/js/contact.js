@@ -1,7 +1,7 @@
 /* Contact page form. There's no backend yet, so the message is sent by email:
    it opens the visitor's email app with everything filled in. When a form
    service or Supabase is connected, replace send(). */
-const TO = 'lwilliams24270@gmail.com';
+const TO = 'lwilliams@williamssystems.dev';
 const form = document.getElementById('contactForm');
 if (form) {
   const err = document.getElementById('contactError');

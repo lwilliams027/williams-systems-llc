@@ -13,7 +13,7 @@ const R = path.join(__dirname, '..') + '/';
 const BASE = 'https://lwilliams027.github.io/williams-systems-llc/';
 const read = (f) => fs.readFileSync(R + f, 'utf8').replace(/\r\n/g, '\n');
 const write = (f, s) => fs.writeFileSync(R + f, s);
-const PHONE = '(947) 267-4788', TEL = '+19472674788';
+const PHONE = '(810) 214-5388', TEL = '+18102145388';
 // Flip journeys live in scripts/journeys/*.html and may use ${...} expressions.
 const J = (name) => new Function('TEL', 'PHONE', `return \`${fs.readFileSync(path.join(__dirname, 'journeys', name + '.html'), 'utf8').replace(/\r\n/g, '\n').trimEnd()}\`;`)(TEL, PHONE);
 
@@ -39,7 +39,7 @@ const makePage = (file, { title, desc, crumb, main, css = [], js = [], ld = [] }
   write(file, s);
   console.log(file, 'written');
 };
-const ORG = { '@type': ['Organization', 'ProfessionalService'], '@id': BASE + '#org', name: 'Williams Systems LLC', url: BASE, telephone: '+1-947-267-4788', founder: { '@type': 'Person', name: 'Landon Williams', jobTitle: 'Founder' }, address: { '@type': 'PostalAddress', addressRegion: 'MI', addressCountry: 'US' }, areaServed: 'Worldwide' };
+const ORG = { '@type': ['Organization', 'ProfessionalService'], '@id': BASE + '#org', name: 'Williams Systems LLC', url: BASE, telephone: '+1-810-214-5388', founder: { '@type': 'Person', name: 'Landon Williams', jobTitle: 'Founder' }, address: { '@type': 'PostalAddress', addressRegion: 'MI', addressCountry: 'US' }, areaServed: 'Worldwide' };
 
 const cta = (h, p) => `
     <section class="pg-section as-cta">

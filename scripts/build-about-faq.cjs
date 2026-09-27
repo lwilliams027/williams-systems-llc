@@ -110,7 +110,7 @@ ${JOURNEY}
           <p class="scene-eyebrow mono">Questions &amp; answers</p>
           <h2 class="ask-title" id="askTitle">Ask us <span>anything.</span></h2>
           <p class="pg-p">Type a question the way you'd ask it. Answers come straight from what we tell every client, and if we don't have one written down, you can ask us on a free call.</p>
-          <div class="qa-ask"><p>Rather talk it through?</p><a class="btn btn-primary btn-sm" href="contact.html#book">Book a free call</a><a class="qa-mail" href="mailto:lwilliams24270@gmail.com">lwilliams24270@gmail.com</a></div>
+          <div class="qa-ask"><p>Rather talk it through?</p><a class="btn btn-primary btn-sm" href="contact.html#book">Book a free call</a><a class="qa-mail" href="mailto:lwilliams@williamssystems.dev">lwilliams@williamssystems.dev</a></div>
         </div>
         <div class="ask-box" data-ask>
           <div class="ask-chat" aria-live="polite">

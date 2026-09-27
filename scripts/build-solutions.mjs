@@ -383,7 +383,7 @@ function pageHtml(s) {
         <div>
           <p class="scene-eyebrow mono">Questions</p>
           <h2 class="pg-h2">${esc(s.title)}, answered.</h2>
-          <p class="pg-p">Don't see your question? <a class="pd-link" href="mailto:lwilliams24270@gmail.com">Ask us directly.</a></p>
+          <p class="pg-p">Don't see your question? <a class="pd-link" href="mailto:lwilliams@williamssystems.dev">Ask us directly.</a></p>
         </div>
         <div class="faq-list">
           ${s.faq.map(([q, a], i) => `<details class="faq-item"${i === 0 ? ' open' : ''}><summary>${esc(q)}</summary><p>${esc(a)}</p></details>`).join('\n          ')}

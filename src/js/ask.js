@@ -106,7 +106,7 @@ function initBox(box) {
         body.insertAdjacentHTML('beforeend', `<div class="ask-related">${related.map((r) => `<button type="button" class="ask-chip">${esc(r.k.q)}</button>`).join('')}</div>`);
       }
     } else {
-      body.innerHTML = `<p class="ask-a">I don’t have a written answer for that one yet. It’s a great question for a free discovery call, or email <a href="mailto:lwilliams24270@gmail.com">lwilliams24270@gmail.com</a> and Landon will answer it directly.</p><p><a class="btn btn-primary btn-sm" href="schedule.html">Book a free call</a></p>`;
+      body.innerHTML = `<p class="ask-a">I don’t have a written answer for that one yet. It’s a great question for a free discovery call, or email <a href="mailto:lwilliams@williamssystems.dev">lwilliams@williamssystems.dev</a> and Landon will answer it directly.</p><p><a class="btn btn-primary btn-sm" href="schedule.html">Book a free call</a></p>`;
     }
     scroll();
     busy = false;
