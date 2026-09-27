@@ -10,7 +10,7 @@
 const fs = require('fs');
 const path = require('path');
 const R = path.join(__dirname, '..') + '/';
-const BASE = 'https://lwilliams027.github.io/williams-systems-llc/';
+const BASE = 'https://williamssystems.dev/';
 const read = (f) => fs.readFileSync(R + f, 'utf8').replace(/\r\n/g, '\n');
 const write = (f, s) => fs.writeFileSync(R + f, s);
 const PHONE = '(810) 214-5388', TEL = '+18102145388';

@@ -21,33 +21,33 @@
 Every job is priced either as a one-time cost for the work or as a monthly plan, depending on what the job is. Which one applies is agreed in the written scope before any work begins.
 
 ## Pages
-- [Home](https://lwilliams027.github.io/williams-systems-llc/): services, process, security, testimonials, FAQ
-- [About](https://lwilliams027.github.io/williams-systems-llc/about.html): who we are and how we work
-- [Schedule a call](https://lwilliams027.github.io/williams-systems-llc/schedule.html): book a free discovery call
+- [Home](https://williamssystems.dev/): services, process, security, testimonials, FAQ
+- [About](https://williamssystems.dev/about.html): who we are and how we work
+- [Schedule a call](https://williamssystems.dev/schedule.html): book a free discovery call
 
 ## Product pages
-- [Websites](https://lwilliams027.github.io/williams-systems-llc/websites.html): Fast, accessible marketing websites designed and built from scratch around your brand, not a template. They load quickly, show up in search, and turn visitors into customers.
-- [Web apps](https://lwilliams027.github.io/williams-systems-llc/web-apps.html): Customer portals, dashboards, and internal tools that replace spreadsheets and manual steps. Secure sign-in, the right permissions for every role, and data you can trust.
-- [SaaS platforms](https://lwilliams027.github.io/williams-systems-llc/saas.html): Multi-tenant software products with sign-up, subscriptions and billing, admin tools, and analytics built in, so you can launch, charge, and grow.
-- [Mobile apps](https://lwilliams027.github.io/williams-systems-llc/mobile-apps.html): iOS and Android apps that share the back end and design of your web product, published to the App Store and Google Play.
-- [Cloud & DevOps](https://lwilliams027.github.io/williams-systems-llc/cloud.html): Hosting, deployments, monitoring, and backups set up properly in your own cloud accounts, so releases are routine and outages are rare.
-- [Personalized AI](https://lwilliams027.github.io/williams-systems-llc/personalized-ai.html): Personalized AI assistants built around you and your business. They know your documents, your products, and the way you work, and they plug into the tools you already use.
+- [Websites](https://williamssystems.dev/websites.html): Fast, accessible marketing websites designed and built from scratch around your brand, not a template. They load quickly, show up in search, and turn visitors into customers.
+- [Web apps](https://williamssystems.dev/web-apps.html): Customer portals, dashboards, and internal tools that replace spreadsheets and manual steps. Secure sign-in, the right permissions for every role, and data you can trust.
+- [SaaS platforms](https://williamssystems.dev/saas.html): Multi-tenant software products with sign-up, subscriptions and billing, admin tools, and analytics built in, so you can launch, charge, and grow.
+- [Mobile apps](https://williamssystems.dev/mobile-apps.html): iOS and Android apps that share the back end and design of your web product, published to the App Store and Google Play.
+- [Cloud & DevOps](https://williamssystems.dev/cloud.html): Hosting, deployments, monitoring, and backups set up properly in your own cloud accounts, so releases are routine and outages are rare.
+- [Personalized AI](https://williamssystems.dev/personalized-ai.html): Personalized AI assistants built around you and your business. They know your documents, your products, and the way you work, and they plug into the tools you already use.
 
 ## Solution pages
-- [Launch a new product](https://lwilliams027.github.io/williams-systems-llc/launch-a-new-product.html): Take a new software product from idea to launch with one team: design, build, launch, and support, with a written scope and price before any work starts.
-- [Modernize an existing app](https://lwilliams027.github.io/williams-systems-llc/modernize-an-app.html): Review, repair, and speed up software you already own: fix what is broken, remove the risk, and make it something a team can safely change again.
-- [Replace spreadsheets](https://lwilliams027.github.io/williams-systems-llc/replace-spreadsheets.html): Turn the spreadsheet your business runs on into real software: shaped around your process, safe from accidents, and usable by the whole team at once.
-- [Secure your software](https://lwilliams027.github.io/williams-systems-llc/secure-your-software.html): Security work on the software you run: authentication, permissions, secrets, dependencies, and hardening, reviewed and fixed by the team that builds it.
-- [Move to the cloud](https://lwilliams027.github.io/williams-systems-llc/move-to-the-cloud.html): Migrate from an old server or host into reliable cloud infrastructure, with a planned cutover, tested backups, and a bill that makes sense.
-- [Ongoing support](https://lwilliams027.github.io/williams-systems-llc/ongoing-support.html): Ongoing support from the team that built your software: monitoring, updates, fixes, and new features on a monthly plan or paid per job, with no handover to a stranger.
+- [Launch a new product](https://williamssystems.dev/launch-a-new-product.html): Take a new software product from idea to launch with one team: design, build, launch, and support, with a written scope and price before any work starts.
+- [Modernize an existing app](https://williamssystems.dev/modernize-an-app.html): Review, repair, and speed up software you already own: fix what is broken, remove the risk, and make it something a team can safely change again.
+- [Replace spreadsheets](https://williamssystems.dev/replace-spreadsheets.html): Turn the spreadsheet your business runs on into real software: shaped around your process, safe from accidents, and usable by the whole team at once.
+- [Secure your software](https://williamssystems.dev/secure-your-software.html): Security work on the software you run: authentication, permissions, secrets, dependencies, and hardening, reviewed and fixed by the team that builds it.
+- [Move to the cloud](https://williamssystems.dev/move-to-the-cloud.html): Migrate from an old server or host into reliable cloud infrastructure, with a planned cutover, tested backups, and a bill that makes sense.
+- [Ongoing support](https://williamssystems.dev/ongoing-support.html): Ongoing support from the team that built your software: monitoring, updates, fixes, and new features on a monthly plan or paid per job, with no handover to a stranger.
 
 ## Questions and answers
-- [FAQ](https://lwilliams027.github.io/williams-systems-llc/faq.html): 56 answers about cost, timelines, ownership, support, and every product
+- [FAQ](https://williamssystems.dev/faq.html): 56 answers about cost, timelines, ownership, support, and every product
 
 ## About
-- [About](https://lwilliams027.github.io/williams-systems-llc/about.html): founded by Landon Williams; based in Michigan; works with clients worldwide, remotely
-- [How we work](https://lwilliams027.github.io/williams-systems-llc/how-we-work.html): free call, design together, written scope with price (one-time or monthly), fast build, launch, support
-- [Contact](https://lwilliams027.github.io/williams-systems-llc/contact.html): call or text (810) 214-5388; replies within 24 hours
+- [About](https://williamssystems.dev/about.html): founded by Landon Williams; based in Michigan; works with clients worldwide, remotely
+- [How we work](https://williamssystems.dev/how-we-work.html): free call, design together, written scope with price (one-time or monthly), fast build, launch, support
+- [Contact](https://williamssystems.dev/contact.html): call or text (810) 214-5388; replies within 24 hours
 
 ## Contact
 - Email: lwilliams@williamssystems.dev

@@ -16,7 +16,7 @@ import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
-const SITE = 'https://lwilliams027.github.io/williams-systems-llc';
+const SITE = 'https://williamssystems.dev';
 const SHELL = 'cloud.html'; // an existing page to take the header and footer from
 
 /* ── What each page says ──────────────────────────────────────────────────

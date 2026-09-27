@@ -31,7 +31,7 @@ const p = (f) => join(ROOT, f);
 const PROJECT_NAME = 'williams-systems-temp';
 const REGION = process.env.SUPABASE_REGION || 'us-east-1';
 const ADMIN_EMAIL = process.env.ADMIN_EMAIL || 'adapter127@gmail.com';
-const SITE_URL = 'https://lwilliams027.github.io/williams-systems-llc/';
+const SITE_URL = 'https://williamssystems.dev/';
 const REPO = 'lwilliams027/williams-systems-llc';
 const STATE_FILE = p('.supabase-temp.json');
 
@@ -141,7 +141,7 @@ await api(`/v1/projects/${state.ref}/config/auth`, {
     mailer_autoconfirm: true,
     password_min_length: 8,
     site_url: SITE_URL,
-    uri_allow_list: `${SITE_URL}**,http://127.0.0.1:5173/**,http://localhost:5173/**`,
+    uri_allow_list: `${SITE_URL}**,https://www.williamssystems.dev/**,https://lwilliams027.github.io/williams-systems-llc/**,http://127.0.0.1:5173/**,http://localhost:5173/**`,
   },
 });
 

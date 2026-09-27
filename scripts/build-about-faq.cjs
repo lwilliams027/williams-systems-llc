@@ -14,7 +14,7 @@ const path = require('path');
 const { cap, pill } = require('./build-product-pages.cjs');
 
 const R = path.join(__dirname, '..') + '/';
-const BASE = 'https://lwilliams027.github.io/williams-systems-llc/';
+const BASE = 'https://williamssystems.dev/';
 const read = (f) => fs.readFileSync(R + f, 'utf8').replace(/\r\n/g, '\n');
 const write = (f, s) => fs.writeFileSync(R + f, s);
 const esc = (s) => s.replace(/&(?!amp;|lt;|gt;|quot;|#)/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');

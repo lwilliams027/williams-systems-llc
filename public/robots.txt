@@ -2,4 +2,4 @@ User-agent: *
 Allow: /
 Disallow: /admin.html
 
-Sitemap: https://lwilliams027.github.io/williams-systems-llc/sitemap.xml
+Sitemap: https://williamssystems.dev/sitemap.xml
