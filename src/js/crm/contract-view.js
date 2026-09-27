@@ -373,7 +373,8 @@ export async function contractPage(root, opts) {
 
   /* =====================================================================
      Files: upload anything to the project (stylesheets, CSVs, PDFs,
-     images, zips…), plus everything attached on its tickets
+     images, zips…), add notes, sort into folders; plus everything
+     attached on the project's tickets
      ===================================================================== */
   const PF_BUCKET = 'project-files';
   const PF_MAX = 50 * 1024 * 1024;
@@ -381,9 +382,32 @@ export async function contractPage(root, opts) {
   const EXT_TONE = { css: 'code', scss: 'code', js: 'code', ts: 'code', html: 'code', json: 'code', csv: 'data', xlsx: 'data', xls: 'data', tsv: 'data',
     pdf: 'doc', doc: 'doc', docx: 'doc', txt: 'doc', md: 'doc', png: 'img', jpg: 'img', jpeg: 'img', gif: 'img', webp: 'img', svg: 'img',
     zip: 'zip', rar: 'zip', '7z': 'zip', fig: 'img', psd: 'img', ai: 'img', mp4: 'vid', mov: 'vid' };
+  const ICO = {
+    download: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v12M7 11l5 5 5-5"/><path d="M4 20h16"/></svg>',
+    note: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg>',
+    trash: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4h8v2M6 6l1 14h10l1-14"/></svg>',
+    folder: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>',
+    list: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/></svg>',
+    grid: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>',
+    upload: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 16V4M7 9l5-5 5 5"/><path d="M20 16v3a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-3"/></svg>',
+  };
+  const PF_SORTS = [
+    ['new', 'Newest', (a, b) => new Date(b.created_at) - new Date(a.created_at)],
+    ['name', 'Name', (a, b) => a.name.localeCompare(b.name)],
+    ['size', 'Largest', (a, b) => Number(b.size) - Number(a.size)],
+    ['type', 'Type', (a, b) => extOf(a.name).localeCompare(extOf(b.name)) || a.name.localeCompare(b.name)],
+  ];
   let filesState = null;
+  const fv = (() => {
+    let saved = {};
+    try { saved = JSON.parse(localStorage.getItem('ws-files-view') || '{}'); } catch { /* private mode */ }
+    return { folder: 'all', q: '', sort: saved.sort || 'new', view: saved.view || 'list', extra: [], editing: null };
+  })();
+  const rememberView = () => { try { localStorage.setItem('ws-files-view', JSON.stringify({ sort: fv.sort, view: fv.view })); } catch { /* ignore */ } };
+  const signed = new Map();   // path -> signed url (images), so re-renders don't flash
 
   async function uploadProjectFiles(list, status) {
+    const folder = !['all', '__none'].includes(fv.folder) ? fv.folder : null;
     let okCount = 0;
     for (const f of list) {
       if (f.size > PF_MAX) { toast(`${f.name} is over 50 MB`, 'error'); continue; }
@@ -392,92 +416,235 @@ export async function contractPage(root, opts) {
       const path = `${id}/${crypto.randomUUID().slice(0, 8)}-${safe}`;
       const up = await supabase.storage.from(PF_BUCKET).upload(path, f, { contentType: f.type || 'application/octet-stream', upsert: false });
       if (up.error) { toast(`Couldn’t upload ${f.name}: ${up.error.message}`, 'error'); continue; }
-      const ins = await supabase.from('project_files').insert({ contract_id: id, path, name: f.name, size: f.size, type: f.type || null });
+      const ins = await supabase.from('project_files').insert({ contract_id: id, path, name: f.name, size: f.size, type: f.type || null, folder });
       if (ins.error) { await supabase.storage.from(PF_BUCKET).remove([path]); toast(`Couldn’t save ${f.name}: ${ins.error.message}`, 'error'); continue; }
       okCount++;
     }
     status('');
-    if (okCount) toast(`${okCount} file${okCount === 1 ? '' : 's'} uploaded`);
+    if (okCount) toast(`${okCount} file${okCount === 1 ? '' : 's'} uploaded${folder ? ` to ${folder}` : ''}`);
     await loadFiles();
-    renderFiles();
+    renderFileList();
   }
 
   async function loadFiles() {
     const ids = s.tks.map((t) => t.id);
     const [pf, tm] = await Promise.all([
-      supabase.from('project_files').select('*').eq('contract_id', id).order('created_at', { ascending: false }),
-      ids.length ? supabase.from('ticket_messages').select('ticket_id, files, created_at').in('ticket_id', ids).neq('files', '[]') : Promise.resolve({ data: [] }),
+      supabase.from('project_files').select('*').eq('contract_id', id),
+      ids.length ? supabase.from('ticket_messages').select('ticket_id, files, created_at, sender_name').in('ticket_id', ids).neq('files', '[]') : Promise.resolve({ data: [] }),
     ]);
     if (pf.error) toast(`Couldn’t load files: ${pf.error.message}`, 'error');
-    const groups = [];
+    const fromTickets = [];
     for (const t of s.tks) {
-      const files = [...(t.files || []), ...(tm.data || []).filter((m) => m.ticket_id === t.id && m.files?.length).flatMap((m) => m.files)];
       const seen = new Set();
-      const unique = files.filter((f) => (seen.has(f.path) ? false : seen.add(f.path)));
-      if (unique.length) groups.push({ t, files: unique });
+      for (const f of [...(t.files || []), ...(tm.data || []).filter((m) => m.ticket_id === t.id).flatMap((m) => m.files || [])]) {
+        if (seen.has(f.path)) continue;
+        seen.add(f.path);
+        fromTickets.push({ ...f, ticket: t });
+      }
     }
-    filesState = { shared: pf.data || [], groups };
+    filesState = { shared: pf.data || [], fromTickets };
   }
 
-  function fileRow(f) {
+  async function saveFile(f, patch, msg) {
+    const { data, error } = await supabase.from('project_files').update(patch).eq('id', f.id).select().single();
+    if (error) { toast(`Couldn’t save: ${error.message}`, 'error'); return; }
+    Object.assign(f, data);
+    if (msg) toast(msg);
+    renderFileList();
+  }
+
+  const folders = () => {
+    const names = new Set([...filesState.shared.map((f) => f.folder).filter(Boolean), ...fv.extra]);
+    return [...names].sort((a, b) => a.localeCompare(b));
+  };
+
+  function newFolderModal(then) {
+    const input = el('input', { maxlength: 60, placeholder: 'e.g. Brand assets' });
+    const f = el('form', { class: 'crm-form' }, field('Folder name', input),
+      el('div', { class: 'crm-form-actions' }, el('button', { type: 'submit', class: 'btn btn-primary', text: 'Create folder' })));
+    const m = modal('New folder', f);
+    f.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const name = input.value.trim().slice(0, 60);
+      if (!name) return;
+      if (!fv.extra.includes(name)) fv.extra.push(name);
+      m.close();
+      then(name);
+    });
+  }
+
+  function thumbFor(f, bucket = PF_BUCKET) {
     const ext = extOf(f.name);
-    const mine = f.uploaded_by === opts.me.id;
-    const thumb = el('span', { class: `pf-ico t-${EXT_TONE[ext] || 'other'}`, text: ext });
-    const dl = el('button', { type: 'button', class: 'btn btn-ghost btn-sm', text: 'Download', onclick: async () => {
-      const { data, error } = await supabase.storage.from(PF_BUCKET).createSignedUrl(f.path, 60 * 10, { download: f.name });
-      if (error) return toast(`Couldn’t open it: ${error.message}`, 'error');
-      location.assign(data.signedUrl);
-    } });
+    const box = el('span', { class: `pf-ico t-${EXT_TONE[ext] || 'other'}`, text: ext });
     if ((f.type || '').startsWith('image/')) {
-      supabase.storage.from(PF_BUCKET).createSignedUrl(f.path, 60 * 60).then(({ data }) => {
-        if (data?.signedUrl) thumb.replaceChildren(el('img', { src: data.signedUrl, alt: '', loading: 'lazy' }));
-      });
+      const put = (url) => box.replaceChildren(el('img', { src: url, alt: '', loading: 'lazy' }));
+      if (signed.has(f.path)) put(signed.get(f.path));
+      else supabase.storage.from(bucket).createSignedUrl(f.path, 60 * 60).then(({ data }) => { if (data?.signedUrl) { signed.set(f.path, data.signedUrl); put(data.signedUrl); } });
     }
-    return el('li', { class: 'pf-row' },
-      thumb,
-      el('span', { class: 'pf-main' },
-        el('strong', { text: f.name, title: f.name }),
-        el('small', { text: `${formatBytes(f.size)} · ${mine ? 'You' : f.uploader_role === 'owner' && !owner ? 'Landon' : f.uploader_name || 'Someone'} · ${timeAgo(f.created_at)}` })),
-      el('span', { class: 'pf-actions' }, dl,
-        owner || mine ? armedButton('Remove', 'Sure?', async () => {
-          await supabase.storage.from(PF_BUCKET).remove([f.path]);
-          const { error } = await supabase.from('project_files').delete().eq('id', f.id);
-          if (error) return toast(`Couldn’t remove: ${error.message}`, 'error');
-          toast('File removed');
-          await loadFiles(); renderFiles();
-        }, 'link-btn danger') : null));
+    return box;
+  }
+  const download = async (f, bucket = PF_BUCKET) => {
+    const { data, error } = await supabase.storage.from(bucket).createSignedUrl(f.path, 60 * 10, { download: f.name });
+    if (error) return toast(`Couldn’t open it: ${error.message}`, 'error');
+    location.assign(data.signedUrl);
+  };
+  const iconBtn = (svg, label, onclick, extra = '') => el('button', { type: 'button', class: `pf-ib ${extra}`, 'aria-label': label, title: label, html: svg, onclick });
+
+  /** Trash icon that needs a second click (shows "Remove?" in between). */
+  function removeBtn(f) {
+    let timer;
+    const btn = el('button', { type: 'button', class: 'pf-ib pf-del', 'aria-label': `Remove ${f.name}`, title: 'Remove', html: ICO.trash });
+    const reset = () => { delete btn.dataset.armed; btn.innerHTML = ICO.trash; };
+    btn.addEventListener('click', async () => {
+      if (!btn.dataset.armed) { btn.dataset.armed = 'true'; btn.textContent = 'Remove?'; timer = setTimeout(reset, 4000); return; }
+      clearTimeout(timer); btn.disabled = true;
+      await supabase.storage.from(PF_BUCKET).remove([f.path]);
+      const { error } = await supabase.from('project_files').delete().eq('id', f.id);
+      btn.disabled = false;
+      if (error) { reset(); return toast(`Couldn’t remove: ${error.message}`, 'error'); }
+      toast('File removed');
+      await loadFiles(); renderFileList();
+    });
+    return btn;
   }
 
+  function fileItem(f) {
+    const mine = f.uploaded_by === opts.me.id;
+    const who = mine ? 'You' : f.uploader_role === 'owner' && !owner ? 'Landon' : f.uploader_name || 'Someone';
+    const move = el('select', { class: 'pf-move', 'aria-label': `Folder for ${f.name}`, title: 'Move to folder' },
+      el('option', { value: '', text: 'No folder', selected: f.folder ? null : true }),
+      folders().map((n) => el('option', { value: n, text: n, selected: f.folder === n ? true : null })),
+      el('option', { value: '__new', text: '+ New folder…' }));
+    move.addEventListener('change', () => {
+      if (move.value === '__new') { move.value = f.folder || ''; return newFolderModal((n) => saveFile(f, { folder: n }, `Moved to ${n}`)); }
+      saveFile(f, { folder: move.value || null }, move.value ? `Moved to ${move.value}` : 'Removed from folder');
+    });
+    const actions = el('span', { class: 'pf-actions' },
+      iconBtn(ICO.download, `Download ${f.name}`, () => download(f)),
+      iconBtn(ICO.note, f.note ? 'Edit note' : 'Add a note', () => { fv.editing = f.id; renderFileList(); }),
+      el('label', { class: 'pf-move-wrap', title: 'Move to folder' }, el('span', { class: 'pf-move-ico', html: ICO.folder }), move),
+      owner || mine ? removeBtn(f) : null);
+
+    let editor = null;
+    if (fv.editing === f.id) {
+      const area = el('textarea', { rows: 2, maxlength: 500, placeholder: 'e.g. Use this version · Final logo, dark background', 'aria-label': `Note for ${f.name}` });
+      area.value = f.note || '';
+      const done = () => { fv.editing = null; renderFileList(); };
+      const saveNote = () => { fv.editing = null; saveFile(f, { note: area.value.trim() || null }, 'Note saved'); };
+      area.addEventListener('keydown', (e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); saveNote(); } if (e.key === 'Escape') done(); });
+      editor = el('div', { class: 'pf-editor' }, area, el('div', { class: 'cv-row-end' },
+        f.note ? el('button', { type: 'button', class: 'link-btn danger', text: 'Clear', onclick: () => { fv.editing = null; saveFile(f, { note: null }, 'Note removed'); } }) : null,
+        el('button', { type: 'button', class: 'link-btn', text: 'Cancel', onclick: done }),
+        el('button', { type: 'button', class: 'btn btn-primary btn-sm', text: 'Save note', onclick: saveNote })));
+      setTimeout(() => area.focus(), 0);
+    }
+
+    const item = el('li', { class: `pf-item${fv.editing === f.id ? ' editing' : ''}`, draggable: 'true', 'data-id': f.id },
+      thumbFor(f),
+      el('div', { class: 'pf-main' },
+        el('strong', { text: f.name, title: f.name }),
+        f.note && fv.editing !== f.id ? el('p', { class: 'pf-note', text: f.note }) : null,
+        el('small', {}, `${formatBytes(f.size)} · ${who} · ${timeAgo(f.created_at)}`,
+          f.folder && fv.folder === 'all' ? el('span', { class: 'pf-tag', text: f.folder }) : null)),
+      actions, editor);
+    item.addEventListener('dragstart', (e) => { e.dataTransfer.setData('text/x-ws-file', f.id); e.dataTransfer.effectAllowed = 'move'; item.classList.add('dragging'); });
+    item.addEventListener('dragend', () => item.classList.remove('dragging'));
+    return item;
+  }
+
+  function ticketItem(f) {
+    return el('li', { class: 'pf-item readonly' },
+      thumbFor(f, 'ticket-files'),
+      el('div', { class: 'pf-main' },
+        el('strong', { text: f.name, title: f.name }),
+        el('small', {}, `${formatBytes(f.size)} · `, el('a', { href: href('tickets', f.ticket.number), text: `#${f.ticket.number} ${f.ticket.title}` }))),
+      el('span', { class: 'pf-actions' }, iconBtn(ICO.download, `Download ${f.name}`, () => download(f, 'ticket-files'))));
+  }
+
+  let filesEls = null;
   function renderFiles() {
     if (section !== 'files' || !filesState) return;
-    const { shared, groups } = filesState;
     const input = el('input', { type: 'file', multiple: true, hidden: true });
-    const status = el('p', { class: 'pf-status', 'aria-live': 'polite' });
-    const setStatus = (t) => { status.textContent = t; drop.classList.toggle('busy', Boolean(t)); };
-    const drop = el('div', { class: 'pf-drop', role: 'button', tabindex: 0, 'aria-label': 'Upload files' },
-      el('span', { class: 'pf-drop-ico', html: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 16V4M7 9l5-5 5 5"/><path d="M20 16v3a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-3"/></svg>' }),
-      el('strong', { text: 'Drop files here, or click to browse' }),
-      el('small', { text: 'Any type: stylesheets, CSVs, PDFs, images, zips… up to 50 MB each' }),
-      status, input);
-    drop.addEventListener('click', (e) => { if (e.target !== input) input.click(); });
-    drop.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); input.click(); } });
+    const status = el('span', { class: 'pf-status', 'aria-live': 'polite' });
+    const setStatus = (t) => { status.textContent = t; card.classList.toggle('busy', Boolean(t)); };
     input.addEventListener('change', () => { const l = [...input.files]; input.value = ''; if (l.length) uploadProjectFiles(l, setStatus); });
-    drop.addEventListener('dragover', (e) => { e.preventDefault(); drop.classList.add('over'); });
-    drop.addEventListener('dragleave', () => drop.classList.remove('over'));
-    drop.addEventListener('drop', (e) => { e.preventDefault(); drop.classList.remove('over'); const l = [...e.dataTransfer.files]; if (l.length) uploadProjectFiles(l, setStatus); });
+    const search = el('input', { type: 'search', placeholder: 'Search files and notes…', 'aria-label': 'Search files', value: fv.q });
+    search.addEventListener('input', () => { fv.q = search.value.trim().toLowerCase(); renderFileList(); });
+    const sort = el('select', { class: 'ct-sort pf-sort', 'aria-label': 'Sort files' }, PF_SORTS.map(([k, label]) => el('option', { value: k, text: label, selected: fv.sort === k ? true : null })));
+    sort.addEventListener('change', () => { fv.sort = sort.value; rememberView(); renderFileList(); });
+    const viewBtns = el('div', { class: 'pf-views', role: 'group', 'aria-label': 'View' },
+      ['list', 'grid'].map((v) => el('button', { type: 'button', class: 'pf-view', 'aria-pressed': String(fv.view === v), 'aria-label': `${v} view`, title: v === 'list' ? 'List' : 'Grid', html: ICO[v],
+        onclick: () => { fv.view = v; rememberView(); viewBtns.querySelectorAll('.pf-view').forEach((b) => b.setAttribute('aria-pressed', String(b.title.toLowerCase() === v))); renderFileList(); } })));
 
-    const ticketTotal = groups.reduce((n, g) => n + g.files.length, 0);
-    fill(body,
-      el('section', { class: 'cv-card pf-card' },
-        el('div', { class: 'cv-card-head' }, el('h2', { text: 'Shared files' }), shared.length ? el('span', { class: 'cv-count mono', text: `${shared.length} file${shared.length === 1 ? '' : 's'} · ${formatBytes(shared.reduce((n, f) => n + Number(f.size || 0), 0))}` }) : null),
-        drop,
-        shared.length ? el('ul', { class: 'pf-list' }, shared.map(fileRow))
-          : el('p', { class: 'cv-empty', text: owner ? 'Nothing shared yet. Files you or the client add here stay with this project.' : 'Nothing shared yet. Add brand files, content, spreadsheets, anything Landon needs.' })),
-      groups.length ? el('section', { class: 'cv-card' },
-        el('div', { class: 'cv-card-head' }, el('h2', { text: 'From tickets' }), el('span', { class: 'cv-count mono', text: `${ticketTotal} file${ticketTotal === 1 ? '' : 's'}` })),
-        groups.map((g) => el('div', { class: 'cv-file-group' },
-          el('a', { class: 'cv-file-group-h', href: href('tickets', g.t.number) }, el('span', { class: 'mono', text: `#${g.t.number}` }), el('span', { text: g.t.title })),
-          fileList(g.files)))) : null);
+    filesEls = { chips: el('div', { class: 'pf-chips', role: 'tablist', 'aria-label': 'Folders' }), list: el('div'), count: el('span', { class: 'cv-count mono' }), tickets: el('div') };
+    const card = el('section', { class: 'cv-card pf-card' },
+      el('div', { class: 'cv-card-head' }, el('h2', { text: 'Shared files' }), filesEls.count,
+        el('button', { type: 'button', class: 'btn btn-primary btn-sm pf-upload', html: `${ICO.upload}<span>Upload</span>`, onclick: () => input.click() }), input),
+      el('div', { class: 'pf-toolbar' },
+        el('label', { class: 'ct-search pf-search' }, el('span', { class: 'ct-search-ico', 'aria-hidden': 'true', html: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>' }), search),
+        sort, viewBtns),
+      filesEls.chips, status, filesEls.list,
+      el('div', { class: 'pf-dropveil', 'aria-hidden': 'true' }, el('span', { html: ICO.upload }), el('strong', { text: 'Drop to upload' })));
+    // drop files anywhere on the card
+    let depth = 0;
+    card.addEventListener('dragenter', (e) => { if (e.dataTransfer.types.includes('Files')) { depth++; card.classList.add('over'); } });
+    card.addEventListener('dragleave', (e) => { if (e.dataTransfer.types.includes('Files') && --depth <= 0) { depth = 0; card.classList.remove('over'); } });
+    card.addEventListener('dragover', (e) => { if (e.dataTransfer.types.includes('Files')) e.preventDefault(); });
+    card.addEventListener('drop', (e) => {
+      if (!e.dataTransfer.types.includes('Files')) return;
+      e.preventDefault(); depth = 0; card.classList.remove('over');
+      const l = [...e.dataTransfer.files]; if (l.length) uploadProjectFiles(l, setStatus);
+    });
+    fill(body, card, filesEls.tickets);
+    renderFileList();
+  }
+
+  function renderFileList() {
+    if (!filesEls || section !== 'files') return;
+    const { shared, fromTickets } = filesState;
+    const names = folders();
+    const inFolder = (f) => fv.folder === 'all' || (fv.folder === '__none' ? !f.folder : f.folder === fv.folder);
+    if (!['all', '__none'].includes(fv.folder) && !names.includes(fv.folder)) fv.folder = 'all';
+
+    // folder chips (drop a file on one to move it there)
+    const chip = (key, label, n, extraCls = '') => {
+      const c = el('button', { type: 'button', role: 'tab', class: `pf-chip ${extraCls}`, 'aria-selected': String(fv.folder === key), onclick: () => { fv.folder = key; renderFileList(); } },
+        key !== 'all' && key !== '__none' ? el('span', { class: 'pf-chip-ico', html: ICO.folder }) : null, label, el('b', { text: n }));
+      if (key !== 'all') {
+        c.addEventListener('dragover', (e) => { if (e.dataTransfer.types.includes('text/x-ws-file')) { e.preventDefault(); c.classList.add('drop'); } });
+        c.addEventListener('dragleave', () => c.classList.remove('drop'));
+        c.addEventListener('drop', (e) => {
+          e.preventDefault(); c.classList.remove('drop');
+          const f = shared.find((x) => x.id === e.dataTransfer.getData('text/x-ws-file'));
+          const target = key === '__none' ? null : key;
+          if (f && f.folder !== target) saveFile(f, { folder: target }, target ? `Moved to ${target}` : 'Removed from folder');
+        });
+      }
+      return c;
+    };
+    fill(filesEls.chips,
+      chip('all', 'All', shared.length),
+      names.length ? chip('__none', 'Unsorted', shared.filter((f) => !f.folder).length) : null,
+      names.map((n) => chip(n, n, shared.filter((f) => f.folder === n).length)),
+      el('button', { type: 'button', class: 'pf-chip add', text: '+ New folder', onclick: () => newFolderModal((n) => { fv.folder = n; renderFileList(); }) }));
+
+    const sorter = (PF_SORTS.find((x) => x[0] === fv.sort) || PF_SORTS[0])[2];
+    const rows = shared.filter(inFolder)
+      .filter((f) => !fv.q || [f.name, f.note, f.folder, f.uploader_name].some((x) => x && x.toLowerCase().includes(fv.q)))
+      .sort(sorter);
+    const total = shared.reduce((n, f) => n + Number(f.size || 0), 0);
+    filesEls.count.textContent = shared.length ? `${shared.length} file${shared.length === 1 ? '' : 's'} · ${formatBytes(total)}` : '';
+
+    fill(filesEls.list, rows.length
+      ? el('ul', { class: `pf-list ${fv.view}` }, rows.map(fileItem))
+      : el('div', { class: 'pf-empty' },
+        el('span', { class: 'pf-empty-ico', html: ICO.upload }),
+        el('strong', { text: fv.q ? 'Nothing matches' : shared.length ? 'This folder is empty' : 'No files yet' }),
+        el('p', { text: fv.q ? 'Try another name or word from a note.' : shared.length ? 'Drag files onto the folder, or upload while it’s open.' : 'Upload stylesheets, spreadsheets, PDFs, images, anything for this project, or drop them here. Up to 50 MB each.' })));
+
+    fill(filesEls.tickets, fromTickets.length ? el('section', { class: 'cv-card pf-card' },
+      el('div', { class: 'cv-card-head' }, el('h2', { text: 'From tickets' }), el('span', { class: 'cv-count mono', text: `${fromTickets.length} file${fromTickets.length === 1 ? '' : 's'}` })),
+      el('ul', { class: `pf-list ${fv.view}` }, fromTickets.map(ticketItem))) : null);
   }
 
   async function filesSection() {
@@ -514,7 +681,7 @@ export async function contractPage(root, opts) {
       }
     })
     .on('postgres_changes', { event: '*', schema: 'public', table: 'project_files', filter: `contract_id=eq.${id}` }, async () => {
-      if (section === 'files') { await loadFiles(); renderFiles(); }
+      if (section === 'files' && !fv.editing) { await loadFiles(); renderFileList(); }
     })
     .on('postgres_changes', { event: '*', schema: 'public', table: 'events', filter: `contract_id=eq.${id}` }, async () => {
       const { data } = await supabase.from('events').select('*').eq('contract_id', id).order('starts_at');

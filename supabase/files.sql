@@ -129,3 +129,15 @@ begin
     alter publication supabase_realtime add table public.project_files;
   end if;
 end $$;
+
+-- ---------- Organizing: folders + notes, editable by anyone on the project ----------
+alter table public.project_files add column if not exists folder text check (char_length(folder) <= 60);
+create index if not exists project_files_folder_idx on public.project_files (contract_id, folder);
+
+drop policy if exists "Clients organize their project files" on public.project_files;
+create policy "Clients organize their project files" on public.project_files
+  for update to authenticated using (public.my_contract(contract_id)) with check (public.my_contract(contract_id));
+
+revoke update on public.project_files from authenticated;
+grant update (note, folder) on public.project_files to authenticated;
+grant insert (contract_id, path, name, size, type, note, folder) on public.project_files to authenticated;
