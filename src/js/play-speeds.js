@@ -3,7 +3,20 @@
 
    1 = the standard pace. 1.5 = 50% slower. 0.75 = 25% faster.
    Each number is the step that ARRIVES at that point.
+   { seconds: 6, ease: 'none' } instead of a number: that step takes exactly
+   6 seconds at a steady pace (for steps with a lot in them, like the typing).
    ===================================================================== */
+
+/** An ease made of straight segments: [time, progress] pairs from [0, 0] to [1, 1]. */
+function shape(...pts) {
+  return (t) => {
+    for (let i = 1; i < pts.length; i++) {
+      const [t0, p0] = pts[i - 1], [t1, p1] = pts[i];
+      if (t <= t1) return p0 + ((t - t0) / (t1 - t0)) * (p1 - p0);
+    }
+    return 1;
+  };
+}
 
 /** The home page, in the order you scroll through it. */
 export const HOME = {
@@ -12,7 +25,10 @@ export const HOME = {
   services1:   1,   // → Front end + Back end & APIs
   services2:   1,   // → SaaS platforms + Mobile apps
   services3:   1,   // → Cloud & DevOps + Personalized AI
-  oneTeam:     1.25, // the editor (project.config.js) types → "One team. All custom."
+  // the editor (project.config.js) zooms in and types → "One team. All custom."
+  // 7 s in all, shaped so the zoom takes ~1.5 s, the typing ~4 s, and the statement ~1.5 s.
+  // (The typing is the middle 38%–67% of this step.)
+  oneTeam:     { seconds: 7, ease: shape([0, 0], [0.21, 0.38], [0.79, 0.67], [1, 1]) },
   everyPiece:  1,   // the window stack turns → "Every piece. One build."
   website:     1,   // into the website, scroll down it, onto the desk
   lightbulb:   1,   // the bulb drops in → "Make it yours."

@@ -38,7 +38,8 @@ export function playMode(st, points) {
   const stops = () => {
     const list = [st.start, ...points(), st.end]
       .map((p) => (typeof p === 'number' ? { y: p, speed: 1 } : p))
-      .map((p) => ({ y: Math.round(p.y), speed: p.speed || 1 }))
+      // a speed can also be { seconds, ease }: a fixed length and a steady pace, for a step with lots in it (like the typing)
+      .map((p) => ({ y: Math.round(p.y), ...(typeof p.speed === 'object' ? { speed: 1, ...p.speed } : { speed: p.speed || 1 }) }))
       .sort((a, b) => a.y - b.y);
     return list.filter((p, i) => i === 0 || p.y - list[i - 1].y > 40);        // drop near-duplicates
   };
@@ -59,10 +60,11 @@ export function playMode(st, points) {
     // two rounds of "25% slower" than the quickest version (0.45–1.3 s): about 0.7–2 s a step,
     // then stretched per animation (play-speeds.js); going back uses the same speed
     const back = dir < 0 ? list.find((p) => p.y > target + 4) : null;
-    const speed = (dir > 0 ? stop.speed : back?.speed) || 1;
-    const duration = gsap.utils.clamp(0.45, 1.3, dist / (window.innerHeight * 2.6)) * 1.25 * 1.25 * speed;
+    const arriving = (dir > 0 ? stop : back) || {};
+    const speed = arriving.speed || 1;
+    const duration = arriving.seconds || gsap.utils.clamp(0.45, 1.3, dist / (window.innerHeight * 2.6)) * 1.25 * 1.25 * speed;
     gsap.to(window, {
-      scrollTo: { y: target, autoKill: false }, duration, ease: 'power1.inOut', overwrite: true,
+      scrollTo: { y: target, autoKill: false }, duration, ease: arriving.ease || 'power1.inOut', overwrite: true,
       onComplete: () => { goal = null; },
     });
   };
