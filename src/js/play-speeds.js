@@ -26,9 +26,9 @@ export const HOME = {
   services2:   1,   // → SaaS platforms + Mobile apps
   services3:   1,   // → Cloud & DevOps + Personalized AI
   // the editor (project.config.js) zooms in and types → "One team. All custom."
-  // 7 s in all, shaped so the zoom takes ~1.5 s, the typing ~4 s, and the statement ~1.5 s.
+  // 1.5x faster than the 7 s version: ~4.7 s in all (zoom ~1 s, typing ~2.5 s, statement ~1 s).
   // (The typing is the middle 38%–67% of this step.)
-  oneTeam:     { seconds: 7, ease: shape([0, 0], [0.21, 0.38], [0.79, 0.67], [1, 1]) },
+  oneTeam:     { seconds: 7 / 1.5, ease: shape([0, 0], [0.21, 0.38], [0.79, 0.67], [1, 1]) },
   everyPiece:  1,   // the window stack turns → "Every piece. One build."
   website:     1,   // into the website, scroll down it, onto the desk
   lightbulb:   1,   // the bulb drops in → "Make it yours."
