@@ -32,6 +32,7 @@ initHeader();
 initMobileNav();
 initAnchors();
 initInquiryForm({ reduced: REDUCED });
+startPinned();
 
 if (REDUCED) {
   gsap.set(HIDDEN, { visibility: 'visible' });
@@ -40,6 +41,22 @@ if (REDUCED) {
   initJourney({ reduced: true });
 } else {
   waitForFonts().then(initMotion);
+}
+
+/**
+ * Phones: a story pinned right at the top of the page only locks in on the
+ * first swipe (and the address bar collapses at the same moment), which
+ * jolts. Open those pages a few pixels in, so the story is already pinned.
+ */
+function startPinned() {
+  if (!window.matchMedia('(pointer: coarse)').matches || location.hash) return;
+  const nudge = () => {
+    if (window.scrollY > 2) return;                       // they've already moved (or came back mid-page)
+    const top = ScrollTrigger.getAll().find((t) => t.pin && t.start <= 4);
+    if (top) window.scrollTo(0, Math.round(top.start) + 12);
+  };
+  const later = () => setTimeout(nudge, 350);             // after the journeys have set up their pins
+  if (document.readyState === 'complete') later(); else window.addEventListener('load', later, { once: true });
 }
 
 function initMotion() {
