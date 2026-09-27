@@ -11,7 +11,8 @@ import { el, REDUCED, EVENT_KINDS, ymd, fmtTime, fmtDate, toast, modal, field, a
 
 const WEEK = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
-export function calendarView(root, { getContracts, onOpenContract, onOpenRequests }) {
+export function calendarView(root, { getContracts, onOpenContract, onOpenRequests, contractId = null, owner = true }) {
+  const scoped = Boolean(contractId);   // a single project's calendar (inside the project page)
   const today = ymd(new Date());
   const st = { month: startOfMonth(new Date()), selected: today, items: [], showLog: false };
 
@@ -19,22 +20,22 @@ export function calendarView(root, { getContracts, onOpenContract, onOpenRequest
   const summary = el('p');
   const grid = el('div', { class: 'cal-grid', role: 'grid' });
   const panel = el('aside', { class: 'cal-panel', 'aria-live': 'polite' });
-  root.replaceChildren(el('div', { class: 'rq cal' },
-    el('header', { class: 'ct-head' }, el('div', {}, el('h2', { text: 'Calendar' }), summary)),
+  root.replaceChildren(el('div', { class: `rq cal${scoped ? ' cal-scoped' : ''}` },
+    scoped ? el('p', { class: 'cal-summary' }, summary) : el('header', { class: 'ct-head' }, el('div', {}, el('h2', { text: 'Calendar' }), summary)),
     el('div', { class: 'cal-bar' },
       el('div', { class: 'cal-nav' },
         el('button', { type: 'button', class: 'cal-btn', 'aria-label': 'Previous month', html: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>', onclick: () => go(-1) }),
         title,
         el('button', { type: 'button', class: 'cal-btn', 'aria-label': 'Next month', html: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>', onclick: () => go(1) }),
         el('button', { type: 'button', class: 'cal-today', text: 'Today', onclick: () => { st.month = startOfMonth(new Date()); st.selected = today; st.showLog = false; load(); } })),
-      el('div', { class: 'cal-legend' }, [['event', 'Scheduled'], ['due', 'Due / start'], ['request', 'Requests'], ['log', 'Logged']].map(([k, t]) => el('span', { class: `lg-${k}` }, el('i'), t))),
-      el('button', { type: 'button', class: 'btn btn-primary btn-sm tq-new', html: `${icon.plus}<span>New event</span>`, onclick: () => add(st.selected) })),
+      el('div', { class: 'cal-legend' }, (scoped ? [['event', 'Scheduled'], ['due', 'Start / due'], ['log', 'Updates']] : [['event', 'Scheduled'], ['due', 'Due / start'], ['request', 'Requests'], ['log', 'Logged']]).map(([k, t]) => el('span', { class: `lg-${k}` }, el('i'), t))),
+      owner ? el('button', { type: 'button', class: 'btn btn-primary btn-sm tq-new', html: `${icon.plus}<span>New event</span>`, onclick: () => add(st.selected) }) : null),
     el('div', { class: 'cal-body' },
       el('div', { class: 'cal-month' }, el('div', { class: 'cal-week' }, WEEK.map((d) => el('span', { text: d }))), grid),
       panel)));
 
   function go(n) { st.month = new Date(st.month.getFullYear(), st.month.getMonth() + n, 1); load(); }
-  const add = (date, extra = {}) => eventModal({ date, ...extra }, { contracts: getContracts(), onSaved: load });
+  const add = (date, extra = {}) => { if (owner) eventModal({ date, ...(contractId ? { contract_id: contractId } : {}), ...extra }, { contracts: getContracts(), onSaved: load }); };
 
   async function load() {
     const first = new Date(st.month); first.setDate(1 - first.getDay());
@@ -44,12 +45,14 @@ export function calendarView(root, { getContracts, onOpenContract, onOpenRequest
     const weekEnd = new Date(weekStart); weekEnd.setDate(weekEnd.getDate() + 7);
     title.textContent = st.month.toLocaleDateString(undefined, { month: 'long', year: 'numeric' });
 
+    const only = (q) => (contractId ? q.eq('contract_id', contractId) : q);
+    const none = Promise.resolve({ data: [] });
     const [ev, act, inq, req, week] = await Promise.all([
-      supabase.from('events').select('*').gte('starts_at', from).lt('starts_at', to).order('starts_at'),
-      supabase.from('activity').select('*').gte('created_at', from).lt('created_at', to).order('created_at'),
-      supabase.from('inquiries').select('id, name, company, created_at').gte('created_at', from).lt('created_at', to),
-      supabase.from('access_requests').select('id, name, company, created_at').gte('created_at', from).lt('created_at', to),
-      supabase.from('events').select('title, starts_at, all_day').gte('starts_at', new Date().toISOString()).lt('starts_at', weekEnd.toISOString()).order('starts_at'),
+      only(supabase.from('events').select('*').gte('starts_at', from).lt('starts_at', to)).order('starts_at'),
+      only(supabase.from('activity').select('*').gte('created_at', from).lt('created_at', to)).order('created_at'),
+      scoped ? none : supabase.from('inquiries').select('id, name, company, created_at').gte('created_at', from).lt('created_at', to),
+      scoped ? none : supabase.from('access_requests').select('id, name, company, created_at').gte('created_at', from).lt('created_at', to),
+      only(supabase.from('events').select('title, starts_at, all_day').gte('starts_at', new Date().toISOString()).lt('starts_at', weekEnd.toISOString())).order('starts_at'),
     ]);
     const err = ev.error || act.error || inq.error || req.error;
     if (err) toast(`Couldn’t load the calendar: ${err.message}`, 'error');
@@ -64,16 +67,16 @@ export function calendarView(root, { getContracts, onOpenContract, onOpenRequest
       ? `${soon.length} coming up this week · next: ${soon[0].title}, ${whenLabel(soon[0])}`
       : 'Nothing scheduled in the next 7 days.';
 
-    const contracts = getContracts();
+    const contracts = getContracts().filter((c) => !contractId || c.id === contractId);
     const nameOf = (cid) => contracts.find((c) => c.id === cid)?.title;
     const items = [];
-    for (const e of ev.data || []) items.push({ date: ymd(e.starts_at), cls: `event k-${e.kind}`, title: e.title, time: e.all_day ? 'All day' : fmtTime(e.starts_at), sort: e.starts_at, sub: [EVENT_KINDS[e.kind], nameOf(e.contract_id)].filter(Boolean).join(' · '), event: e });
+    for (const e of ev.data || []) items.push({ date: ymd(e.starts_at), cls: `event k-${e.kind}`, title: e.title, time: e.all_day ? 'All day' : fmtTime(e.starts_at), sort: e.starts_at, sub: [EVENT_KINDS[e.kind], scoped ? null : nameOf(e.contract_id)].filter(Boolean).join(' · '), event: e });
     for (const c of contracts) {
       if (['lost'].includes(c.status)) continue;
       if (c.due_date) items.push({ date: c.due_date, cls: 'due', title: `Due: ${c.title}`, time: 'Due', sort: c.due_date + 'T00', sub: c.company || c.client_name || '', contract: c });
       if (c.start_date) items.push({ date: c.start_date, cls: 'due start', title: `Start: ${c.title}`, time: 'Start', sort: c.start_date + 'T00', sub: c.company || c.client_name || '', contract: c });
     }
-    for (const a of act.data || []) items.push({ date: ymd(a.created_at), cls: 'log', title: a.summary, time: fmtTime(a.created_at), sort: a.created_at, sub: nameOf(a.contract_id) || '', logged: true, contract: contracts.find((c) => c.id === a.contract_id) });
+    for (const a of act.data || []) items.push({ date: ymd(a.created_at), cls: 'log', title: a.summary, time: fmtTime(a.created_at), sort: a.created_at, sub: scoped ? '' : nameOf(a.contract_id) || '', logged: true, contract: contracts.find((c) => c.id === a.contract_id) });
     for (const q of inq.data || []) items.push({ date: ymd(q.created_at), cls: 'request', title: `Inquiry: ${q.name}`, time: fmtTime(q.created_at), sort: q.created_at, sub: q.company || '', logged: true, requests: 'inquiries' });
     for (const r of req.data || []) items.push({ date: ymd(r.created_at), cls: 'request', title: `Account request: ${r.name}`, time: fmtTime(r.created_at), sort: r.created_at, sub: r.company || '', logged: true, requests: 'accounts' });
     items.sort((a, b) => String(a.sort).localeCompare(String(b.sort)));
@@ -96,7 +99,7 @@ export function calendarView(root, { getContracts, onOpenContract, onOpenRequest
         class: `cal-day${d.getMonth() !== st.month.getMonth() ? ' out' : ''}${key === today ? ' today' : ''}${key === st.selected ? ' sel' : ''}${d.getDay() === 0 || d.getDay() === 6 ? ' wknd' : ''}`,
         'aria-label': `${d.toDateString()}, ${list.length} item${list.length === 1 ? '' : 's'}`,
         onclick: () => { st.selected = key; st.showLog = false; renderGrid(); renderPanel(); },
-        ondblclick: () => add(key),
+        ondblclick: owner ? () => add(key) : null,
       },
         el('span', { class: 'cal-num', text: d.getDate() }),
         el('span', { class: 'cal-chips' },
@@ -129,9 +132,9 @@ export function calendarView(root, { getContracts, onOpenContract, onOpenRequest
         el('div', {},
           el('span', { class: 'cal-panel-kicker mono', text: isToday ? 'Today' : fmtDate(st.selected, { weekday: 'long' }) }),
           el('h3', { text: fmtDate(st.selected, { month: 'long', day: 'numeric' }) })),
-        el('button', { type: 'button', class: 'cal-add', 'aria-label': 'Add an event on this day', html: icon.plus, onclick: () => add(st.selected) })),
+        owner ? el('button', { type: 'button', class: 'cal-add', 'aria-label': 'Add an event on this day', html: icon.plus, onclick: () => add(st.selected) }) : null),
       planned.length ? el('ul', { class: 'cal-items' }, planned.map(row))
-        : el('div', { class: 'cal-free' }, el('p', { text: 'Nothing scheduled.' }), el('button', { type: 'button', class: 'link-btn', text: 'Add an event', onclick: () => add(st.selected) })),
+        : el('div', { class: 'cal-free' }, el('p', { text: 'Nothing scheduled.' }), owner ? el('button', { type: 'button', class: 'link-btn', text: 'Add an event', onclick: () => add(st.selected) }) : null),
       logged.length ? el('div', { class: 'cal-logbox' },
         el('h4', { class: 'mono', text: `Logged · ${logged.length}` }),
         el('ul', { class: 'cal-logs' }, shownLog.map(logRow)),
@@ -139,9 +142,9 @@ export function calendarView(root, { getContracts, onOpenContract, onOpenRequest
   }
 
   function open(x) {
-    if (x.event) return eventModal(x.event, { contracts: getContracts(), onSaved: load });
-    if (x.contract) return onOpenContract(x.contract.id);
-    if (x.requests) return onOpenRequests(x.requests);
+    if (x.event) return owner ? eventModal(x.event, { contracts: getContracts(), onSaved: load }) : eventDetails(x.event, getContracts());
+    if (x.contract && !scoped) return onOpenContract?.(x.contract.id);
+    if (x.requests) return onOpenRequests?.(x.requests);
   }
 
   load();
@@ -296,4 +299,20 @@ function sendPrompt(e, contracts) {
     el('div', { class: 'crm-form-actions' },
       el('button', { type: 'button', class: 'btn btn-ghost', text: 'Download .ics', onclick: () => downloadIcs(e, contracts) }),
       el('a', { class: 'btn btn-primary', href: inviteMailto(e, contracts), text: 'Open email' }))));
+}
+
+/* =====================================================================
+   One event, read-only (clients): when, where to join, notes, add to calendar
+   ===================================================================== */
+export function eventDetails(e, contracts = []) {
+  const c = contracts.find((x) => x.id === e.contract_id);
+  modal(e.title, el('div', { class: 'crm-form ev-details' },
+    el('dl', { class: 'pv-facts' },
+      el('div', {}, el('dt', { text: 'When' }), el('dd', { text: whenText(e) })),
+      el('div', {}, el('dt', { text: 'Type' }), el('dd', { text: EVENT_KINDS[e.kind] || e.kind })),
+      c ? el('div', {}, el('dt', { text: 'Project' }), el('dd', { text: c.title })) : null),
+    e.notes ? el('p', { class: 'ev-notes', text: e.notes }) : null,
+    el('div', { class: 'crm-form-actions' },
+      el('button', { type: 'button', class: 'btn btn-ghost', text: 'Add to my calendar', onclick: () => downloadIcs(e, contracts) }),
+      e.link ? el('a', { class: 'btn btn-primary', href: e.link, target: '_blank', rel: 'noopener noreferrer', text: `Join ${meetingName(e.link) === 'meeting' ? 'the meeting' : meetingName(e.link)}` }) : null)));
 }

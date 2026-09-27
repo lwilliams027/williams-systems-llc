@@ -1419,3 +1419,11 @@ a.ov-stat:hover { background: rgba(255, 255, 255, 0.025); }
 @media (max-width: 800px) { .ov-row-b { grid-template-columns: 1fr; } }
 
 .cb ol.cb-list { padding: 16px; }
+
+/* a project's own calendar (Schedule tab) */
+.cal-scoped.rq { max-width: none; }
+.cal-summary { color: var(--text-2); font-size: 0.95rem; margin: -4px 0 -2px; }
+.cal-scoped .cal-body { grid-template-columns: minmax(0, 1fr) 320px; }
+.ev-details .pv-facts dd { max-width: 70%; }
+.ev-notes { white-space: pre-wrap; color: var(--text-2); line-height: 1.6; padding: 12px 14px; border-radius: 12px; background: var(--ink); }
+@media (max-width: 1280px) { .cal-scoped .cal-body { grid-template-columns: 1fr; } }

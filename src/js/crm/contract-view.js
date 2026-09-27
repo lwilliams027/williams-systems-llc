@@ -20,6 +20,7 @@ import {
 } from './util.js';
 import { ticketRows, ticketForm, ticketView, fileList, OPEN_STATES } from './tickets.js';
 import { chatBubble } from './chat-bubble.js';
+import { calendarView } from './calendar.js';
 
 const SITE = new URL('./', location.href).href;
 export const SECTIONS = [
@@ -66,7 +67,7 @@ export async function contractPage(root, opts) {
   const tabs = el('nav', { class: 'cv-tabs', 'aria-label': 'Project sections' });
   const body = el('div', { class: `cv-body cv-${section}` });
   const rail = el('aside', { class: 'pv-rail', 'aria-label': owner ? 'Client and project details' : 'Your project details' });
-  const withRail = section !== 'tickets';
+  const withRail = !['tickets', 'schedule'].includes(section);   // these two need the full width
   fill(root, el('article', { class: `cv${owner ? ' is-owner' : ''}` }, head, tabs, withRail ? el('div', { class: 'pv' }, body, rail) : body));
 
   const save = async (patch, msg) => {
@@ -364,28 +365,10 @@ export async function contractPage(root, opts) {
   /* =====================================================================
      Schedule
      ===================================================================== */
-  function renderEvents(target, compact = false) {
-    const now = Date.now() - 86400000;
-    const upcoming = s.evs.filter((e) => new Date(e.starts_at).getTime() >= now);
-    const past = s.evs.filter((e) => new Date(e.starts_at).getTime() < now).reverse();
-    const item = (e) => el('li', { class: `cv-ev k-${e.kind}` },
-      el('span', { class: 'cv-ev-date' }, el('b', { text: new Date(e.starts_at).getDate() }), el('small', { text: new Date(e.starts_at).toLocaleDateString(undefined, { month: 'short' }) })),
-      el('span', { class: 'cv-ev-body' }, el('strong', { text: e.title }),
-        el('small', { text: `${EVENT_KINDS[e.kind] || e.kind} · ${new Date(e.starts_at).toLocaleDateString(undefined, { weekday: 'short' })}${e.all_day ? '' : ` ${fmtTime(e.starts_at)}`}` }),
-        !compact && e.notes ? richText(e.notes, 'small', { class: 'cv-ev-notes' }) : null),
-      e.link ? el('a', { class: 'btn btn-primary btn-sm cv-join', href: e.link, target: '_blank', rel: 'noopener noreferrer', title: `Join the ${meetingName(e.link)}`, text: 'Join' }) : null,
-      owner && opts.addEvent ? el('button', { type: 'button', class: 'link-btn', 'aria-label': `Edit ${e.title}`, text: 'Edit', onclick: () => opts.addEvent(e) }) : null);
-    fill(target,
-      el('div', { class: 'cv-card-head' }, el('h2', { text: compact ? 'Coming up' : 'Schedule' }),
-        compact ? el('a', { class: 'crm-more', href: href('schedule'), text: 'Schedule →' })
-          : owner && opts.addEvent ? el('button', { type: 'button', class: 'btn btn-primary btn-sm', text: '+ Add event', onclick: () => opts.addEvent({ contract_id: id, date: ymd(new Date()) }) }) : null),
-      upcoming.length ? el('ul', { class: 'cv-evs' }, (compact ? upcoming.slice(0, 3) : upcoming).map(item)) : el('p', { class: 'cv-empty', text: 'Nothing scheduled yet.' }),
-      !compact && past.length ? el('details', { class: 'cv-past' }, el('summary', { text: `Past (${past.length})` }), el('ul', { class: 'cv-evs' }, past.map(item))) : null);
-  }
+
+  let cal = null;
   function scheduleSection() {
-    const card = el('section', { class: 'cv-card cv-schedule' });
-    fill(body, card);
-    renderEvents(card);
+    cal = calendarView(body, { contractId: id, owner, getContracts: () => [s.c] });
   }
 
   /* =====================================================================
@@ -444,7 +427,7 @@ export async function contractPage(root, opts) {
       const { data } = await supabase.from('events').select('*').eq('contract_id', id).order('starts_at');
       s.evs = data || []; renderTabs();
       if (section === 'overview' && !scopeEditing) overview();
-      if (section === 'schedule') scheduleSection();
+      if (section === 'schedule') cal?.reload();
     })
     .subscribe();
 
