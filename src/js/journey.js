@@ -34,7 +34,7 @@ import { ScrambleTextPlugin } from 'gsap/ScrambleTextPlugin';
 import { SplitText } from 'gsap/SplitText';
 import { buildFall } from './fall.js';
 import { createFinale } from './finale.js';
-import { playMode } from './play-mode.js';
+import { playMode, PLAY } from './play-mode.js';
 
 gsap.registerPlugin(ScrollTrigger, DrawSVGPlugin, ScrambleTextPlugin, SplitText);
 // phones show and hide their address bar while you scroll; don't re-measure the pinned journey when that happens
@@ -348,20 +348,30 @@ export function initJourney({ reduced = false } = {}) {
 
   // Each panel animates as it crosses into view: icon draws, name decodes, details fade up.
   const vw = window.innerWidth;
+  const readStops = [];   // play mode: extra pauses so each service and statement can be read
+  const panelStarts = [];
   $$('.build-panel', track).forEach((panel) => {
     const f = gsap.utils.clamp(0, 0.9, (panel.offsetLeft - vw * 0.8) / travel());
     const at = master.labels.strip + f * S('strip');
+    panelStarts.push(at);
     const name = $('.build-name', panel);
     name.setAttribute('aria-label', name.dataset.text);
     name.textContent = '';
     master
+      // (play mode draws each card faster, so it's finished before the next one starts and every stop is clean)
       .fromTo($$('.build-icon path, .build-icon rect', panel), { drawSVG: '0%' },
-        { drawSVG: '100%', duration: 0.2 * S('strip'), stagger: 0.012 * S('strip'), ease: 'power1.inOut' }, at)
+        { drawSVG: '100%', duration: (PLAY ? 0.09 : 0.2) * S('strip'), stagger: (PLAY ? 0.005 : 0.012) * S('strip'), ease: 'power1.inOut' }, at)
       // Short and with no reveal delay: the letters lock in almost immediately, left to right.
       .to(name, { scrambleText: { text: name.dataset.text, chars: 'upperCase', speed: 1, revealDelay: 0 },
         duration: 0.06 * S('strip') }, at)
       .fromTo($$('p, .chips, .build-num', panel), { autoAlpha: 0, y: 16 },
-        { autoAlpha: 1, y: 0, duration: 0.12 * S('strip'), stagger: 0.02 * S('strip'), ease: 'power2.out' }, at + 0.06 * S('strip'));
+        { autoAlpha: 1, y: 0, duration: (PLAY ? 0.06 : 0.12) * S('strip'), stagger: (PLAY ? 0.01 : 0.02) * S('strip'), ease: 'power2.out' }, at + (PLAY ? 0.03 : 0.06) * S('strip'));
+  });
+
+  // Play-mode stops in the strip: just before the next card starts drawing, so every card on screen is complete.
+  panelStarts.forEach((at, i) => {
+    const next = panelStarts[i + 1];
+    readStops.push(next !== undefined ? Math.max(at + 0.12 * S('strip'), next - 0.005 * S('strip')) : at + 0.14 * S('strip'));
   });
 
   /* ---- 3 · the editor grows out of the strip, then types ------------- */
@@ -747,7 +757,9 @@ export function initJourney({ reduced = false } = {}) {
   // Play mode (?play, for testing): one scroll plays to the next chapter, and each "How we work" step is its own stop
   playMode(st, () => {
     const toY = (t) => st.start + (t / master.duration()) * (st.end - st.start);
-    const times = Object.values(master.labels);
+    const times = [...Object.values(master.labels), ...readStops,
+      master.labels.type + S('type') * 0.95 + S('typeHold') * 0.7,   // "One team. All custom." fully up
+      master.labels.cycle + S('cycle') * 0.5];                        // "Every piece. One build." mid-turn
     for (let k = 1; k < steps.length; k++) times.push(master.labels.climb + k * slot);
     return times.map(toY);
   });
