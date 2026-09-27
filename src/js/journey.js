@@ -34,6 +34,7 @@ import { ScrambleTextPlugin } from 'gsap/ScrambleTextPlugin';
 import { SplitText } from 'gsap/SplitText';
 import { buildFall } from './fall.js';
 import { createFinale } from './finale.js';
+import { playMode } from './play-mode.js';
 
 gsap.registerPlugin(ScrollTrigger, DrawSVGPlugin, ScrambleTextPlugin, SplitText);
 // phones show and hide their address bar while you scroll; don't re-measure the pinned journey when that happens
@@ -742,6 +743,14 @@ export function initJourney({ reduced = false } = {}) {
   });
   rig.render();
   fin.resize();
+
+  // Play mode (?play, for testing): one scroll plays to the next chapter, and each "How we work" step is its own stop
+  playMode(st, () => {
+    const toY = (t) => st.start + (t / master.duration()) * (st.end - st.start);
+    const times = Object.values(master.labels);
+    for (let k = 1; k < steps.length; k++) times.push(master.labels.climb + k * slot);
+    return times.map(toY);
+  });
 
   // "Skip ↓": straight past the whole story to what's below it (like the Skip pill on the other pages)
   const skip = document.createElement('button');

@@ -16,6 +16,7 @@
    per chapter on phones, where every chapter is a thumb swipe.
    ===================================================================== */
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
+import { PLAY, playMode } from './play-mode.js';
 
 // phones show and hide their address bar while you scroll; don't re-measure every pin when that happens
 ScrollTrigger.config({ ignoreMobileResize: true });
@@ -76,6 +77,9 @@ export function chapterNav(section, tl, timeOf) {
   end.addEventListener('click', skip);
   end.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); skip(); } });
   list.appendChild(end);
+
+  // Play mode (?play, for testing): one scroll plays the story to the next chapter
+  if (PLAY) { playMode(tl.scrollTrigger, () => pills.map((_, i) => spot(i))); return; }
 
   if (!touch()) return;
 
