@@ -104,10 +104,7 @@ async function loginPage() {
 
   signInForm.addEventListener('submit', async (e) => {
     e.preventDefault();
-    // TEMPORARY: the plain usernames "admin" and "client" sign in as the temp demo accounts
-    const typed = signInForm.email.value.trim();
-    const TEMP = { admin: 'admin@williams-systems.test', client: 'client@williams-systems.test' };
-    const email = TEMP[typed.toLowerCase()] || typed, password = signInForm.password.value;
+    const email = signInForm.email.value.trim(), password = signInForm.password.value;
     if (!validEmail(email) || !password) return say(signInForm, 'Enter your email and password.');
     say(signInForm, '');
     busy(signInForm, true, 'Signing in…');

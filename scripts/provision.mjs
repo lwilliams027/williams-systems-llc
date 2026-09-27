@@ -30,7 +30,7 @@ const p = (f) => join(ROOT, f);
 
 const PROJECT_NAME = 'williams-systems-temp';
 const REGION = process.env.SUPABASE_REGION || 'us-east-1';
-const ADMIN_EMAIL = process.env.ADMIN_EMAIL || 'adapter127@gmail.com';
+const ADMIN_EMAIL = process.env.ADMIN_EMAIL || 'lwilliams@williamssystems.dev';
 const SITE_URL = 'https://williamssystems.dev/';
 const REPO = 'lwilliams027/williams-systems-llc';
 const STATE_FILE = p('.supabase-temp.json');
