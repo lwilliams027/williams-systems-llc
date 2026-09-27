@@ -774,7 +774,12 @@ export function initJourney({ reduced = false } = {}) {
       [L.fallEnd, SPEED.fall],                                          // "Software your business runs on."
       [L.strip, SPEED.whatWeBuild],                                     // "Everything it takes to ship software."
       ...readStops.map((t, k) => [t, SPEED[`services${k + 1}`]]),         // the services, two at a time
-      [L.type + S('type') * 0.95 + S('typeHold') * 0.7, SPEED.oneTeam], // "One team. All custom."
+      // "One team. All custom.": in three parts, each its own length (play-speeds.js)
+      [L.type + S('type') * 0.95 + S('typeHold') * 0.7, { phases: [
+        { y: toY(L.type), seconds: SPEED.oneTeam.transition, ease: 'power1.inOut' },          // cards slide off, the editor opens
+        { y: toY(L.type + S('type') * 0.8), seconds: SPEED.oneTeam.typing },                    // the code types
+        { y: toY(L.type + S('type') * 0.95 + S('typeHold') * 0.7), seconds: SPEED.oneTeam.statement, ease: 'power1.out' }, // the statement
+      ] }],
       [L.cycle + S('cycle') * 0.5, SPEED.everyPiece],                   // "Every piece. One build."
       [L.desk, SPEED.website],                                          // the website, finished
       [L.unscrew, SPEED.lightbulb],                                     // the lightbulb: customization

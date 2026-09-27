@@ -62,6 +62,14 @@ export function playMode(st, points) {
     const back = dir < 0 ? list.find((p) => p.y > target + 4) : null;
     const arriving = (dir > 0 ? stop : back) || {};
     const speed = arriving.speed || 1;
+    // a step split into phases (going forward): each part of the animation gets its own length
+    if (dir > 0 && arriving.phases) {
+      const tl = gsap.timeline({ onComplete: () => { goal = null; } });
+      gsap.killTweensOf(window);
+      arriving.phases.filter((ph) => ph.y > window.scrollY + 2 || ph === arriving.phases[arriving.phases.length - 1])
+        .forEach((ph) => tl.to(window, { scrollTo: { y: ph.y, autoKill: false }, duration: ph.seconds, ease: ph.ease || 'none' }));
+      return;
+    }
     const duration = arriving.seconds || gsap.utils.clamp(0.45, 1.3, dist / (window.innerHeight * 2.6)) * 1.25 * 1.25 * speed;
     gsap.to(window, {
       scrollTo: { y: target, autoKill: false }, duration, ease: arriving.ease || 'power1.inOut', overwrite: true,
