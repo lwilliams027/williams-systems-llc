@@ -1,6 +1,6 @@
 /* =====================================================================
    Account button (top right, before the bell): your initials; click for
-   a menu with Account settings, View website and Sign out.
+   a menu with Account settings, Back to website and Sign out.
    Settings: display name (what the other side sees in chats) + password.
    ===================================================================== */
 import { gsap } from 'gsap';
@@ -36,7 +36,7 @@ export function accountMenu(mount, { me, owner = false, onNameChange } = {}) {
       el('div', { class: 'acct-group' },
         item(ICO.settings, 'Account settings', () => settings('profile')),
         item(ICO.card, 'Billing & payments', () => settings('billing')),
-        item(ICO.site, 'View website', () => location.assign('./'))),
+        item(ICO.site, 'Back to website', () => location.assign('./'))),
       el('div', { class: 'acct-group' },
         item(ICO.out, 'Sign out', async () => { await supabase.auth.signOut(); location.assign('login.html'); }, 'danger')));
   }
