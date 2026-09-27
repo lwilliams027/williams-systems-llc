@@ -1654,3 +1654,16 @@ button.fx-crumb:hover { color: var(--text); background: var(--surface); }
   .fx-top-actions .btn span { display: none; }
   .fx-list.grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
+
+/* back button at the start of the path bar */
+.fx-back { width: 32px; height: 32px; flex: none; margin-right: 4px; border-radius: 9px; display: grid; place-items: center; color: var(--text-2); background: var(--surface); border: 1px solid var(--line-solid); transition: color 0.15s, background 0.15s, border-color 0.15s; }
+.fx-back svg { width: 16px; height: 16px; }
+.fx-back:hover { color: var(--text); background: var(--surface-2); border-color: var(--line-2); }
+.fx-back.drop { color: var(--text); background: var(--accent-soft); border-color: var(--accent); }
+.fx-crumbs { align-items: center; }
+
+.fx-back { width: auto; height: auto; display: inline-flex; align-items: center; gap: 4px; padding: 6px 12px 6px 8px; margin-right: 8px; border-radius: 99px; font-family: var(--font-body); font-size: 0.86rem; font-weight: 600; }
+.fx-back svg { width: 15px; height: 15px; }
+
+.fx-back { padding: 9px 16px 9px 12px; font-size: 0.92rem; }
+.fx-back svg { width: 16px; height: 16px; }

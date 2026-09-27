@@ -724,9 +724,15 @@ export async function contractPage(root, opts) {
       e.preventDefault(); depth = 0; card.classList.remove('over');
       const l = [...e.dataTransfer.files]; if (l.length) uploadInto(l, fx.cur, setStatus);
     });
+    card.addEventListener('keydown', (e) => {
+      if (!fx.cur || ['INPUT', 'TEXTAREA', 'SELECT'].includes(e.target.tagName)) return;
+      if (e.key === 'Backspace' || (e.altKey && e.key === 'ArrowLeft')) { e.preventDefault(); go(parentOf(fx.cur)); }
+    });
     fill(body, card);
     renderExplorer();
   }
+
+  const parentOf = (fid) => (isTicketFolder(fid) ? (fid === TICKETS ? null : TICKETS) : folderById(fid)?.parent_id || null);
 
   function renderExplorer() {
     if (!fxEls || section !== 'files') return;
@@ -744,7 +750,13 @@ export async function contractPage(root, opts) {
       parts.push(['Ticket attachments', TICKETS]);
       if (fx.cur !== TICKETS) { const t = s.tks.find((x) => `ticket-${x.number}` === fx.cur); parts.push([t ? `#${t.number} ${t.title}` : 'Ticket', fx.cur]); }
     } else pathTo(fx.cur).forEach((p) => parts.push([p.name, p.id]));
-    fill(fxEls.crumbs, parts.map(([label, fid], i) => [i ? el('span', { class: 'fx-sep', text: '›' }) : null, crumb(label, fid, i === parts.length - 1)]));
+    let back = null;
+    if (fx.cur) {
+      const up = parentOf(fx.cur);
+      back = el('button', { type: 'button', class: 'btn btn-ghost btn-sm fx-back', title: up ? `Back to ${isTicketFolder(up) ? 'Ticket attachments' : folderById(up)?.name}` : 'Back to Files', html: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg><span>Back</span>', onclick: () => go(up) });
+      if (up === null || isReal(up)) dropTarget(back, up);
+    }
+    fill(fxEls.crumbs, back, parts.map(([label, fid], i) => [i ? el('span', { class: 'fx-sep', text: '›' }) : null, crumb(label, fid, i === parts.length - 1)]));
     fxEls.upBtn.disabled = !real;
     fxEls.upBtn.title = real ? `Upload to ${folderById(fx.cur).name}` : 'Open a folder to upload into it';
     fxEls.newBtn.hidden = isTicketFolder(fx.cur);
@@ -766,15 +778,6 @@ export async function contractPage(root, opts) {
     }
 
     const rows = [];
-    if (fx.cur) {
-      const parent = isTicketFolder(fx.cur) ? (fx.cur === TICKETS ? null : TICKETS) : folderById(fx.cur)?.parent_id || null;
-      const up = el('li', { class: 'fx-row fx-up', tabindex: 0 },
-        el('span', { class: 'fx-name' }, el('span', { class: 'fx-folder-ico', html: ICO.up }), el('button', { type: 'button', class: 'fx-open', text: 'Back', onclick: () => go(parent) })),
-        el('span'), el('span'), el('span'), el('span'));
-      up.addEventListener('dblclick', () => go(parent));
-      if (parent === null || isReal(parent)) dropTarget(up, parent);
-      rows.push(up);
-    }
     if (fx.cur === TICKETS) {
       const byTicket = new Map();
       ticketFiles.forEach((f) => byTicket.set(f.ticket.number, [...(byTicket.get(f.ticket.number) || []), f]));
@@ -789,9 +792,8 @@ export async function contractPage(root, opts) {
       if (!fx.cur && ticketFiles.length) rows.push(folderRow({ id: TICKETS, created_at: s.c.created_at }, { virtual: true, count: new Set(ticketFiles.map((f) => f.ticket.number)).size, name: 'Ticket attachments', onOpen: () => go(TICKETS) }));
       if (real) filesIn(fx.cur).sort(sorter).forEach((f) => rows.push(fileRow(f)));
     }
-    const hasContent = rows.some((r) => !r.classList.contains('fx-up'));
-    fill(fxEls.pane, hasContent ? listOf(rows)
-      : [listOf(rows), real ? empty('This folder is empty', 'Upload files, drop them here, or drag files in from another folder.', true) : empty('No folders yet', 'Create a folder to start organizing.')]);
+    fill(fxEls.pane, rows.length ? listOf(rows)
+      : [real ? empty('This folder is empty', 'Upload files, drop them here, or drag files in from another folder.', true) : empty('No folders yet', 'Create a folder to start organizing.')]);
   }
 
   function empty(title, text, withUpload = false) {
