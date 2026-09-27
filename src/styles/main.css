@@ -1765,6 +1765,8 @@ fieldset.field .field-label { margin-bottom: 8px; }
 @media (max-width: 899.98px) { .journey-skip { display: none; } }
 
 /* the bulb falling behind the Admin console card (a copy of it, inside the sign-in scene) */
+/* the scene mustn't clip it: the copy starts above the scene's top edge while the scene is still rising */
+.scene-secure { overflow: visible; }
 .secure-bulb { position: absolute; left: 0; top: 0; z-index: 0; width: 110px; transform-origin: 50% 22%; pointer-events: none; will-change: transform; }
 .secure-bulb svg { display: block; width: 100%; height: auto; }
 .secure-bulb .bulb-glass { fill: rgba(170, 180, 200, 0.14); stroke: #7A8292; }
