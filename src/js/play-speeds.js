@@ -40,8 +40,8 @@ export const HOME = {
   // Two scrolls: first the fall (stops on the Admin console), then the passwords and the padlock.
   security: {
     fall:    2.6,   // scroll 1: unscrew, the lights die, the bulb falls behind the sign-in card
-    typing:  0.25,  // scroll 2: each password typing in
-    refused: 0.8,   // "Access denied", the red flash and the shake (after each try)
+    typing:  0.2,   // scroll 2: each password typing in (both tries + refusals = 1 second)
+    refused: 0.3,   // "Access denied", the red flash and the shake (after each try)
     lock:    1.4,   // the padlock rises and snaps shut
   },
   howWeWork:   1,   // through the keyhole → "From first call to launch."
