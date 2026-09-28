@@ -851,7 +851,8 @@ export function initJourney({ reduced = false } = {}) {
         ];
       })() }],
       [L.climb - S('riseHold') * 0.3, SPEED.howWeWork],                 // "From first call to launch."
-      ...steps.map((_, k) => [L.climb + k * slot + slot * 0.6, SPEED[['discover', 'design', 'build', 'launch', 'support'][k]]]),
+      // each step stops once its drawing, copy and (on Launch) the rocket have all finished
+      ...steps.map((_, k) => [L.climb + k * slot + slot * 0.97, SPEED[['discover', 'design', 'build', 'launch', 'support'][k]]]),
       [L.reveal + S('reveal') * 0.9, SPEED.finale],                     // the finale
     ];
     return times.map(([t, speed]) => ({ y: toY(t), speed }));
