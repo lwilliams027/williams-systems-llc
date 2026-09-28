@@ -30,7 +30,7 @@ export const HOME = {
   oneTeam: {
     transition: 0.9,   // the cards slide off and the editor opens (was ~0.4)
     typing:     1,     // the code types out
-    statement:  0.45,  // "One team. All custom." comes up
+    statement:  1.2,   // "One team. All custom." comes up (same pace as "Every piece. One build.")
   },
   everyPiece:  1,   // the window stack turns → "Every piece. One build."
   website:     1,   // into the website, scroll down it, onto the desk
@@ -50,7 +50,7 @@ export const HOME = {
   build:       1,   // step 3
   launch:      1,   // step 4
   support:     1,   // step 5
-  finale:      1,   // the stars form the logo
+  finale:      1.25, // Support → the stars form the logo (25% slower)
 };
 
 /**
