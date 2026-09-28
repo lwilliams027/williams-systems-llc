@@ -29,13 +29,15 @@ export const PLAY = (() => {
  * points  () => the key points, in order (recomputed on every step, so resizes are
  *         fine): scroll positions, or { y, speed } where speed stretches the step
  *         that arrives there (see play-speeds.js). The story's start and end are added.
+ * opts    { end: false }: no stop at the story's very end; the scroll after the last
+ *         point carries straight on down the page.
  */
-export function playMode(st, points) {
+export function playMode(st, points, opts = {}) {
   if (!PLAY) return;
   let releasing = false;
   let goal = null;                                                              // the stop we're heading to, while a play is running
   const stops = () => {
-    const list = [st.start, ...points(), st.end]
+    const list = [st.start, ...points(), ...(opts.end === false ? [] : [st.end])]
       .map((p) => (typeof p === 'number' ? { y: p, speed: 1 } : p))
       // a speed can also be { seconds, ease }: a fixed length and a steady pace, for a step with lots in it (like the typing)
       .map((p) => ({ y: Math.round(p.y), ...(typeof p.speed === 'object' ? { speed: 1, ...p.speed } : { speed: p.speed || 1 }) }))

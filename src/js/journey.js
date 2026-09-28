@@ -76,7 +76,7 @@ const LEN = {             // chapter lengths, in screens of scroll
   toQuotes: 0.7,          // out the other side of the keyhole: the testimonials carousel
   quotes:  2.4,           // the carousel turns, one client quote to the front at a time
   toEnd:   0.7,           // the last step dissolves into the starfield
-  warp:    0.9,           // the starfield warps
+  warp:    1.4,           // the starfield warps: streaks rush out and hold, then settle
   form:    1.4,           // the stars swirl in and assemble the logo
   reveal:  1.0,           // headline flies together, services orbit, call to action
   hold:    0.5,
@@ -853,10 +853,15 @@ export function initJourney({ reduced = false } = {}) {
       [L.climb - S('riseHold') * 0.3, SPEED.howWeWork],                 // "From first call to launch."
       // each step stops once its drawing, copy and (on Launch) the rocket have all finished
       ...steps.map((_, k) => [L.climb + k * slot + slot * 0.97, SPEED[['discover', 'design', 'build', 'launch', 'support'][k]]]),
-      [L.reveal + S('reveal') * 0.9, SPEED.finale],                     // the finale
+      // the finale, in timed parts; it stops once "Let's build yours" is complete, and the next scroll leaves the story
+      [L.reveal + S('reveal'), { phases: [
+        { y: toY(L.warp), seconds: SPEED.finale.dissolve, ease: 'power1.in' },    // Support falls away into the stars
+        { y: toY(L.form), seconds: SPEED.finale.warp },                            // hyperspace
+        { y: toY(L.reveal + S('reveal')), seconds: SPEED.finale.form, ease: 'power1.out' }, // the logo forms, the headline
+      ] }],
     ];
     return times.map(([t, speed]) => ({ y: toY(t), speed }));
-  });
+  }, { end: false });
 
   // "Skip ↓": straight past the whole story to what's below it (like the Skip pill on the other pages)
   const skip = document.createElement('button');

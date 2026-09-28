@@ -67,16 +67,19 @@ export function createFinale({ canvas, mark, orbit, stage, scene }) {
     if (!visible || !pts.length) return;
 
     const cx = W / 2, cy = H / 2;
-    const warpI = Math.sin(Math.PI * clamp01(P.warp));   // 0 → 1 → 0 across the warp
+    // the warp: streaks come up, hold at full stretch (still rushing outward), then settle
+    const w = clamp01(P.warp);
+    const warpI = w < 0.2 ? Math.sin((w / 0.2) * Math.PI / 2) : w > 0.8 ? Math.sin(((1 - w) / 0.2) * Math.PI / 2) : 1;
+    const rush = warpI * (0.35 + 0.35 * Math.sin(Math.PI * w));   // how far out they've flown
     const f = P.form;
     const logoShow = clamp01((f - 0.84) / 0.16);
 
     for (const p of pts) {
-      const baseR = p.d * p.maxR * (1 + warpI * 0.5);
+      const baseR = p.d * p.maxR * (1 + rush);
       const sx = cx + Math.cos(p.a) * baseR, sy = cy + Math.sin(p.a) * baseR;
       if (f <= 0) {
         // Starfield; during the warp each star stretches into a streak along its ray.
-        const len = 1.2 + warpI * p.d * p.maxR * 0.5;
+        const len = 1.2 + warpI * p.d * p.maxR * (0.35 + 0.3 * Math.sin(Math.PI * w));
         ctx.strokeStyle = p.blue ? `rgba(${p.rgb},${0.35 + 0.6 * p.d})` : `rgba(255,255,255,${0.25 + 0.6 * p.d})`;
         ctx.lineWidth = p.size * (0.7 + warpI * 0.6);
         ctx.beginPath();
