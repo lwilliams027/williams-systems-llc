@@ -508,13 +508,16 @@ export function initJourney({ reduced = false } = {}) {
     }
   }
 
-  const loose = master.labels.unscrew + U * 0.82;
+  // it comes loose right as the last turn finishes, and falls straight away (no pause in the socket)
+  const loose = master.labels.unscrew + turn * TURNS;
   // Where the falling bulb is on screen: DROP_TO of the screen lower than where it hung, at the handover.
   const DROP_TO = 0.336;
   const dropP = { p: 0 };
   const placeDrop = () => {
     const worldY = gsap.getProperty(bulbWorld, 'y');                      // the scenery rushing up (px)
-    gsap.set(bulb, { y: TURNS * 5 + window.innerHeight * DROP_TO * dropP.p * dropP.p - worldY });
+    // half steady, half speeding up: it's moving the instant it comes loose, then accelerates
+    const d = 0.5 * dropP.p + 0.5 * dropP.p * dropP.p;
+    gsap.set(bulb, { y: TURNS * 5 + window.innerHeight * DROP_TO * d - worldY });
   };
   master
     // It comes loose: a spark at the contact and the lights die — the site goes dark.
@@ -523,7 +526,7 @@ export function initJourney({ reduced = false } = {}) {
     .to(lamp, { v: 0, duration: U * 0.03, onUpdate: setLamp }, loose)
     .to('#bulbGlass', { fill: 'rgba(170, 180, 200, 0.14)', stroke: '#7A8292', duration: U * 0.05 }, loose)
     .to('#bulbFil', { stroke: '#FF6A1A', duration: U * 0.02 }, loose)            // the filament is still hot…
-    .addLabel('drop', `unscrew+=${U}`)
+    .addLabel('drop', `unscrew+=${turn * TURNS + U * 0.02}`)
     // …and it falls. The empty cord springs back, the ceiling flies away and
     // streaks rush past: the camera falls with the bulb.
     .to('#bulbCopy > *', { autoAlpha: 0, y: -30, duration: F * 0.15, stagger: F * 0.03 }, 'drop')
@@ -593,8 +596,8 @@ export function initJourney({ reduced = false } = {}) {
   const FALL = S('toSecure') * 1.2;
   const placeFall = () => {
     const vh = window.innerHeight, vw = window.innerWidth, top = secure.getBoundingClientRect().top;
-    // carries on from the real bulb's position and speed (it was moving at 2 × DROP_TO per fall-length)
-    const k1 = 2 * DROP_TO * FALL / F;
+    // carries on from the real bulb's position and speed (it was moving at 1.5 × DROP_TO per fall-length)
+    const k1 = 1.5 * DROP_TO * FALL / F;
     const screenY = vh * (0.6 + k1 * fallP.p + (0.75 - k1) * fallP.p * fallP.p);   // on down and off the bottom
     gsap.set(fallBulb, { x: vw * 0.516 - fallBulb.offsetWidth / 2, y: screenY - top, rotation: 320 + fallP.p * 240 });
   };
