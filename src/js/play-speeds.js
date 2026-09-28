@@ -61,9 +61,11 @@ export const HOME = {
 /**
  * Product, Solutions and About pages: one number per chapter, in order.
  * Pages not listed here use 1 for every chapter.
+ * A single number instead of a list: every step on that page (1.25 = 25% slower).
  */
 export const PAGES = {
   // 'websites.html': [1, 1, 1, 1, 1, 1, 1, 1],
+  'web-apps.html': 1.25,   // Web apps: the whole page 25% slower
 };
 
 /** The speed list for the page you're on (chapter pages). */

@@ -31,6 +31,7 @@ export const PLAY = (() => {
  *         that arrives there (see play-speeds.js). The story's start and end are added.
  * opts    { end: false }: no stop at the story's very end; the scroll after the last
  *         point carries straight on down the page.
+ *         { scale: 1.25 }: every step on the page 25% slower.
  */
 export function playMode(st, points, opts = {}) {
   if (!PLAY) return;
@@ -68,7 +69,7 @@ export function playMode(st, points, opts = {}) {
       const out = [];
       let from = y;
       arriving.phases.filter((ph) => ph.y > y + 2 || ph === arriving.phases[arriving.phases.length - 1])
-        .forEach((ph) => { out.push({ from, to: ph.y, sec: ph.seconds }); from = ph.y; });
+        .forEach((ph) => { out.push({ from, to: ph.y, sec: ph.seconds * (opts.scale || 1) }); from = ph.y; });
       if (out.length) out[out.length - 1].to = stop.y;
       return out;
     }
@@ -76,7 +77,7 @@ export function playMode(st, points, opts = {}) {
     // two rounds of "25% slower" than the quickest version (0.45–1.3 s), then stretched
     // per animation (play-speeds.js); going back uses the same speed
     const sec = arriving.seconds || gsap.utils.clamp(0.45, 1.3, dist / (window.innerHeight * 2.6)) * 1.25 * 1.25 * (arriving.speed || 1);
-    return [{ from: y, to: stop.y, sec }];
+    return [{ from: y, to: stop.y, sec: sec * (opts.scale || 1) }];
   };
   const nextStop = (y, dir, list) => (dir > 0
     ? list.find((p) => p.y > Math.max(y, st.start) + 4)
@@ -98,8 +99,9 @@ export function playMode(st, points, opts = {}) {
     if (!run) return;
     if (gsap.isTweening(window)) { run = null; goal = null; return; }        // something else took the page (e.g. Skip)
     const dt = Math.min(0.05, deltaMs / 1000);
-    const want = Math.min(run.mMax, Math.sqrt(2 * BRAKE * Math.max(0, run.T - run.tau)));
-    if (run.m < want) run.m = Math.min(want, run.m + (run.m < BASE ? ACCEL : BOOST) * dt);
+    const k = opts.scale || 1;                                                 // a slower page ramps up and down more gently too
+    const want = Math.min(run.mMax, Math.sqrt(2 * (BRAKE / k) * Math.max(0, run.T - run.tau)));
+    if (run.m < want) run.m = Math.min(want, run.m + (run.m < BASE ? ACCEL / k : BOOST) * dt);
     else run.m = want;
     run.tau = Math.min(run.T, run.tau + Math.max(0.12, run.m) * dt);
     window.scrollTo(0, yAt(run.tau));

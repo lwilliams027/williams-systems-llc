@@ -80,7 +80,7 @@ export function chapterNav(section, tl, timeOf) {
   list.appendChild(end);
 
   // Play mode (?play, for testing): one scroll plays the story to the next chapter
-  if (PLAY) { const sp = pageSpeeds(); playMode(tl.scrollTrigger, () => pills.map((_, i) => ({ y: spot(i), speed: sp[i] }))); return; }
+  if (PLAY) { const sp = pageSpeeds(); const one = typeof sp === 'number'; playMode(tl.scrollTrigger, () => pills.map((_, i) => ({ y: spot(i), speed: one ? 1 : sp[i] })), { scale: one ? sp : 1 }); return; }
 
   if (!touch()) return;
 
