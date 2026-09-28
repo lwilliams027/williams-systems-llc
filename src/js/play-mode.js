@@ -47,54 +47,116 @@ export function playMode(st, points, opts = {}) {
   // counts as inside from a little above the story (it may start just under the header)
   const inside = () => window.scrollY >= st.start - window.innerHeight * 0.25 && window.scrollY <= st.end + 2;
 
+  // ---- the playhead ------------------------------------------------------------
+  // A play is a path of segments (one per step, or one per phase), each with its own
+  // length in seconds. The playhead runs along it at a speed (1 = as tuned in
+  // play-speeds.js) that rises from rest, and brakes smoothly into the last stop.
+  // Keep scrolling (or hold the scroll, like holding a key) and more stops are added
+  // to the same path: no restart, no jolt; the speed climbs slowly while you keep
+  // going, then eases back down into the final stop: a bell curve.
+  const BASE = 1.25;     // cruising speed of a single step (the ramps eat the difference)
+  const ACCEL = 5;       // how fast it gets up to cruising speed (per second)
+  const BOOST = 0.8;     // how fast it speeds up beyond that while you keep scrolling (slowly)
+  const BRAKE = 5;       // how firmly it slows into the last stop
+  const MAX_AHEAD = 3;   // at most this many stops queued ahead of the playhead
+  let run = null;        // { dir, segs:[{from,to,sec,t0}], T, tau, m, mMax, extra, ends:[], releaseAfter }
+
+  // the segments that play from y to the stop, going dir
+  const segsTo = (y, stop, dir, list) => {
+    const back = dir < 0 ? list.find((p) => p.y > stop.y + 4) : null;
+    const arriving = (dir > 0 ? stop : back) || {};
+    if (dir > 0 && arriving.phases) {
+      const out = [];
+      let from = y;
+      arriving.phases.filter((ph) => ph.y > y + 2 || ph === arriving.phases[arriving.phases.length - 1])
+        .forEach((ph) => { out.push({ from, to: ph.y, sec: ph.seconds }); from = ph.y; });
+      if (out.length) out[out.length - 1].to = stop.y;
+      return out;
+    }
+    const dist = Math.abs(stop.y - y);
+    // two rounds of "25% slower" than the quickest version (0.45–1.3 s), then stretched
+    // per animation (play-speeds.js); going back uses the same speed
+    const sec = arriving.seconds || gsap.utils.clamp(0.45, 1.3, dist / (window.innerHeight * 2.6)) * 1.25 * 1.25 * (arriving.speed || 1);
+    return [{ from: y, to: stop.y, sec }];
+  };
+  const nextStop = (y, dir, list) => (dir > 0
+    ? list.find((p) => p.y > Math.max(y, st.start) + 4)
+    : [...list].reverse().find((p) => p.y < y - 4 && y > st.start + 4));
+
+  const addSegs = (segs) => {
+    for (const g of segs) { g.t0 = run.T; run.T += Math.max(0.05, g.sec); run.segs.push(g); }
+    run.ends.push(run.T);
+    goal = run.segs[run.segs.length - 1].to;
+  };
+  const yAt = (tau) => {
+    for (const g of run.segs) {
+      const len = Math.max(0.05, g.sec);
+      if (tau <= g.t0 + len) return g.from + (g.to - g.from) * ((tau - g.t0) / len);
+    }
+    return run.segs[run.segs.length - 1].to;
+  };
+
+  const tick = (_time, deltaMs) => {
+    if (!run) return;
+    if (gsap.isTweening(window)) { run = null; goal = null; return; }        // something else took the page (e.g. Skip)
+    const dt = Math.min(0.05, deltaMs / 1000);
+    const want = Math.min(run.mMax, Math.sqrt(2 * BRAKE * Math.max(0, run.T - run.tau)));
+    if (run.m < want) run.m = Math.min(want, run.m + (run.m < BASE ? ACCEL : BOOST) * dt);
+    else run.m = want;
+    run.tau = Math.min(run.T, run.tau + Math.max(0.12, run.m) * dt);
+    window.scrollTo(0, yAt(run.tau));
+    if (run.tau >= run.T) {
+      const rel = run.releaseAfter;
+      run = null; goal = null;
+      if (rel) release(rel);
+    }
+  };
+  gsap.ticker.add(tick);
+
   const step = (dir) => {
     if (releasing || !inside()) return;
-    // scrolling again mid-play goes on from where this play is heading, straight away
-    const y = goal ?? window.scrollY, list = stops();
-    const from = Math.max(y, st.start);                                          // above the start: the first flick plays into the story
-    const stop = dir > 0 ? list.find((p) => p.y > from + 4) : [...list].reverse().find((p) => p.y < y - 4 && y > st.start + 4);
-    // past either end: let go and carry on scrolling the page normally
-    if (stop === undefined) { release(dir); return; }
-    const target = stop.y;
-    goal = target;
-    const dist = Math.abs(target - window.scrollY);
-    // two rounds of "25% slower" than the quickest version (0.45–1.3 s): about 0.7–2 s a step,
-    // then stretched per animation (play-speeds.js); going back uses the same speed
-    const back = dir < 0 ? list.find((p) => p.y > target + 4) : null;
-    const arriving = (dir > 0 ? stop : back) || {};
-    const speed = arriving.speed || 1;
-    // a step split into phases (going forward): each part of the animation gets its own length
-    if (dir > 0 && arriving.phases) {
-      const tl = gsap.timeline({ onComplete: () => { goal = null; } });
-      gsap.killTweensOf(window);
-      arriving.phases.filter((ph) => ph.y > window.scrollY + 2 || ph === arriving.phases[arriving.phases.length - 1])
-        .forEach((ph) => tl.to(window, { scrollTo: { y: ph.y, autoKill: false }, duration: ph.seconds, ease: ph.ease || 'none' }));
+    const list = stops();
+    // already playing this way: add the next stop to the same path and speed up a little
+    if (run && run.dir === dir) {
+      if (run.releaseAfter) return;
+      if (run.ends.filter((e) => e > run.tau).length >= MAX_AHEAD) return;
+      const stop = nextStop(goal, dir, list);
+      if (stop === undefined) { run.releaseAfter = dir; return; }
+      addSegs(segsTo(goal, stop, dir, list));
+      run.extra++;
+      run.mMax = BASE * Math.min(2.4, 1 + 0.3 * run.extra);
       return;
     }
-    const duration = arriving.seconds || gsap.utils.clamp(0.45, 1.3, dist / (window.innerHeight * 2.6)) * 1.25 * 1.25 * speed;
-    gsap.to(window, {
-      scrollTo: { y: target, autoKill: false }, duration, ease: arriving.ease || 'power1.inOut', overwrite: true,
-      onComplete: () => { goal = null; },
-    });
+    // a fresh play (or a change of direction): start from where it is now
+    gsap.killTweensOf(window);
+    const y = window.scrollY;
+    const stop = nextStop(y, dir, list);
+    // past either end: let go and carry on scrolling the page normally
+    if (stop === undefined) { run = null; release(dir); return; }
+    run = { dir, segs: [], T: 0, tau: 0, m: 0, mMax: BASE, extra: 0, ends: [], releaseAfter: 0 };
+    addSegs(segsTo(y, stop, dir, list));
   };
 
   const release = (dir) => {
     releasing = true;
+    run = null;
     goal = null;
     obs.disable();
     const y = dir > 0 ? st.end + Math.round(window.innerHeight * 0.6) : Math.max(0, st.start - Math.round(window.innerHeight * 0.6));
     gsap.to(window, { scrollTo: { y, autoKill: false }, duration: 0.8, ease: 'power2.inOut', overwrite: true, onComplete: () => { releasing = false; } });
   };
 
-  // One gesture = one step. A trackpad or phone flick keeps sending scroll events for
-  // a second or so (momentum); those arrive back to back, so only an event after a
-  // short gap counts as a new scroll. No lock-out: the next scroll works right away.
-  let lastEvent = 0;
+  // One gesture = one step. A new scroll after a short gap is a new gesture. A scroll
+  // that keeps going (a held wheel, a long drag) repeats like a held key: after a
+  // moment it adds a stop, then keeps adding them a little faster.
+  let lastEvent = 0, holdStart = 0, lastRepeat = 0;
   const gesture = (dir) => {
     const now = performance.now();
     const fresh = now - lastEvent > 180;
     lastEvent = now;
-    if (fresh) step(dir);
+    if (fresh) { holdStart = lastRepeat = now; step(dir); return; }
+    const held = now - holdStart;
+    if (held > 450 && now - lastRepeat > (held > 1600 ? 230 : 380)) { lastRepeat = now; step(dir); }
   };
   // wheelSpeed -1 so a wheel down and a finger swipe up are both "up" (= forward)
   const obs = Observer.create({
