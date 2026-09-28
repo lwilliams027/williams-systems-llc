@@ -510,14 +510,27 @@ export function initJourney({ reduced = false } = {}) {
 
   // it comes loose right as the last turn finishes, and falls straight away (no pause in the socket)
   const loose = master.labels.unscrew + turn * TURNS;
-  // Where the falling bulb is on screen: DROP_TO of the screen lower than where it hung, at the handover.
-  const DROP_TO = 0.336;
+  // ONE fall, from the socket to off the bottom of the screen behind the Admin console card.
+  // It's a single curve over the whole fall: the real bulb follows it until the sign-in page
+  // takes over, then a copy of it carries on along the very same curve (same place, speed, spin).
+  // Where the bulb hangs on screen (its box, untwisted, before it drops), measured from the page
+  // so the copy lines up exactly on any screen size.
+  const hangBox = () => {
+    const r = pendulum.getBoundingClientRect();
+    const sceneShift = gsap.getProperty(bulbScene, 'y') + (gsap.getProperty(bulbScene, 'yPercent') / 100) * bulbScene.offsetHeight;
+    return { left: r.left + bulb.offsetLeft, top: r.top - gsap.getProperty(bulbWorld, 'y') - sceneShift + bulb.offsetTop };
+  };
+  const FALL_BY = 1.05;                                // how far it falls in all (screens): well off the bottom
+  const FALL_SPIN = 560;                               // degrees it tumbles over the whole fall
+  const FALL_LEN = F + S('toSecure') * 0.9;            // gone before the sign-in page settles
+  const fallCurve = (q) => 0.35 * q + 0.65 * q * q;    // moving the instant it's loose, then speeding up
   const dropP = { p: 0 };
   const placeDrop = () => {
-    const worldY = gsap.getProperty(bulbWorld, 'y');                      // the scenery rushing up (px)
-    // half steady, half speeding up: it's moving the instant it comes loose, then accelerates
-    const d = 0.5 * dropP.p + 0.5 * dropP.p * dropP.p;
-    gsap.set(bulb, { y: TURNS * 5 + window.innerHeight * DROP_TO * d - worldY });
+    // the scenery rushing up (px), worked out here rather than read back, so it's never a frame behind
+    const u = gsap.utils.clamp(0, 1, (dropP.p - 0.1) / 0.9);
+    const worldY = -window.innerHeight * 1.8 * u * u;
+    const c = fallCurve(dropP.p * F / FALL_LEN);
+    gsap.set(bulb, { y: TURNS * 5 + window.innerHeight * FALL_BY * c - worldY, rotation: FALL_SPIN * c });
   };
   master
     // It comes loose: a spark at the contact and the lights die — the site goes dark.
@@ -532,7 +545,6 @@ export function initJourney({ reduced = false } = {}) {
     .to('#bulbCopy > *', { autoAlpha: 0, y: -30, duration: F * 0.15, stagger: F * 0.03 }, 'drop')
     .to('#bulbCord', { keyframes: { scaleY: [1, 0.86, 1.05, 0.98, 1] }, duration: F * 0.35 }, 'drop')
     .to('#bulbSocket', { keyframes: { y: [0, -14, 4, -2, 0] }, duration: F * 0.35 }, 'drop')
-    .to(bulb, { rotation: 320, duration: F, ease: 'power1.in' }, 'drop')
     .to(bulbWorld, { y: () => -window.innerHeight * 1.8, duration: F * 0.9, ease: 'power1.in' }, `drop+=${F * 0.1}`)
     // The bulb falls on screen the whole way (it used to drop out of frame and reappear):
     // it speeds up smoothly down to the spot where the sign-in scene's copy takes over.
@@ -593,13 +605,16 @@ export function initJourney({ reduced = false } = {}) {
   secure.insertBefore(fallBulb, shake);                                  // under the card's layer
   gsap.set(fallBulb, { autoAlpha: 0 });
   const fallP = { p: 0 };
-  const FALL = S('toSecure') * 1.2;
+  const FALL = FALL_LEN - F;                           // the rest of the one fall
   const placeFall = () => {
-    const vh = window.innerHeight, vw = window.innerWidth, top = secure.getBoundingClientRect().top;
-    // carries on from the real bulb's position and speed (it was moving at 1.5 × DROP_TO per fall-length)
-    const k1 = 1.5 * DROP_TO * FALL / F;
-    const screenY = vh * (0.6 + k1 * fallP.p + (0.75 - k1) * fallP.p * fallP.p);   // on down and off the bottom
-    gsap.set(fallBulb, { x: vw * 0.516 - fallBulb.offsetWidth / 2, y: screenY - top, rotation: 320 + fallP.p * 240 });
+    const vh = window.innerHeight, hang = hangBox();
+    // where the sign-in page is right now (it rises power2.inOut over toSecure), worked out, not read back
+    const rise = gsap.parseEase('power2.inOut')(Math.min(1, fallP.p * FALL / S('toSecure')));
+    const sr = secure.getBoundingClientRect();
+    const top = sr.top - (gsap.getProperty(secure, 'yPercent') / 100) * secure.offsetHeight + (1 - rise) * secure.offsetHeight;
+    const c = fallCurve((F + fallP.p * FALL) / FALL_LEN);                 // the same curve, carried on
+    const screenY = hang.top + TURNS * 5 + vh * FALL_BY * c;             // exactly where the real one would be
+    gsap.set(fallBulb, { x: hang.left - sr.left, y: screenY - top, rotation: FALL_SPIN * c });
   };
   master
     .set(bulb, { autoAlpha: 0 }, 'secure')
@@ -823,7 +838,7 @@ export function initJourney({ reduced = false } = {}) {
       [L.desk, SPEED.website],                                          // the website, finished
       [L.unscrew, SPEED.lightbulb],                                     // the lightbulb: customization
       // the bulb falls behind the Admin console: stop there, so the next scroll plays the passwords
-      [L.denied, { seconds: SPEED.security.fall, ease: 'power1.inOut' }],
+      [L.denied, { seconds: SPEED.security.fall, ease: 'none' }],
       // the passwords and the padlock: security, in timed parts (play-speeds.js)
       [L.keyhole, { phases: (() => {
         const len = S('denied') * 0.45, SEC = SPEED.security;
