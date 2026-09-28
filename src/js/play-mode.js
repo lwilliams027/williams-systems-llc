@@ -51,15 +51,14 @@ export function playMode(st, points, opts = {}) {
   // A play is a path of segments (one per step, or one per phase), each with its own
   // length in seconds. The playhead runs along it at a speed (1 = as tuned in
   // play-speeds.js) that rises from rest, and brakes smoothly into the last stop.
-  // Keep scrolling (or hold the scroll, like holding a key) and more stops are added
-  // to the same path: no restart, no jolt; the speed climbs slowly while you keep
-  // going, then eases back down into the final stop: a bell curve.
+  // Keep scrolling (or hold the scroll, like holding a key) while it plays and that
+  // same section speeds up: no restart, no jolt, and it never runs on into the next
+  // one. The speed climbs while you keep going, then eases back down into the stop.
   const BASE = 1.25;     // cruising speed of a single step (the ramps eat the difference)
   const ACCEL = 5;       // how fast it gets up to cruising speed (per second)
-  const BOOST = 0.8;     // how fast it speeds up beyond that while you keep scrolling (slowly)
-  const BRAKE = 5;       // how firmly it slows into the last stop
-  const MAX_AHEAD = 3;   // at most this many stops queued ahead of the playhead
-  let run = null;        // { dir, segs:[{from,to,sec,t0}], T, tau, m, mMax, extra, ends:[], releaseAfter }
+  const BOOST = 3;       // how fast it speeds up beyond that while you keep scrolling
+  const BRAKE = 5;       // how firmly it slows into the stop
+  let run = null;        // { dir, segs:[{from,to,sec,t0}], T, tau, m, mMax, extra }
 
   // the segments that play from y to the stop, going dir
   const segsTo = (y, stop, dir, list) => {
@@ -85,7 +84,6 @@ export function playMode(st, points, opts = {}) {
 
   const addSegs = (segs) => {
     for (const g of segs) { g.t0 = run.T; run.T += Math.max(0.05, g.sec); run.segs.push(g); }
-    run.ends.push(run.T);
     goal = run.segs[run.segs.length - 1].to;
   };
   const yAt = (tau) => {
@@ -105,24 +103,15 @@ export function playMode(st, points, opts = {}) {
     else run.m = want;
     run.tau = Math.min(run.T, run.tau + Math.max(0.12, run.m) * dt);
     window.scrollTo(0, yAt(run.tau));
-    if (run.tau >= run.T) {
-      const rel = run.releaseAfter;
-      run = null; goal = null;
-      if (rel) release(rel);
-    }
+    if (run.tau >= run.T) { run = null; goal = null; }
   };
   gsap.ticker.add(tick);
 
   const step = (dir) => {
     if (releasing || !inside()) return;
     const list = stops();
-    // already playing this way: add the next stop to the same path and speed up a little
+    // already playing this way: speed this section up (up to 2.4×), don't add another
     if (run && run.dir === dir) {
-      if (run.releaseAfter) return;
-      if (run.ends.filter((e) => e > run.tau).length >= MAX_AHEAD) return;
-      const stop = nextStop(goal, dir, list);
-      if (stop === undefined) { run.releaseAfter = dir; return; }
-      addSegs(segsTo(goal, stop, dir, list));
       run.extra++;
       run.mMax = BASE * Math.min(2.4, 1 + 0.3 * run.extra);
       return;
@@ -133,7 +122,7 @@ export function playMode(st, points, opts = {}) {
     const stop = nextStop(y, dir, list);
     // past either end: let go and carry on scrolling the page normally
     if (stop === undefined) { run = null; release(dir); return; }
-    run = { dir, segs: [], T: 0, tau: 0, m: 0, mMax: BASE, extra: 0, ends: [], releaseAfter: 0 };
+    run = { dir, segs: [], T: 0, tau: 0, m: 0, mMax: BASE, extra: 0 };
     addSegs(segsTo(y, stop, dir, list));
   };
 
@@ -148,7 +137,7 @@ export function playMode(st, points, opts = {}) {
 
   // One gesture = one step. A new scroll after a short gap is a new gesture. A scroll
   // that keeps going (a held wheel, a long drag) repeats like a held key: after a
-  // moment it adds a stop, then keeps adding them a little faster.
+  // moment it speeds the section up, and keeps doing so a little faster.
   let lastEvent = 0, holdStart = 0, lastRepeat = 0;
   const gesture = (dir) => {
     const now = performance.now();
@@ -156,7 +145,8 @@ export function playMode(st, points, opts = {}) {
     lastEvent = now;
     if (fresh) { holdStart = lastRepeat = now; step(dir); return; }
     const held = now - holdStart;
-    if (held > 450 && now - lastRepeat > (held > 1600 ? 230 : 380)) { lastRepeat = now; step(dir); }
+    // (only while a section is playing: holding on never starts the next one)
+    if (run && held > 450 && now - lastRepeat > (held > 1600 ? 230 : 380)) { lastRepeat = now; step(dir); }
   };
   // wheelSpeed -1 so a wheel down and a finger swipe up are both "up" (= forward)
   const obs = Observer.create({

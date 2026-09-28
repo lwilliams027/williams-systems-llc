@@ -53,7 +53,7 @@ export const HOME = {
   // Support → hyperspace → the stars form the logo → "Let's build yours." In seconds, part by part:
   finale: {
     dissolve: 0.5,   // Support falls away into the starfield
-    warp:     1.4,   // the hyperspace streaks
+    warp:     0.6,   // the hyperspace streaks
     form:     1.6,   // the stars swirl into the logo, the headline and button come in
   },
 };

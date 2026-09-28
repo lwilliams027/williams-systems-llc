@@ -76,7 +76,7 @@ const LEN = {             // chapter lengths, in screens of scroll
   toQuotes: 0.7,          // out the other side of the keyhole: the testimonials carousel
   quotes:  2.4,           // the carousel turns, one client quote to the front at a time
   toEnd:   0.7,           // the last step dissolves into the starfield
-  warp:    1.4,           // the starfield warps: streaks rush out and hold, then settle
+  warp:    0.9,           // the starfield warps
   form:    1.4,           // the stars swirl in and assemble the logo
   reveal:  1.0,           // headline flies together, services orbit, call to action
   hold:    0.5,
