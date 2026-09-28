@@ -6,8 +6,8 @@
    it forward (or back) to the next key point on its own, then waits for
    the next scroll. Outside the story the page scrolls normally.
 
-   Turn it on with ?play in the address (it sticks for the visit), and
-   off again with ?play=0.
+   It's on by default. ?play=0 turns it off (it sticks for the visit),
+   and ?play turns it back on.
    ===================================================================== */
 import { gsap } from 'gsap';
 import { Observer } from 'gsap/Observer';
@@ -19,10 +19,9 @@ gsap.registerPlugin(Observer, ScrollToPlugin);
 export const PLAY = (() => {
   const q = new URLSearchParams(location.search).get('play');
   try {
-    if (q === '0') sessionStorage.removeItem('ws-play');
-    else if (q !== null) sessionStorage.setItem('ws-play', '1');
-    return sessionStorage.getItem('ws-play') === '1';
-  } catch { return q !== null && q !== '0'; }
+    if (q !== null) sessionStorage.setItem('ws-play', q === '0' ? '0' : '1');
+    return sessionStorage.getItem('ws-play') !== '0';
+  } catch { return q !== '0'; }
 })();
 
 /**
