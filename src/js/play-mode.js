@@ -60,6 +60,7 @@ export function playMode(st, points, opts = {}) {
   const BOOST = 3;       // how fast it speeds up beyond that while you keep scrolling
   const BRAKE = 5;       // how firmly it slows into the stop
   let run = null;        // { dir, segs:[{from,to,sec,t0}], T, tau, m, mMax, extra }
+  let boostedEnd = 0;    // when a sped-up section finished (its burst of swipes may still be arriving)
 
   // the segments that play from y to the stop, going dir
   const segsTo = (y, stop, dir, list) => {
@@ -105,11 +106,11 @@ export function playMode(st, points, opts = {}) {
     else run.m = want;
     run.tau = Math.min(run.T, run.tau + Math.max(0.12, run.m) * dt);
     window.scrollTo(0, yAt(run.tau));
-    if (run.tau >= run.T) { run = null; goal = null; }
+    if (run.tau >= run.T) { boostedEnd = run.extra > 0 ? performance.now() : 0; run = null; goal = null; }
   };
   gsap.ticker.add(tick);
 
-  const step = (dir) => {
+  const step = (dir, gap = Infinity) => {
     if (releasing || !inside()) return;
     const list = stops();
     // already playing this way: speed this section up (up to 2.4×), don't add another
@@ -118,6 +119,10 @@ export function playMode(st, points, opts = {}) {
       run.mMax = BASE * Math.min(2.4, 1 + 0.3 * run.extra);
       return;
     }
+    // a burst of swipes that sped the last section up never starts the next one: while the
+    // swipes keep coming (less than 0.4 s apart) they're ignored; a pause, then a swipe, plays on
+    if (!run && boostedEnd && gap < 400) return;
+    boostedEnd = 0;
     // a fresh play (or a change of direction): start from where it is now
     gsap.killTweensOf(window);
     const y = window.scrollY;
@@ -132,7 +137,7 @@ export function playMode(st, points, opts = {}) {
     releasing = true;
     run = null;
     goal = null;
-    obs.disable();
+    lock(false);
     const y = dir > 0 ? st.end + Math.round(window.innerHeight * 0.6) : Math.max(0, st.start - Math.round(window.innerHeight * 0.6));
     gsap.to(window, { scrollTo: { y, autoKill: false }, duration: 0.8, ease: 'power2.inOut', overwrite: true, onComplete: () => { releasing = false; } });
   };
@@ -143,9 +148,10 @@ export function playMode(st, points, opts = {}) {
   let lastEvent = 0, holdStart = 0, lastRepeat = 0;
   const gesture = (dir) => {
     const now = performance.now();
-    const fresh = now - lastEvent > 180;
+    const gap = now - lastEvent;
+    const fresh = gap > 180;
     lastEvent = now;
-    if (fresh) { holdStart = lastRepeat = now; step(dir); return; }
+    if (fresh) { holdStart = lastRepeat = now; step(dir, gap); return; }
     const held = now - holdStart;
     // (only while a section is playing: holding on never starts the next one)
     if (run && held > 450 && now - lastRepeat > (held > 1600 ? 230 : 380)) { lastRepeat = now; step(dir); }
@@ -155,13 +161,22 @@ export function playMode(st, points, opts = {}) {
     target: window, type: 'wheel,touch', wheelSpeed: -1, tolerance: 10, preventDefault: true,
     onUp: () => gesture(1), onDown: () => gesture(-1),
   });
+  // While a story has the page, the browser must never scroll it itself: a fast or sloppy
+  // swipe could otherwise start a native scroll before the Observer can cancel it, and the
+  // story would fall back to following the finger (scroll-to-animate). So the page is
+  // locked for touch (touch-action: none) and every touchmove is cancelled as well.
+  const lock = (on) => {
+    if (on) obs.enable(); else obs.disable();
+    document.documentElement.classList.toggle('play-lock', on);
+  };
+  window.addEventListener('touchmove', (e) => { if (obs.isEnabled && e.cancelable) e.preventDefault(); }, { passive: false, capture: true });
   window.addEventListener('keydown', (e) => {
     if (!obs.isEnabled) return;
     if (['ArrowDown', 'PageDown', ' '].includes(e.key)) { e.preventDefault(); step(1); }
     if (['ArrowUp', 'PageUp'].includes(e.key)) { e.preventDefault(); step(-1); }
   });
   // take over only while the story is on screen; hand back the page outside it
-  const sync = () => { if (releasing || goal !== null) return; if (inside()) obs.enable(); else obs.disable(); };
+  const sync = () => { if (releasing || goal !== null) return; lock(inside()); };
   window.addEventListener('scroll', sync, { passive: true });
   ScrollTrigger.addEventListener('refresh', sync);                           // positions are only known once measured
   sync();

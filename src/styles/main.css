@@ -1772,3 +1772,6 @@ fieldset.field .field-label { margin-bottom: 8px; }
 .secure-bulb .bulb-glass { fill: rgba(170, 180, 200, 0.14); stroke: #7A8292; }
 .secure-bulb .bulb-fil { stroke: #6B7385; }
 .secure-bulb circle { display: none; }
+
+/* play mode: while a story has the page, touches never scroll it natively (see play-mode.js) */
+html.play-lock, html.play-lock body { touch-action: none; overscroll-behavior: none; }
