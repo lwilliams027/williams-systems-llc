@@ -52,15 +52,17 @@ export function playMode(st, points, opts = {}) {
   // A play is a path of segments (one per step, or one per phase), each with its own
   // length in seconds. The playhead runs along it at a speed (1 = as tuned in
   // play-speeds.js) that rises from rest, and brakes smoothly into the last stop.
-  // Keep scrolling (or hold the scroll, like holding a key) while it plays and that
-  // same section speeds up: no restart, no jolt, and it never runs on into the next
-  // one. The speed climbs while you keep going, then eases back down into the stop.
+  // Scroll again while it plays and that section speeds up (no restart, no jolt). Keep
+  // on scrolling and, as the section ends, it flows straight on into the next one
+  // without stopping, still speeding up. Stop scrolling and the speed eases back
+  // down into the next stop: a bell curve. (A quick double scroll only speeds up
+  // the section you're on: it carries on only while you're still scrolling.)
   const BASE = 1.25;     // cruising speed of a single step (the ramps eat the difference)
   const ACCEL = 5;       // how fast it gets up to cruising speed (per second)
   const BOOST = 3;       // how fast it speeds up beyond that while you keep scrolling
   const BRAKE = 5;       // how firmly it slows into the stop
   let run = null;        // { dir, segs:[{from,to,sec,t0}], T, tau, m, mMax, extra }
-  let boostedEnd = 0;    // when a sped-up section finished (its burst of swipes may still be arriving)
+  const ACTIVE = 450;    // ms since the last scroll event that still counts as "still scrolling"
 
   // the segments that play from y to the stop, going dir
   const segsTo = (y, stop, dir, list) => {
@@ -101,16 +103,31 @@ export function playMode(st, points, opts = {}) {
     if (gsap.isTweening(window)) { run = null; goal = null; return; }        // something else took the page (e.g. Skip)
     const dt = Math.min(0.05, deltaMs / 1000);
     const k = opts.scale || 1;                                                 // a slower page ramps up and down more gently too
+    // "still scrolling": you've scrolled at least twice more since it started (or held it), and recently
+    const active = run.extra >= 2 && performance.now() - lastEvent < ACTIVE && lastDir === run.dir;
+    if (active) {
+      // still scrolling as the section nears its end: add the next one before it starts braking
+      const brakeLen = (run.m * run.m) / (2 * (BRAKE / k));
+      if (!run.atEnd && run.T - run.tau < brakeLen + 0.15) {
+        const list = stops(), stop = nextStop(goal, run.dir, list);
+        if (stop) addSegs(segsTo(goal, stop, run.dir, list)); else run.atEnd = true;
+      }
+    } else run.mMax = Math.max(BASE, run.mMax - 1.2 * dt);                   // stopped scrolling: ease back down
     const want = Math.min(run.mMax, Math.sqrt(2 * (BRAKE / k) * Math.max(0, run.T - run.tau)));
     if (run.m < want) run.m = Math.min(want, run.m + (run.m < BASE ? ACCEL / k : BOOST) * dt);
     else run.m = want;
     run.tau = Math.min(run.T, run.tau + Math.max(0.12, run.m) * dt);
     window.scrollTo(0, yAt(run.tau));
-    if (run.tau >= run.T) { boostedEnd = run.extra > 0 ? performance.now() : 0; run = null; goal = null; }
+    if (run.tau >= run.T) {
+      // scrolled on past the end of the story: carry on down (or up) the page
+      const rel = run.atEnd && performance.now() - lastEvent < ACTIVE ? run.dir : 0;
+      run = null; goal = null;
+      if (rel) release(rel);
+    }
   };
   gsap.ticker.add(tick);
 
-  const step = (dir, gap = Infinity) => {
+  const step = (dir) => {
     if (releasing || !inside()) return;
     const list = stops();
     // already playing this way: speed this section up (up to 2.4×), don't add another
@@ -119,17 +136,13 @@ export function playMode(st, points, opts = {}) {
       run.mMax = BASE * Math.min(2.4, 1 + 0.3 * run.extra);
       return;
     }
-    // a burst of swipes that sped the last section up never starts the next one: while the
-    // swipes keep coming (less than 0.4 s apart) they're ignored; a pause, then a swipe, plays on
-    if (!run && boostedEnd && gap < 400) return;
-    boostedEnd = 0;
     // a fresh play (or a change of direction): start from where it is now
     gsap.killTweensOf(window);
     const y = window.scrollY;
     const stop = nextStop(y, dir, list);
     // past either end: let go and carry on scrolling the page normally
     if (stop === undefined) { run = null; release(dir); return; }
-    run = { dir, segs: [], T: 0, tau: 0, m: 0, mMax: BASE, extra: 0 };
+    run = { dir, segs: [], T: 0, tau: 0, m: 0, mMax: BASE, extra: 0, atEnd: false };
     addSegs(segsTo(y, stop, dir, list));
   };
 
@@ -145,13 +158,12 @@ export function playMode(st, points, opts = {}) {
   // One gesture = one step. A new scroll after a short gap is a new gesture. A scroll
   // that keeps going (a held wheel, a long drag) repeats like a held key: after a
   // moment it speeds the section up, and keeps doing so a little faster.
-  let lastEvent = 0, holdStart = 0, lastRepeat = 0;
+  let lastEvent = 0, lastDir = 0, holdStart = 0, lastRepeat = 0;
   const gesture = (dir) => {
     const now = performance.now();
-    const gap = now - lastEvent;
-    const fresh = gap > 180;
-    lastEvent = now;
-    if (fresh) { holdStart = lastRepeat = now; step(dir, gap); return; }
+    const fresh = now - lastEvent > 180;
+    lastEvent = now; lastDir = dir;
+    if (fresh) { holdStart = lastRepeat = now; step(dir); return; }
     const held = now - holdStart;
     // (only while a section is playing: holding on never starts the next one)
     if (run && held > 450 && now - lastRepeat > (held > 1600 ? 230 : 380)) { lastRepeat = now; step(dir); }
