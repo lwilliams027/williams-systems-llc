@@ -130,6 +130,7 @@ await sql(readFileSync(p('supabase/account.sql'), 'utf8'));
 await sql(readFileSync(p('supabase/finances.sql'), 'utf8'));
 await sql(readFileSync(p('supabase/accounts.sql'), 'utf8'));
 await sql(readFileSync(p('supabase/stripe.sql'), 'utf8'));
+await sql(readFileSync(p('supabase/hardening.sql'), 'utf8'));   // last: overrides earlier functions
 console.log('  tables, security rules, storage bucket, and realtime ready');
 
 // ---------- 5. auth settings ----------

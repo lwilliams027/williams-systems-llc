@@ -74,7 +74,7 @@ export function fileList(files = []) {
     el('a', { class: 'tkf', target: '_blank', rel: 'noopener', 'aria-disabled': 'true', title: f.name },
       el('span', { class: 'tkf-thumb', text: extOf(f.name) }),
       el('span', { class: 'tkf-info' }, el('span', { class: 'tkf-name', text: f.name }), el('small', { text: formatBytes(f.size) }))))));
-  supabase.storage.from(BUCKET).createSignedUrls(files.map((f) => f.path), 60 * 60).then(({ data }) => {
+  supabase.storage.from(BUCKET).createSignedUrls(files.map((f) => f.path), 60 * 60, { download: true }).then(({ data }) => {
     (data || []).forEach((d, i) => {
       const a = ul.children[i]?.querySelector('a');
       if (!a || !d.signedUrl) return;

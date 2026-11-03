@@ -12,3 +12,7 @@ export const BUCKET = 'inquiry-files';
 export const supabase = isConfigured
   ? createClient(url, key, { auth: { persistSession: true, storageKey: 'ws-team-auth' } })
   : null;
+
+// invite links last 30 days; sending one again starts the 30 days over
+export const renewInvite = (id) =>
+  supabase.from('invites').update({ expires_at: new Date(Date.now() + 30 * 864e5).toISOString() }).eq('id', id);

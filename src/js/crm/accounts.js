@@ -11,7 +11,7 @@
    where they set a password and land in their portal. The database only
    accepts sign-ups that come through the link.
    ===================================================================== */
-import { supabase } from '../supabase.js';
+import { supabase, renewInvite } from '../supabase.js';
 import { el, fill, toast, modal, field, initials, fmtDate, timeAgo, money, STATUS, armedButton, REDUCED } from './util.js';
 import { gsap } from 'gsap';
 
@@ -67,7 +67,7 @@ async function ensureInvite(member) {
     const res = await supabase.from('invites').insert({ email: member.email, role: 'client', invited_by: user.id }).select().single();
     if (res.error) { toast(`Couldn’t create an invite for ${member.email}: ${res.error.message}`, 'error'); return { ...member, invite: null }; }
     inv = res.data;
-  }
+  } else await renewInvite(inv.id);
   if (member.invite_id !== inv.id) await supabase.from('account_members').update({ invite_id: inv.id }).eq('id', member.id);
   return { ...member, invite_id: inv.id, invite: inv };
 }

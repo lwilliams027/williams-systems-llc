@@ -17,7 +17,7 @@
    All visitor-supplied text is rendered with textContent (never innerHTML).
    ===================================================================== */
 import { gsap } from 'gsap';
-import { supabase, isConfigured, BUCKET } from './supabase.js';
+import { supabase, isConfigured, BUCKET, renewInvite } from './supabase.js';
 import {
   el, $, $$, REDUCED, STATUS, PENDING, LIVE, statusPill, money, moneyShort, price, fmtDate, fmtTime,
   timeAgo, dueText, daysFrom, ymd, toast, armedButton, icon, EVENT_KINDS, fill, initials,
@@ -1058,7 +1058,8 @@ async function deleteInquiry(q) {
 async function loadFileLinks(q) {
   const files = Array.isArray(q.files) ? q.files : [];
   if (!files.length) return;
-  const { data, error } = await supabase.storage.from(BUCKET).createSignedUrls(files.map((f) => f.path), 60 * 60);
+  // download: the public sent these, so never open them as a page
+  const { data, error } = await supabase.storage.from(BUCKET).createSignedUrls(files.map((f) => f.path), 60 * 60, { download: true });
   if (state.selectedId !== q.id) return;
   if (error) { toast(`Couldn’t load file links: ${error.message}`, 'error'); return; }
   data.forEach((entry, i) => {
@@ -1257,7 +1258,7 @@ async function invite(email, role, request) {
     const { data, error } = await supabase.from('invites').insert({ email, role, invited_by: state.me.id }).select().single();
     if (error) { toast(`Couldn’t create the invite: ${error.message}`, 'error'); return false; }
     row = data;
-  }
+  } else await renewInvite(row.id);
   if (request) await setRequest(request, 'invited', false);
   $('#invitedEmail').textContent = row.email;
   $('#inviteLink').value = inviteUrl(row.token);

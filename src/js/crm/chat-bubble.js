@@ -267,7 +267,8 @@ export function messenger({ me, owner, getContracts, onRead }) {
     for (const [cid, ch] of typingChannels) if (!want.has(cid)) { supabase.removeChannel(ch); typingChannels.delete(cid); }
     for (const cid of want) {
       if (typingChannels.has(cid)) continue;
-      const ch = supabase.channel(`typing:${cid}`, { config: { broadcast: { self: false } } })
+      // private: only people on the project may join (realtime.messages policies in hardening.sql)
+      const ch = supabase.channel(`typing:${cid}`, { config: { private: true, broadcast: { self: false } } })
         .on('broadcast', { event: 'typing' }, ({ payload }) => {
           if (!payload || payload.from === me.id) return;
           if (!st.typing.has(cid)) st.typing.set(cid, new Map());

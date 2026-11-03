@@ -9,7 +9,9 @@ import { DrawSVGPlugin } from 'gsap/DrawSVGPlugin';
 gsap.registerPlugin(DrawSVGPlugin);
 
 const MAX_FILES = 10;
-const MAX_BYTES = 25 * 1024 * 1024;
+const MAX_BYTES = 10 * 1024 * 1024;
+// matches the inquiry-files bucket's allowed types (supabase/hardening.sql)
+const OK_TYPE = /^(application\/(pdf|zip|x-zip-compressed|msword|vnd\.ms-excel|vnd\.ms-powerpoint|vnd\.openxmlformats-officedocument\.[\w.]+)|text\/(plain|csv)|image\/(png|jpeg|webp|gif|heic|heif)|video\/(mp4|quicktime))$/;
 const EMAIL_RE = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
 const FALLBACK_EMAIL = 'lwilliams@williamssystems.dev';
 
@@ -56,7 +58,8 @@ export function initInquiryForm({ reduced = false } = {}) {
     const added = [];
     for (const file of fileList) {
       if (items.length >= MAX_FILES) { skipped.push(`${file.name} (max ${MAX_FILES} files)`); continue; }
-      if (file.size > MAX_BYTES)     { skipped.push(`${file.name} (over 25 MB)`); continue; }
+      if (file.size > MAX_BYTES)     { skipped.push(`${file.name} (over 10 MB)`); continue; }
+      if (!OK_TYPE.test(file.type))  { skipped.push(`${file.name} (send PDFs, docs, images, zip or video)`); continue; }
       if (file.size === 0)           { skipped.push(`${file.name} (empty)`); continue; }
       if (items.some((it) => it.file.name === file.name && it.file.size === file.size)) continue;
       const item = { file, status: 'ready', el: null };
@@ -225,6 +228,7 @@ export function initInquiryForm({ reduced = false } = {}) {
         ...row,
         files: results.map((r) => r.value),
       });
+      if (error && /rate_limited/.test(error.message)) throw new Error(`We’ve had a lot of messages just now. Please try again in a few minutes or email ${FALLBACK_EMAIL}.`);
       if (error) throw new Error(`We couldn’t save your inquiry (${error.message}). Please try again or email ${FALLBACK_EMAIL}.`);
 
       setProgress(1);

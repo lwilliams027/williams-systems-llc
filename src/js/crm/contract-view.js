@@ -13,7 +13,7 @@
    read-only, except chat and tickets. The database enforces that either way.
    ===================================================================== */
 import { gsap } from 'gsap';
-import { supabase } from '../supabase.js';
+import { supabase, renewInvite } from '../supabase.js';
 import {
   el, $, $$, REDUCED, STATUS, PENDING, statusPill, money, price, fmtDate, fmtTime, timeAgo, dueText,
   toast, armedButton, modal, field, icon, initials, EVENT_KINDS, ymd, day, fill, add, richText, meetingName, formatBytes,
@@ -991,7 +991,7 @@ export async function inviteClient(email) {
     const res = await supabase.from('invites').insert({ email, role: 'client', invited_by: user.id }).select().single();
     if (res.error) return toast(`Couldn’t create the invite: ${res.error.message}`, 'error');
     open = res.data;
-  }
+  } else await renewInvite(open.id);
   const link = `${SITE}signup.html?invite=${open.token}`;
   const input = el('input', { type: 'text', readonly: true, value: link, 'aria-label': 'Invite link', class: 'crm-link' });
   const mail = `mailto:${encodeURIComponent(email)}?subject=${encodeURIComponent('Your Williams Systems project page')}&body=${encodeURIComponent(`Hi,\n\nYour project page is ready. Create your account here to see the scope, progress, and chat with me:\n${link}\n\nLandon`)}`;

@@ -1,5 +1,39 @@
-import { defineConfig } from 'vite';
+import { defineConfig, loadEnv } from 'vite';
 import { resolve } from 'node:path';
+import { createHash } from 'node:crypto';
+
+// Content-Security-Policy for every built page. GitHub Pages can't send headers,
+// so it goes in a <meta> tag; each page's own inline scripts are allowed by hash
+// and nothing else inline or from another site can run.
+function csp() {
+  let supa = 'https://*.supabase.co';
+  return {
+    name: 'csp-meta',
+    apply: 'build',
+    configResolved(c) { supa = loadEnv(c.mode, c.root, 'VITE_').VITE_SUPABASE_URL || supa; },
+    transformIndexHtml: {
+      order: 'post',
+      handler(html) {
+        const hashes = [...html.matchAll(/<script(?![^>]*\bsrc=)(?![^>]*application\/ld\+json)[^>]*>([\s\S]*?)<\/script>/g)]
+          .map((m) => `'sha256-${createHash('sha256').update(m[1]).digest('base64')}'`);
+        const policy = [
+          "default-src 'self'",
+          `script-src 'self' ${hashes.join(' ')}`.trim(),
+          "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+          "font-src 'self' https://fonts.gstatic.com data:",
+          `img-src 'self' data: blob: ${supa}`,
+          `media-src 'self' blob: ${supa}`,
+          `connect-src 'self' ${supa} ${supa.replace(/^https:/, 'wss:')}`,
+          "object-src 'none'",
+          "base-uri 'self'",
+          "form-action 'self'",
+          'upgrade-insecure-requests',
+        ].join('; ');
+        return html.replace(/<head>/i, `<head>\n    <meta http-equiv="Content-Security-Policy" content="${policy}" />`);
+      },
+    },
+  };
+}
 
 // Multi-page site: add each new page to `input` as it is built
 // (e.g. services: resolve(import.meta.dirname, 'services.html')).
@@ -7,6 +41,7 @@ export default defineConfig({
   // Relative base so the build works at a domain root or a subfolder
   // (e.g. GitHub Pages: lwilliams027.github.io/williams-systems-llc/).
   base: './',
+  plugins: [csp()],
   server: {
     port: 5173,
     strictPort: false,

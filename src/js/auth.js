@@ -39,7 +39,8 @@ function busy(form, on, label) {
 const validEmail = (v) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
 
 // what Supabase says, in plain words
-function friendly(err) {
+// fromUrl: the text came from the address bar, so anyone could have written it; never show it as-is
+function friendly(err, fromUrl = false) {
   const m = String(err?.message || err || '');
   if (/invalid login credentials/i.test(m)) return 'Wrong email or password.';
   if (/email not confirmed/i.test(m)) return 'Please confirm your email first. Check your inbox for the link.';
@@ -48,7 +49,9 @@ function friendly(err) {
   if (/already registered|already been registered/i.test(m)) return 'There’s already an account for this email. Sign in instead.';
   if (/rate limit|too many/i.test(m)) return 'Too many tries. Wait a minute and try again.';
   if (/password should be at least/i.test(m)) return 'Use a password with at least 8 characters.';
-  return m || 'Something went wrong. Please try again.';
+  if (/email_change_blocked/i.test(m)) return 'To change your email, message Williams Systems.';
+  if (/expired|otp_expired/i.test(m)) return 'That link has expired. Ask for a new one.';
+  return fromUrl ? 'That link didn’t work. Please try again.' : m || 'Something went wrong. Please try again.';
 }
 
 // Where someone goes once they're signed in: owners to the dashboard, clients to their project portal.
@@ -78,7 +81,7 @@ function wireGoogle(redirectPage, form) {
 function urlError() {
   const p = new URLSearchParams(location.hash.slice(1) + '&' + location.search.slice(1));
   const d = p.get('error_description') || p.get('error');
-  return d ? friendly(d.replace(/\+/g, ' ')) : '';
+  return d ? friendly(d.replace(/\+/g, ' '), true) : '';
 }
 
 /* ---------- pages ---------- */
