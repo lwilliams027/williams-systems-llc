@@ -322,7 +322,8 @@ async function work(job) {
     const failed = checks.filter((c) => !c.ok);
     details.check = checks.length ? (failed.length ? `failed in ${failed.map((c) => c.name).join(', ')}` : 'passed') : 'none configured';
     const sensitive = changed.flatMap((c) => c.files.filter((f) => SENSITIVE.test(f)).map((f) => `${c.repo.name}/${f}`));
-    details.needsApproval = sensitive.length ? `touches ${sensitive.join(', ')}` : null;
+    details.needsApproval = sensitive.length ? `touches ${sensitive.join(', ')}`
+      : !RESEND ? 'was made while email is off (silence only counts as a yes when you were emailed)' : null;
 
     if (failed.length) {
       details.error = failed.map((c) => `${c.name}: ${c.out}`).join('\n\n');
