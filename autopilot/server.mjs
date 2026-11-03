@@ -216,8 +216,10 @@ async function checkReplies() {
     await imap.connect();
     const lock = await imap.getMailboxLock('INBOX');
     try {
-      const uids = await imap.search({ seen: false }, { uid: true });
-      for (const uid of uids || []) {
+      // only unread mail FROM an owner is opened and marked read; the rest of the inbox is left alone
+      const uids = [];
+      for (const from of OWNERS) uids.push(...((await imap.search({ seen: false, from }, { uid: true })) || []));
+      for (const uid of uids) {
         const msg = await imap.fetchOne(String(uid), { source: true }, { uid: true });
         found.push(await simpleParser(msg.source));
         await imap.messageFlagsAdd(String(uid), ['\\Seen'], { uid: true });
