@@ -22,18 +22,18 @@ const order = (c) => (LIVE.includes(c.status) ? 0 : PENDING.includes(c.status) ?
 boot();
 
 async function boot() {
-  if (!isConfigured) return location.replace('login.html');
+  if (!isConfigured) return location.replace('login');
   const { data: { session } } = await supabase.auth.getSession();
-  if (!session) return location.replace('login.html?next=portal.html');
+  if (!session) return location.replace('login?next=portal');
   const { data: role } = await supabase.rpc('my_role');
-  if (role === 'owner') return location.replace('admin.html');
+  if (role === 'owner') return location.replace('admin');
   st.me = session.user;
 
   const { data: me } = await supabase.from('profiles').select('full_name, email').eq('id', st.me.id).maybeSingle();
   $('#whoami').textContent = me?.full_name || me?.email || st.me.email;
-  const signOut = async () => { await supabase.auth.signOut(); location.assign('login.html'); };
+  const signOut = async () => { await supabase.auth.signOut(); location.assign('login'); };
   $('#signOut').addEventListener('click', signOut);
-  supabase.auth.onAuthStateChange((event) => { if (event === 'SIGNED_OUT') location.replace('login.html'); });
+  supabase.auth.onAuthStateChange((event) => { if (event === 'SIGNED_OUT') location.replace('login'); });
 
   st.acct = accountMenu($('#acctMount'), { me: st.me, owner: false, onNameChange: (n) => { $('#whoami').textContent = n; } });
   st.bell = notificationBell($('#bellMount'), { me: st.me, onOpen: openNotification });
@@ -126,6 +126,6 @@ function empty() {
     el('h1', { text: 'Your project page is on its way.' }),
     el('p', { text: 'Once we agree on your project, this page becomes its home: the scope of work, progress, dates, requests, and a chat with Landon. You’ll get a notification the moment it’s ready.' }),
     el('div', { class: 'portal-empty-actions' },
-      el('a', { class: 'btn btn-primary', href: 'contact.html', text: 'Contact us' }),
+      el('a', { class: 'btn btn-primary', href: 'contact', text: 'Contact us' }),
       el('a', { class: 'btn btn-ghost', href: './', text: 'Back to the website' }))));
 }

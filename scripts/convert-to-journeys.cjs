@@ -97,7 +97,7 @@ function journey(slug, d, [style, tint, seq, label]) {
             <p class="sj-k mono">${d.crumb}</p>
             <h1 class="sj-h" id="pageTitle">${d.intro.h1}</h1>
             <p class="sj-p">${d.intro.p}</p>
-            <div class="sj-cta"><a class="btn btn-primary" href="contact.html#book">Get started</a><span class="tour-hint mono">Scroll to take the tour ↓</span></div>
+            <div class="sj-cta"><a class="btn btn-primary" href="contact#book">Get started</a><span class="tour-hint mono">Scroll to take the tour ↓</span></div>
           </div>
           <div class="sj-visual" aria-hidden="true">${frag(d.worldClass + ' fj-over', d.overview.html, d.overview)}</div>
         </div>`);
@@ -117,7 +117,7 @@ function journey(slug, d, [style, tint, seq, label]) {
             <p class="sj-k mono">${d.site.k}</p>
             <h2 class="sj-h">${d.site.h}</h2>
             <p class="sj-p">${d.site.p}</p>
-            <div class="sj-cta"><a class="btn btn-primary" href="contact.html#book">Book a free call</a><a class="btn btn-ghost" href="contact.html#message">Send a message</a></div>
+            <div class="sj-cta"><a class="btn btn-primary" href="contact#book">Book a free call</a><a class="btn btn-ghost" href="contact#message">Send a message</a></div>
           </div>
           <div class="sj-visual" aria-hidden="true">
             <div class="sj-board fj-status"><div class="sj-board-head"><span>Project</span><span>Status</span></div><div class="sj-row"><span class="sj-flap">${label}</span><span class="sj-flap st" data-sj="flap" data-color="#4ADE80" data-text="LIVE"></span></div></div>

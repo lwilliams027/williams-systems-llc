@@ -33,7 +33,7 @@ const add = (q, a, topic, url) => {
 };
 {
   const home = read('index.html');
-  for (const m of home.matchAll(/<details class="faq-item"[^>]*><summary>([\s\S]*?)<\/summary><p>([\s\S]*?)<\/p><\/details>/g)) add(m[1], m[2], 'General', 'faq.html');
+  for (const m of home.matchAll(/<details class="faq-item"[^>]*><summary>([\s\S]*?)<\/summary><p>([\s\S]*?)<\/p><\/details>/g)) add(m[1], m[2], 'General', 'faq');
 }
 for (const slug of [...PRODUCTS, ...SOLUTIONS]) {
   const src = read(`${slug}.html`);
@@ -89,18 +89,18 @@ const addAssets = (src, css, js) => {
   f = f.replace(/<title>[^<]*<\/title>/, `<title>${title}</title>`)
     .replace(/(<meta (?:name|property)="(?:description|og:description|twitter:description)" content=")[^"]*(")/g, `$1${desc}$2`)
     .replace(/(<meta (?:property|name)="(?:og:title|twitter:title)" content=")[^"]*(")/g, `$1${title}$2`)
-    .split(`${BASE}about.html`).join(`${BASE}faq.html`)
+    .split(`${BASE}about`).join(`${BASE}faq`)
     // FAQ doesn't need About's tour assets
     .replace(/\n  <link rel="stylesheet" href="\/src\/styles\/(?:tour|product-worlds|about)\.css" \/>/g, '')
     .replace(/\n  <script type="module" src="\/src\/js\/site-tour\.js"><\/script>/g, '');
   const ld = { '@context': 'https://schema.org', '@graph': [
-    { '@type': 'FAQPage', '@id': BASE + 'faq.html#faq', url: BASE + 'faq.html', mainEntity: KB.map((k) => ({ '@type': 'Question', name: k.q, acceptedAnswer: { '@type': 'Answer', text: k.a } })) },
-    { '@type': 'BreadcrumbList', itemListElement: [{ '@type': 'ListItem', position: 1, name: 'Home', item: BASE }, { '@type': 'ListItem', position: 2, name: 'FAQ', item: BASE + 'faq.html' }] },
+    { '@type': 'FAQPage', '@id': BASE + 'faq#faq', url: BASE + 'faq', mainEntity: KB.map((k) => ({ '@type': 'Question', name: k.q, acceptedAnswer: { '@type': 'Answer', text: k.a } })) },
+    { '@type': 'BreadcrumbList', itemListElement: [{ '@type': 'ListItem', position: 1, name: 'Home', item: BASE }, { '@type': 'ListItem', position: 2, name: 'FAQ', item: BASE + 'faq' }] },
   ] };
   f = f.replace(/<script type="application\/ld\+json">[\s\S]*?<\/script>/, `<script type="application/ld+json">${JSON.stringify(ld)}</script>`);
   f = f.replace(/ aria-current="page"/g, '');
   const cards = KB.map((k, i) => `          <details class="faq-item qa-item" data-topic="${esc(k.topic)}"${i === 0 ? ' open' : ''}><summary><span class="qa-q">${esc(k.q)}</span><span class="qa-icon" aria-hidden="true"></span></summary><div class="qa-a"><p>${esc(k.a)}</p>${k.url !== 'faq.html' ? `<a class="qa-more" href="${k.url}">More about ${esc(k.topic)} →</a>` : ''}</div></details>`).join('\n');
-  const JOURNEY = new Function(`return \`${fs.readFileSync(path.join(__dirname, 'journeys', 'faq.html'), 'utf8').replace(/\r\n/g, '\n').trimEnd()}\`;`)();
+  const JOURNEY = new Function(`return \`${fs.readFileSync(path.join(__dirname, 'journeys', 'faq'), 'utf8').replace(/\r\n/g, '\n').trimEnd()}\`;`)();
   const main = `  <main id="main" class="faq-page">
 ${JOURNEY}
 
@@ -110,7 +110,7 @@ ${JOURNEY}
           <p class="scene-eyebrow mono">Questions &amp; answers</p>
           <h2 class="ask-title" id="askTitle">Ask us <span>anything.</span></h2>
           <p class="pg-p">Type a question the way you'd ask it. Answers come straight from what we tell every client, and if we don't have one written down, you can ask us on a free call.</p>
-          <div class="qa-ask"><p>Rather talk it through?</p><a class="btn btn-primary btn-sm" href="contact.html#book">Book a free call</a><a class="qa-mail" href="mailto:lwilliams@williamssystems.dev">lwilliams@williamssystems.dev</a></div>
+          <div class="qa-ask"><p>Rather talk it through?</p><a class="btn btn-primary btn-sm" href="contact#book">Book a free call</a><a class="qa-mail" href="mailto:lwilliams@williamssystems.dev">lwilliams@williamssystems.dev</a></div>
         </div>
         <div class="ask-box" data-ask>
           <div class="ask-chat" aria-live="polite">
@@ -198,9 +198,9 @@ if (false) {   // about.html is now built by scripts/build-about-section.cjs
     cap('site', 'End to end', 'Start to finish, <span>one place.</span>', 'Design, build, launch, and support in one place, so nothing gets lost between vendors.', 1.04),
   ];
   const whatCards = [
-    ['websites.html', 'Websites', 'Fast, custom sites that win you work'], ['web-apps.html', 'Web apps', 'Dashboards, portals, and internal tools'],
-    ['saas.html', 'SaaS platforms', 'Subscriptions and billing built in'], ['mobile-apps.html', 'Mobile apps', 'Apps for iPhone and Android'],
-    ['cloud.html', 'Cloud & DevOps', 'Hosting, deployments, and backups'], ['personalized-ai.html', 'Personalized AI', 'AI assistants built around you'],
+    ['websites', 'Websites', 'Fast, custom sites that win you work'], ['web-apps', 'Web apps', 'Dashboards, portals, and internal tools'],
+    ['saas', 'SaaS platforms', 'Subscriptions and billing built in'], ['mobile-apps', 'Mobile apps', 'Apps for iPhone and Android'],
+    ['cloud', 'Cloud & DevOps', 'Hosting, deployments, and backups'], ['personalized-ai', 'Personalized AI', 'AI assistants built around you'],
   ];
   const main = `  <main id="main" class="product-page about-page">
     <section class="about-hero">
@@ -209,7 +209,7 @@ if (false) {   // about.html is now built by scripts/build-about-section.cjs
           <p class="scene-eyebrow mono">About · Who we are</p>
           <h1 class="tour-h1 about-h1" id="pageTitle">${H1}</h1>
           <p class="pg-lede">${LEDE}</p>
-          <div class="pg-actions"><a class="btn btn-primary" href="contact.html#book">Book a free call</a><a class="btn btn-ghost" href="#how">See how we work</a></div>
+          <div class="pg-actions"><a class="btn btn-primary" href="contact#book">Book a free call</a><a class="btn btn-ghost" href="#how">See how we work</a></div>
         </div>
         <aside class="founder-card">
           <div class="founder-top"><span class="founder-av" aria-hidden="true">LW</span><div><b>Landon Williams</b><span>Founder</span></div></div>
@@ -258,7 +258,7 @@ if (false) {   // about.html is now built by scripts/build-about-section.cjs
       </div>
     </section>
 ${askBlock('aboutAsk', '<h2 class="ask-title" id="X">Got a question? <span>Just ask.</span></h2>')}
-    <p class="ask-all container"><a href="faq.html">See every question and answer →</a></p>
+    <p class="ask-all container"><a href="faq">See every question and answer →</a></p>
   </main>
   ${kbScript}`;
   a = withMain(a, main);
@@ -270,16 +270,16 @@ ${askBlock('aboutAsk', '<h2 class="ask-title" id="X">Got a question? <span>Just 
 /* ------------------------------------------------------------------ 6. links, build, sitemap, llms */
 for (const f of fs.readdirSync(R).filter((x) => x.endsWith('.html') && x !== 'admin.html')) {
   let s = read(f);
-  const t = s.replace(/href="\.\/#faq"/g, 'href="faq.html"').replace(/(<a )href="#faq"(>(?:<b>)?FAQ)/g, '$1href="faq.html"$2');
+  const t = s.replace(/href="\.\/#faq"/g, 'href="faq"').replace(/(<a )href="#faq"(>(?:<b>)?FAQ)/g, '$1href="faq"$2');
   if (t !== s) { write(f, t); }
 }
 let vite = read('vite.config.js');
-if (!vite.includes("'faq.html'")) vite = vite.replace("        schedule: resolve(import.meta.dirname, 'schedule.html'),", "        schedule: resolve(import.meta.dirname, 'schedule.html'),\n        faq: resolve(import.meta.dirname, 'faq.html'),");
+if (!vite.includes("'faq.html'")) vite = vite.replace("        schedule: resolve(import.meta.dirname, 'schedule'),", "        schedule: resolve(import.meta.dirname, 'schedule'),\n        faq: resolve(import.meta.dirname, 'faq'),");
 write('vite.config.js', vite);
 let sm = read('public/sitemap.xml');
-if (!sm.includes('faq.html')) sm = sm.replace('</urlset>', `  <url><loc>${BASE}faq.html</loc><lastmod>2026-09-25</lastmod><priority>0.8</priority></url>\n</urlset>`);
+if (!sm.includes('faq')) sm = sm.replace('</urlset>', `  <url><loc>${BASE}faq</loc><lastmod>2026-09-25</lastmod><priority>0.8</priority></url>\n</urlset>`);
 write('public/sitemap.xml', sm);
 let llms = read('public/llms.txt');
-if (!llms.includes('faq.html')) llms = llms.replace('## Contact', `## Questions and answers\n- [FAQ](${BASE}faq.html): ${KB.length} answers about cost, timelines, ownership, support, and every product\n\n## Contact`);
+if (!llms.includes('faq')) llms = llms.replace('## Contact', `## Questions and answers\n- [FAQ](${BASE}faq): ${KB.length} answers about cost, timelines, ownership, support, and every product\n\n## Contact`);
 write('public/llms.txt', llms);
 console.log('links, vite, sitemap, llms updated');

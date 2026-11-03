@@ -320,7 +320,7 @@ export async function contractPage(root, opts) {
       : el('p', { class: 'ov-quiet', text: 'Nothing scheduled.' }), { link: ['Schedule →', href('schedule')] });
 
     /* ---------- tickets: a bar by status + the latest open ones ---------- */
-    const TK = [['open', 'New', '#7CB7FF'], ['in_progress', 'In progress', '#A06BFF'], ['waiting', owner ? 'Waiting on client' : 'Waiting on you', '#F5B84B'], ['resolved', 'Resolved', '#3DDC84']];
+    const TK = [['open', 'New', '#7CB7FF'], ['in_progress', 'Build in progress', '#A06BFF'], ['review', 'Under review', '#2E9BFF'], ['waiting', owner ? 'Waiting on client' : 'Waiting on you', '#F5B84B'], ['resolved', 'Completed', '#3DDC84']];
     const counts = TK.map(([k, label, color]) => ({ k, label, color, n: s.tks.filter((t) => (k === 'resolved' ? ['resolved', 'closed'].includes(t.status) : t.status === k)).length }));
     const total = counts.reduce((a, x) => a + x.n, 0);
     const tickets = card(owner ? 'Tickets' : 'Your requests', [
@@ -992,7 +992,7 @@ export async function inviteClient(email) {
     if (res.error) return toast(`Couldn’t create the invite: ${res.error.message}`, 'error');
     open = res.data;
   } else await renewInvite(open.id);
-  const link = `${SITE}signup.html?invite=${open.token}`;
+  const link = `${SITE}signup?invite=${open.token}`;
   const input = el('input', { type: 'text', readonly: true, value: link, 'aria-label': 'Invite link', class: 'crm-link' });
   const mail = `mailto:${encodeURIComponent(email)}?subject=${encodeURIComponent('Your Williams Systems project page')}&body=${encodeURIComponent(`Hi,\n\nYour project page is ready. Create your account here to see the scope, progress, and chat with me:\n${link}\n\nLandon`)}`;
   modal('Invite to the client portal', el('div', { class: 'crm-form' },

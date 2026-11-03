@@ -1,6 +1,21 @@
 import { defineConfig, loadEnv } from 'vite';
 import { resolve } from 'node:path';
 import { createHash } from 'node:crypto';
+import { existsSync } from 'node:fs';
+
+// Links have no .html (/about), like GitHub Pages serves them; do the same locally
+function cleanUrls() {
+  const rewrite = (dir) => (req, _res, next) => {
+    const [p, q = ''] = req.url.split(/(?=\?)/);
+    if (p !== '/' && !/\.[\w]+$/.test(p) && existsSync(resolve(dir, `.${p}.html`))) req.url = `${p}.html${q}`;
+    next();
+  };
+  return {
+    name: 'clean-urls',
+    configureServer(s) { s.middlewares.use(rewrite(s.config.root)); },
+    configurePreviewServer(s) { s.middlewares.use(rewrite(s.config.build.outDir)); },
+  };
+}
 
 // Content-Security-Policy for every built page. GitHub Pages can't send headers,
 // so it goes in a <meta> tag; each page's own inline scripts are allowed by hash
@@ -41,7 +56,7 @@ export default defineConfig({
   // Relative base so the build works at a domain root or a subfolder
   // (e.g. GitHub Pages: lwilliams027.github.io/williams-systems-llc/).
   base: './',
-  plugins: [csp()],
+  plugins: [cleanUrls(), csp()],
   server: {
     port: 5173,
     strictPort: false,

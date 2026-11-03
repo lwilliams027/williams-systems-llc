@@ -1,5 +1,5 @@
 /* =====================================================================
-   Product tour (websites.html and the other product pages)
+   Product tour (websites and the other product pages)
 
    The section is pinned while you scroll, and a "camera" glides across one
    sample product (#tourWorld). Each caption (.tour-cap[data-stop]) is a

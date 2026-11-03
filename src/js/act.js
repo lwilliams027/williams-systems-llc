@@ -16,7 +16,7 @@ import { supabase, isConfigured } from './supabase.js';
 const card = document.getElementById('actCard');
 const qs = new URLSearchParams(location.search);
 const UUID = /^[0-9a-f-]{36}$/i;
-const STATUS = { open: 'Open', in_progress: 'In progress', waiting: 'Waiting on client', resolved: 'Done', closed: 'Closed' };
+const STATUS = { open: 'Open', in_progress: 'Build in progress', review: 'Under review', waiting: 'Waiting on client', resolved: 'Completed', closed: 'Closed' };
 const JOB = {
   queued: 'Queued', working: 'Claude is working', ready: 'Ready — saved and zipped when the timer ends', pushing: 'Pushing',
   pushed: 'Zips ready to upload', no_change: 'No code change made', failed: 'Needs you', manual: 'No repo mapped — handle by hand', discarded: 'Discarded',
@@ -33,7 +33,7 @@ const say = (msg, ok = true) => {
 async function start() {
   if (!isConfigured) { card.innerHTML = '<h1>Not connected</h1>'; return; }
   const { data: { session } } = await supabase.auth.getSession();
-  if (!session) return location.replace(`login.html?next=${encodeURIComponent('act.html' + location.search)}`);
+  if (!session) return location.replace(`login?next=${encodeURIComponent('act' + location.search)}`);
   const { data: admin } = await supabase.rpc('is_admin');
   if (!admin) { card.innerHTML = '<h1>Owners only</h1><p>This page is for the Williams Systems team.</p>'; return; }
   render();
@@ -102,7 +102,7 @@ async function render() {
     <div class="act-section${/status|done|close|waiting/.test(focus) ? ' focus' : ''}" id="status">
       <h2>Ticket status</h2>
       <div class="act-row">
-        ${['in_progress', 'waiting', 'resolved', 'closed'].map((s) =>
+        ${['in_progress', 'review', 'waiting', 'resolved', 'closed'].map((s) =>
           `<button class="btn ${s === 'resolved' ? 'btn-primary' : 'btn-ghost'}" data-status="${s}" ${ticket.status === s ? 'disabled' : ''}>${STATUS[s]}</button>`).join('')}
       </div>
     </div>

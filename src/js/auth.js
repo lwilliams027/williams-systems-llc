@@ -57,14 +57,15 @@ function friendly(err, fromUrl = false) {
 // Where someone goes once they're signed in: owners to the dashboard, clients to their project portal.
 // ?next= can only name one of our own pages.
 // act.html (the autopilot email buttons) keeps its ?job=… so the link still works after signing in.
-const SAFE_NEXT = ['admin.html', 'account.html', 'portal.html', 'act.html'];
-const OWNER_ONLY = ['admin.html', 'act.html'];
+const SAFE_NEXT = ['admin', 'account', 'portal', 'act'];
+const OWNER_ONLY = ['admin', 'act'];
 async function goHome() {
   const next = new URLSearchParams(location.search).get('next') || '';
-  const [page, query = ''] = next.split('?');
+  const [file, query = ''] = next.split('?');
+  const page = file.replace(/\.html$/, '');   // old links (bookmarks, autopilot emails) still say admin.html
   const { data: role } = await supabase.rpc('my_role');
-  if (SAFE_NEXT.includes(page) && /^[\w=&%.-]*$/.test(query) && !(OWNER_ONLY.includes(page) && role !== 'owner')) return location.assign(next);
-  location.assign(role === 'owner' ? 'admin.html' : 'portal.html');
+  if (SAFE_NEXT.includes(page) && /^[\w=&%.-]*$/.test(query) && !(OWNER_ONLY.includes(page) && role !== 'owner')) return location.assign(query ? `${page}?${query}` : page);
+  location.assign(role === 'owner' ? 'admin' : 'portal');
 }
 
 function wireGoogle(redirectPage, form) {
@@ -94,7 +95,7 @@ else if (PAGE === 'account') accountPage();
 async function loginPage() {
   const signInForm = $('#signInForm');
   $$('[data-go]').forEach((b) => b.addEventListener('click', () => show(b.dataset.go)));
-  wireGoogle('login.html', signInForm);
+  wireGoogle('login', signInForm);
 
   let recovering = false;
   supabase.auth.onAuthStateChange((event) => {
@@ -125,7 +126,7 @@ async function loginPage() {
     const email = forgotForm.email.value.trim();
     if (!validEmail(email)) return say(forgotForm, 'Enter the email you sign in with.');
     busy(forgotForm, true, 'Sending…');
-    const { error } = await supabase.auth.resetPasswordForEmail(email, { redirectTo: BASE + 'login.html' });
+    const { error } = await supabase.auth.resetPasswordForEmail(email, { redirectTo: BASE + 'login' });
     busy(forgotForm, false);
     // same answer whether or not the email has an account, so the form can't be used to look people up
     if (error && !/not found/i.test(error.message)) return say(forgotForm, friendly(error));
@@ -176,7 +177,7 @@ async function signupPage() {
       : invite.account
         ? `Your project page for ${invite.account} is ready. Set a password for ${invite.email} and you’re in.`
         : `This invite is for your client account at ${invite.email}.`;
-  wireGoogle('account.html', form);
+  wireGoogle('account', form);
   show('create');
   const err = urlError();
   if (err) say(form, err);
@@ -193,7 +194,7 @@ async function signupPage() {
       email: invite.email,
       password,
       // the token proves this came from the invite link (the database checks it)
-      options: { data: { full_name: name, invite_token: token }, emailRedirectTo: BASE + 'account.html' },
+      options: { data: { full_name: name, invite_token: token }, emailRedirectTo: BASE + 'account' },
     });
     busy(form, false);
     if (error) return say(form, friendly(error));
@@ -209,10 +210,10 @@ async function signupPage() {
 /* account.html: where a signed-in person lands */
 async function accountPage() {
   const { data: { session } } = await supabase.auth.getSession();
-  if (!session) return location.replace('login.html?next=account.html');
+  if (!session) return location.replace('login?next=account');
   const { data: me } = await supabase.from('profiles').select('full_name, role, email').eq('id', session.user.id).maybeSingle();
   const role = me?.role || 'client';
-  if (role === 'client') return location.replace('portal.html');   // a client's page is their project
+  if (role === 'client') return location.replace('portal');   // a client's page is their project
   const first = (me?.full_name || '').trim().split(/\s+/)[0];
   $('#tier').textContent = role === 'owner' ? 'Owner' : 'Client';
   $('#hello').textContent = first ? `Hi, ${first}.` : 'Hi there.';
@@ -222,6 +223,6 @@ async function accountPage() {
   show('home');
   $('#signOut').addEventListener('click', async () => {
     await supabase.auth.signOut();
-    location.assign('login.html');
+    location.assign('login');
   });
 }

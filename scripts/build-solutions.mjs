@@ -336,7 +336,7 @@ function pageHtml(s) {
         <p class="scene-eyebrow mono"><a href="${SOLUTIONS[0].slug}.html">Solutions</a> / ${esc(s.title)}</p>
         <h1 class="pg-title pd-title">${esc(s.headline[0])} <span>${esc(s.headline[1])}</span></h1>
         <p class="pg-lede">${esc(s.lede)}</p>
-        <div class="pg-actions"><a class="btn btn-primary" href="schedule.html">Get started</a><a class="btn btn-ghost" href="./#process">See how we work</a></div>
+        <div class="pg-actions"><a class="btn btn-primary" href="schedule">Get started</a><a class="btn btn-ghost" href="./#process">See how we work</a></div>
       </div>
     </section>
 
@@ -395,7 +395,7 @@ function pageHtml(s) {
       <div class="container">
         <h2 class="pg-h2 pd-cta-title">Let's build <span>yours.</span></h2>
         <p class="pg-p">Tell us what you need. We'll reply with a scope, a timeline, and a price, in plain English.</p>
-        <div class="pg-actions"><a class="btn btn-primary btn-lg" href="schedule.html">Schedule a free call</a></div>
+        <div class="pg-actions"><a class="btn btn-primary btn-lg" href="schedule">Schedule a free call</a></div>
       </div>
     </section>
 

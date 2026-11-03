@@ -99,14 +99,14 @@ function initBox(box) {
     if (best && best.score >= 1.5) {
       body.innerHTML = '<p class="ask-a"></p>';
       await typeInto(body.querySelector('.ask-a'), best.k.a);
-      const more = best.k.url && best.k.url !== 'faq.html' ? `<a href="${best.k.url}">${esc(best.k.topic)} →</a>` : '';
+      const more = best.k.url && best.k.url !== 'faq' ? `<a href="${best.k.url}">${esc(best.k.topic)} →</a>` : '';
       body.insertAdjacentHTML('beforeend', `<p class="ask-src">From: ${esc(best.k.q)} ${more}</p>`);
       const related = results.slice(1).filter((r) => r.score >= Math.max(2, best.score * 0.6) && r.k.q !== best.k.q).slice(0, 3);
       if (related.length) {
         body.insertAdjacentHTML('beforeend', `<div class="ask-related">${related.map((r) => `<button type="button" class="ask-chip">${esc(r.k.q)}</button>`).join('')}</div>`);
       }
     } else {
-      body.innerHTML = `<p class="ask-a">I don’t have a written answer for that one yet. It’s a great question for a free discovery call, or email <a href="mailto:lwilliams@williamssystems.dev">lwilliams@williamssystems.dev</a> and Landon will answer it directly.</p><p><a class="btn btn-primary btn-sm" href="schedule.html">Book a free call</a></p>`;
+      body.innerHTML = `<p class="ask-a">I don’t have a written answer for that one yet. It’s a great question for a free discovery call, or email <a href="mailto:lwilliams@williamssystems.dev">lwilliams@williamssystems.dev</a> and Landon will answer it directly.</p><p><a class="btn btn-primary btn-sm" href="schedule">Book a free call</a></p>`;
     }
     scroll();
     busy = false;

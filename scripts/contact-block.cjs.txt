@@ -12,7 +12,7 @@
     <section class="as-hero as-hero-sm">
       <div class="as-orbs" aria-hidden="true"><i></i><i></i><i></i></div>
       <div class="container">
-        <p class="scene-eyebrow mono"><a href="about.html">About</a> / Contact us</p>
+        <p class="scene-eyebrow mono"><a href="about">About</a> / Contact us</p>
         <div class="as-hero-grid">
           <div>
             <h1 class="as-h1" id="pageTitle">Let’s <span>talk.</span></h1>
@@ -68,7 +68,7 @@
     title: 'Contact Williams Systems LLC | Book a Free Call or Send a Message',
     desc: `Contact Williams Systems LLC: book a free discovery call, send a message, or call or text ${PHONE}. We reply within 24 hours.`,
     crumb: 'Contact', main, css: ['/src/styles/about.css', '/src/styles/about-section.css'], js: ['/src/js/schedule.js', '/src/js/contact.js'],
-    ld: [ORG, { '@type': 'ContactPage', '@id': BASE + 'contact.html#page', url: BASE + 'contact.html', name: 'Contact Williams Systems LLC' }],
+    ld: [ORG, { '@type': 'ContactPage', '@id': BASE + 'contact#page', url: BASE + 'contact', name: 'Contact Williams Systems LLC' }],
   });
 
   // The old Schedule page now forwards to the booking tab.
@@ -78,12 +78,12 @@
   <meta charset="UTF-8" />
   <title>Book a Free Call | Williams Systems LLC</title>
   <meta name="robots" content="noindex, follow" />
-  <link rel="canonical" href="${BASE}contact.html" />
+  <link rel="canonical" href="${BASE}contact" />
   <meta http-equiv="refresh" content="0; url=contact.html#book" />
   <script>location.replace('contact.html#book');</script>
 </head>
 <body>
-  <p>Booking has moved to our <a href="contact.html#book">contact page</a>.</p>
+  <p>Booking has moved to our <a href="contact#book">contact page</a>.</p>
 </body>
 </html>
 `);

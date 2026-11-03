@@ -7,7 +7,7 @@
                     then hands you each person's invite link
      manageAccount  add or remove people, rename, resend links
 
-   Each person gets their own link (signup.html?invite=…). It opens a page
+   Each person gets their own link (signup?invite=…). It opens a page
    where they set a password and land in their portal. The database only
    accepts sign-ups that come through the link.
    ===================================================================== */
@@ -17,7 +17,7 @@ import { gsap } from 'gsap';
 
 const SITE = new URL('./', location.href).href;
 const LOCAL = /^(localhost|127\.0\.0\.1)$/.test(location.hostname);
-export const inviteLink = (token) => `${SITE}signup.html?invite=${token}`;
+export const inviteLink = (token) => `${SITE}signup?invite=${token}`;
 const validEmail = (v) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
 const mailto = (m, acct, link) => `mailto:${encodeURIComponent(m.email)}?subject=${encodeURIComponent('Your Williams Systems project page')}&body=${encodeURIComponent(
   `Hi${m.name ? ` ${m.name.split(' ')[0]}` : ''},\n\nYour project page${acct.kind === 'group' ? ` for ${acct.name}` : ''} is ready. Click the link below to set your password and sign in:\n\n${link}\n\nYou'll see your project's progress, files, schedule and billing, and you can message me any time.\n\nLandon\nWilliams Systems LLC`)}`;

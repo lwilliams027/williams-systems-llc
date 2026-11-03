@@ -49,7 +49,7 @@ const notReady = `    <section class="auth-card" id="notReady" hidden>
       <p class="auth-kicker mono">Almost ready</p>
       <h1>Sign-in is on its way.</h1>
       <p>Client and owner accounts are being switched on. In the meantime, reach us any time.</p>
-      <a class="btn btn-primary" href="contact.html">Contact us</a>
+      <a class="btn btn-primary" href="contact">Contact us</a>
     </section>`;
 
 const google = (label) => `        <button type="button" class="btn btn-google" data-google hidden>${GOOGLE}${label}</button>
@@ -130,8 +130,8 @@ const signup = `${notReady}
       <p class="auth-kicker mono">Invite only</p>
       <h1>This invite link isn’t valid.</h1>
       <p>It may have been used already. If you already made your account, sign in. Otherwise, ask us for a new invite.</p>
-      <a class="btn btn-primary" href="login.html">Sign in</a>
-      <a class="btn btn-ghost" href="login.html#request">Request a spot</a>
+      <a class="btn btn-primary" href="login">Sign in</a>
+      <a class="btn btn-ghost" href="login#request">Request a spot</a>
     </section>
 
     <!-- Create the account -->
@@ -156,7 +156,7 @@ ${google('Sign up with Google')}
       <p class="auth-kicker mono">One more step</p>
       <h1>Check your email.</h1>
       <p>We sent a confirmation link to <b id="sentTo"></b>. Open it to finish creating your account.</p>
-      <a class="btn btn-ghost" href="login.html">Go to sign in</a>
+      <a class="btn btn-ghost" href="login">Go to sign in</a>
     </section>`;
 
 /* ---------- account.html ---------- */
@@ -167,8 +167,8 @@ const account = `${notReady}
       <h1 id="hello">Hi.</h1>
       <p id="whoami"></p>
       <ul class="auth-list" id="ownerLinks" hidden>
-        <li><a href="admin.html">Team dashboard <span>→</span></a></li>
-        <li><a href="admin.html#access">Invites and requests <span>→</span></a></li>
+        <li><a href="admin">Team dashboard <span>→</span></a></li>
+        <li><a href="admin#access">Invites and requests <span>→</span></a></li>
       </ul>
       <p class="auth-empty" id="clientEmpty" hidden>Your projects will show up here once we start working together.</p>
       <button type="button" class="btn btn-ghost" id="signOut">Sign out</button>

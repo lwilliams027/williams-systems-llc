@@ -64,9 +64,9 @@ export const HOME = {
  * A single number instead of a list: every step on that page (1.25 = 25% slower).
  */
 export const PAGES = {
-  // 'websites.html': [1, 1, 1, 1, 1, 1, 1, 1],
-  'web-apps.html': 1.25,   // Web apps: the whole page 25% slower
+  // 'websites': [1, 1, 1, 1, 1, 1, 1, 1],
+  'web-apps': 1.25,   // Web apps: the whole page 25% slower
 };
 
 /** The speed list for the page you're on (chapter pages). */
-export const pageSpeeds = () => PAGES[location.pathname.split('/').pop() || 'index.html'] || [];
+export const pageSpeeds = () => PAGES[location.pathname.split('/').pop().replace(/\.html$/, '') || 'index'] || [];

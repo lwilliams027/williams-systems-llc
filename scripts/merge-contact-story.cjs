@@ -32,8 +32,8 @@ if (!s.includes('STORY_TOUR')) {
 s = s.replace(/\n\$\{subnav\('[a-z-]+\.html'\)\}\n/g, '\n');
 
 /* ---------- 3. one call to action button ---------- */
-s = s.replace('<div class="pg-actions"><a class="btn btn-primary" href="schedule.html">Book a free call</a><a class="btn btn-ghost" href="contact.html">Contact us</a></div>\n      </div>\n    </section>`;',
-  '<div class="pg-actions"><a class="btn btn-primary" href="contact.html#book">Book a free call</a><a class="btn btn-ghost" href="contact.html#message">Send a message</a></div>\n      </div>\n    </section>`;');
+s = s.replace('<div class="pg-actions"><a class="btn btn-primary" href="schedule">Book a free call</a><a class="btn btn-ghost" href="contact">Contact us</a></div>\n      </div>\n    </section>`;',
+  '<div class="pg-actions"><a class="btn btn-primary" href="contact#book">Book a free call</a><a class="btn btn-ghost" href="contact#message">Send a message</a></div>\n      </div>\n    </section>`;');
 
 /* ---------- 4. contact page: call/text + booking + message ---------- */
 {
@@ -45,13 +45,13 @@ s = s.replace('<div class="pg-actions"><a class="btn btn-primary" href="schedule
 
 /* ---------- 5. links: schedule -> contact ---------- */
 s = s.split("['schedule.html', 'Schedule a call'], ").join('');
-s = s.split('href="schedule.html"').join('href="contact.html#book"');   // before adding the menu patterns below
-s = s.replace("  ['href=\"#testimonials\">Testimonials</a>', 'href=\"client-stories.html\">Client stories</a>'],\n];",
-  "  ['href=\"#testimonials\">Testimonials</a>', 'href=\"client-stories.html\">Client stories</a>'],\n  ['<li><a href=\"schedule.html\"><b>Schedule a call</b><span>Book a free discovery call</span></a></li>', ''],\n  ['<a href=\"schedule.html\">Schedule a call</a>', ''],\n  ['href=\"schedule.html\"', 'href=\"contact.html#book\"'],\n];");
+s = s.split('href="schedule"').join('href="contact#book"');   // before adding the menu patterns below
+s = s.replace("  ['href=\"#testimonials\">Testimonials</a>', 'href=\"client-stories\">Client stories</a>'],\n];",
+  "  ['href=\"#testimonials\">Testimonials</a>', 'href=\"client-stories\">Client stories</a>'],\n  ['<li><a href=\"schedule\"><b>Schedule a call</b><span>Book a free discovery call</span></a></li>', ''],\n  ['<a href=\"schedule\">Schedule a call</a>', ''],\n  ['href=\"schedule\"', 'href=\"contact#book\"'],\n];");
 write(G, s);
 
 // the other generators, so a rebuild keeps the new links
 for (const f of ['scripts/build-product-pages.cjs', 'scripts/build-solution-pages.cjs', 'scripts/build-about-faq.cjs']) {
-  write(f, read(f).split('href="schedule.html"').join('href="contact.html#book"'));
+  write(f, read(f).split('href="schedule"').join('href="contact#book"'));
 }
 console.log('generator updated');

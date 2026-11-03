@@ -452,7 +452,7 @@ function initMobileNav() {
   $$('.mnav-group', nav).forEach((group) => {
     const head = $('.mnav-head', group);
     // the big Contact us button below covers this one
-    $$('a[href="contact.html"]', group).forEach((a) => a.remove());
+    $$('a[href="contact"]', group).forEach((a) => a.remove());
     const items = $$('a', group);
     const toggle = document.createElement('button');
     toggle.type = 'button';
@@ -463,7 +463,7 @@ function initMobileNav() {
     items.forEach((a) => list.appendChild(a));
     head.replaceWith(toggle);
     group.appendChild(list);
-    items.forEach((a) => { if (location.pathname.endsWith(a.getAttribute('href'))) { a.classList.add('here'); a.setAttribute('aria-current', 'page'); } });
+    items.forEach((a) => { if (location.pathname.replace(/\.html$/, '').endsWith(a.getAttribute('href'))) { a.classList.add('here'); a.setAttribute('aria-current', 'page'); } });
     toggle.setAttribute('aria-expanded', 'false');
     toggle.addEventListener('click', () => {
       const open = !group.classList.contains('open');
@@ -476,9 +476,9 @@ function initMobileNav() {
   // One clear way to reach us, with text and call a thumb away; login is a small link.
   const actions = $('.mnav-actions', nav);
   if (actions) {
-    actions.innerHTML = '<a href="contact.html" class="btn btn-primary mnav-contact">Contact us</a>'
+    actions.innerHTML = '<a href="contact" class="btn btn-primary mnav-contact">Contact us</a>'
       + '<a href="sms:+18102145388" class="btn btn-ghost">Text us</a><a href="tel:+18102145388" class="btn btn-ghost">Call</a>'
-      + '<a href="login.html" class="mnav-login">Log in</a>';
+      + '<a href="login" class="mnav-login">Log in</a>';
     markAccountLinks(actions);
   }
 
@@ -646,7 +646,7 @@ function signedIn() {
 }
 function markAccountLinks(root = document) {
   if (!signedIn()) return;
-  root.querySelectorAll('a[href="login.html"], a[href="./login.html"]').forEach((a) => {
+  root.querySelectorAll('a[href="login"], a[href="./login"]').forEach((a) => {
     if (/^\s*log\s*-?\s*in\s*$/i.test(a.textContent)) { a.textContent = 'My account'; a.setAttribute('aria-label', 'My account'); }
   });
 }

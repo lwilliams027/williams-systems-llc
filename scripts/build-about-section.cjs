@@ -24,7 +24,7 @@ const makePage = (file, { title, desc, crumb, main, css = [], js = [], ld = [] }
   s = s.replace(/<title>[^<]*<\/title>/, `<title>${title}</title>`)
     .replace(/(<meta (?:name|property)="(?:description|og:description|twitter:description)" content=")[^"]*(")/g, `$1${desc}$2`)
     .replace(/(<meta (?:property|name)="(?:og:title|twitter:title)" content=")[^"]*(")/g, `$1${title}$2`)
-    .split(`${BASE}faq.html`).join(`${BASE}${file}`);
+    .split(`${BASE}faq`).join(`${BASE}${file}`);
   const graph = [...ld, { '@type': 'BreadcrumbList', itemListElement: [{ '@type': 'ListItem', position: 1, name: 'Home', item: BASE }, { '@type': 'ListItem', position: 2, name: crumb, item: BASE + file }] }];
   s = s.replace(/<script type="application\/ld\+json">[\s\S]*?<\/script>/, `<script type="application/ld+json">${JSON.stringify({ '@context': 'https://schema.org', '@graph': graph }).replace(/</g, '\\u003c')}</script>`);
   // body: new main, and this page's own assets instead of the FAQ's
@@ -46,12 +46,12 @@ const cta = (h, p) => `
       <div class="container as-cta-box">
         <h2 class="pg-h2 qa-title">${h}</h2>
         <p class="pg-p">${p}</p>
-        <div class="pg-actions"><a class="btn btn-primary" href="contact.html#book">Book a free call</a><a class="btn btn-ghost" href="contact.html#message">Send a message</a></div>
+        <div class="pg-actions"><a class="btn btn-primary" href="contact#book">Book a free call</a><a class="btn btn-ghost" href="contact#message">Send a message</a></div>
       </div>
     </section>`;
 const subnav = (here) => `
     <nav class="as-subnav" aria-label="About section">
-      <div class="container">${[['about.html', 'About us'], ['how-we-work.html', 'How we work'], ['client-stories.html', 'Client stories'], ['faq.html', 'FAQ'], ['contact.html', 'Contact us']]
+      <div class="container">${[['about', 'About us'], ['how-we-work', 'How we work'], ['client-stories', 'Client stories'], ['faq', 'FAQ'], ['contact', 'Contact us']]
         .map(([h, t]) => `<a href="${h}"${h === here ? ' class="on" aria-current="page"' : ''}>${t}</a>`).join('')}</div>
     </nav>`;
 
@@ -65,9 +65,9 @@ const subnav = (here) => `
     ['Today', 'Williams Systems LLC', 'A full-service software company, based in Michigan and working with clients worldwide.'],
   ];
   const WHAT = [
-    ['websites.html', 'Websites', 'Fast, custom sites that win you work'], ['web-apps.html', 'Web apps', 'Dashboards, portals, and internal tools'],
-    ['saas.html', 'SaaS platforms', 'Subscriptions and billing built in'], ['mobile-apps.html', 'Mobile apps', 'Apps for iPhone and Android'],
-    ['cloud.html', 'Cloud & DevOps', 'Hosting, deployments, and backups'], ['personalized-ai.html', 'Personalized AI', 'AI assistants built around you'],
+    ['websites', 'Websites', 'Fast, custom sites that win you work'], ['web-apps', 'Web apps', 'Dashboards, portals, and internal tools'],
+    ['saas', 'SaaS platforms', 'Subscriptions and billing built in'], ['mobile-apps', 'Mobile apps', 'Apps for iPhone and Android'],
+    ['cloud', 'Cloud & DevOps', 'Hosting, deployments, and backups'], ['personalized-ai', 'Personalized AI', 'AI assistants built around you'],
   ];
   const PROMISES = [
     ['Straight answers', 'A written scope with every feature, the timeline, and the price, one-time or monthly, before any work begins.'],
@@ -86,7 +86,7 @@ const subnav = (here) => `
           <p class="scene-eyebrow mono">About · Who we are</p>
           <h1 class="as-h1" id="pageTitle">Built with love, <span>priced to help.</span></h1>
           <p class="pg-lede">Williams Systems LLC designs, builds, and supports websites, web apps, SaaS platforms, mobile apps, and personalized AI. We help people bring their ideas to life with custom software, at a price that makes sense.</p>
-          <div class="pg-actions"><a class="btn btn-primary" href="contact.html#book">Book a free call</a><a class="btn btn-ghost" href="how-we-work.html">How we work</a></div>
+          <div class="pg-actions"><a class="btn btn-primary" href="contact#book">Book a free call</a><a class="btn btn-ghost" href="how-we-work">How we work</a></div>
           <ul class="as-facts"><li><b>Michigan</b><span>Home base</span></li><li><b>Worldwide</b><span>Remote clients</span></li><li><b>24 hours</b><span>Reply to inquiries</span></li></ul>
         </div>
         <aside class="founder-card as-founder">
@@ -96,7 +96,7 @@ const subnav = (here) => `
           <b class="as-name">Landon Williams</b>
           <span class="as-role">Founder</span>
           <p>“I’ve loved building since I was ten. I started Williams Systems LLC to help people bring their dreams to life with something I love doing, at a price they can afford.”</p>
-          <a class="btn btn-primary btn-sm" href="contact.html#book">Talk with Landon</a>
+          <a class="btn btn-primary btn-sm" href="contact#book">Talk with Landon</a>
         </aside>
       </div>
     </section>
@@ -121,9 +121,9 @@ ${STORY_TOUR}
 
     <section class="pg-section as-more">
       <div class="container as-more-grid">
-        <a href="how-we-work.html" class="as-more-card"><em>How we work</em><b>Meet. Design. Scope. Built fast.</b><span>Follow a sample project from the first call to launch →</span></a>
-        <a href="client-stories.html" class="as-more-card"><em>Client stories</em><b>Hear it from them.</b><span>Stories from the people we build for →</span></a>
-        <a href="faq.html" class="as-more-card"><em>FAQ</em><b>Ask us anything.</b><span>Straight answers about cost, timelines, and ownership →</span></a>
+        <a href="how-we-work" class="as-more-card"><em>How we work</em><b>Meet. Design. Scope. Built fast.</b><span>Follow a sample project from the first call to launch →</span></a>
+        <a href="client-stories" class="as-more-card"><em>Client stories</em><b>Hear it from them.</b><span>Stories from the people we build for →</span></a>
+        <a href="faq" class="as-more-card"><em>FAQ</em><b>Ask us anything.</b><span>Straight answers about cost, timelines, and ownership →</span></a>
       </div>
     </section>
 ${cta('Have an idea? <span>Let’s build it.</span>', 'Tell us what you have in mind. You’ll hear back within 24 hours.')}
@@ -132,7 +132,7 @@ ${cta('Have an idea? <span>Let’s build it.</span>', 'Tell us what you have in 
     title: 'About Williams Systems LLC | Founded by Landon Williams',
     desc: 'Williams Systems LLC is a Michigan software company founded by Landon Williams, building websites, apps, SaaS, and personalized AI for clients worldwide at a price that makes sense.',
     crumb: 'About', main, css: ['/src/styles/about.css', '/src/styles/about-section.css', '/src/styles/story-contact.css', '/src/styles/story-journey.css'], js: ['/src/js/story-journey.js'],
-    ld: [ORG, { '@type': 'AboutPage', '@id': BASE + 'about.html#page', url: BASE + 'about.html', name: 'About Williams Systems LLC', about: { '@id': BASE + '#org' } },
+    ld: [ORG, { '@type': 'AboutPage', '@id': BASE + 'about#page', url: BASE + 'about', name: 'About Williams Systems LLC', about: { '@id': BASE + '#org' } },
       { '@type': 'Person', name: 'Landon Williams', jobTitle: 'Founder', worksFor: { '@id': BASE + '#org' }, homeLocation: { '@type': 'Place', name: 'Michigan, US' } }],
   });
 }
@@ -172,7 +172,7 @@ ${cta('Ready for <span>step one?</span>', 'Book a free discovery call. It’s th
     title: 'How We Work | Williams Systems LLC',
     desc: 'How a project with Williams Systems LLC runs: a free call, design together, a written scope with the price, a fast build, launch, and support. One-time or monthly.',
     crumb: 'How we work', main, css: ['/src/styles/about.css', '/src/styles/about-section.css', '/src/styles/story-contact.css', '/src/styles/story-journey.css', '/src/styles/flip-journey.css'], js: ['/src/js/flip-journey.js'],
-    ld: [ORG, { '@type': 'WebPage', '@id': BASE + 'how-we-work.html#page', url: BASE + 'how-we-work.html', name: 'How we work' }],
+    ld: [ORG, { '@type': 'WebPage', '@id': BASE + 'how-we-work#page', url: BASE + 'how-we-work', name: 'How we work' }],
   });
 }
 
@@ -202,7 +202,7 @@ ${J('stories')}
           <h2 class="pg-h2 qa-title">We’d love to share <span>your story.</span></h2>
           <p class="pg-p">A short video, a photo, or a few sentences about what we built together. Text or call us and we’ll make it easy.</p>
         </div>
-        <div class="pg-actions"><a class="btn btn-primary" href="sms:${TEL}">Text us</a><a class="btn btn-ghost" href="contact.html">Contact us</a></div>
+        <div class="pg-actions"><a class="btn btn-primary" href="sms:${TEL}">Text us</a><a class="btn btn-ghost" href="contact">Contact us</a></div>
       </div>
     </section>
 ${cta('Want to be <span>the next story?</span>', 'Tell us what you want to build. You’ll hear back within 24 hours.')}
@@ -261,7 +261,7 @@ ${J('contact')}
     title: 'Contact Williams Systems LLC | Book a Free Call or Send a Message',
     desc: `Contact Williams Systems LLC: book a free discovery call, send a message, or call or text ${PHONE}. We reply within 24 hours.`,
     crumb: 'Contact', main, css: ['/src/styles/about.css', '/src/styles/about-section.css', '/src/styles/story-contact.css', '/src/styles/story-journey.css', '/src/styles/flip-journey.css'], js: ['/src/js/schedule.js', '/src/js/contact.js', '/src/js/flip-journey.js'],
-    ld: [ORG, { '@type': 'ContactPage', '@id': BASE + 'contact.html#page', url: BASE + 'contact.html', name: 'Contact Williams Systems LLC' }],
+    ld: [ORG, { '@type': 'ContactPage', '@id': BASE + 'contact#page', url: BASE + 'contact', name: 'Contact Williams Systems LLC' }],
   });
 
   // The old Schedule page now forwards to the booking tab.
@@ -271,12 +271,12 @@ ${J('contact')}
   <meta charset="UTF-8" />
   <title>Book a Free Call | Williams Systems LLC</title>
   <meta name="robots" content="noindex, follow" />
-  <link rel="canonical" href="${BASE}contact.html" />
+  <link rel="canonical" href="${BASE}contact" />
   <meta http-equiv="refresh" content="0; url=contact.html#book" />
   <script>location.replace('contact.html#book');</script>
 </head>
 <body>
-  <p>Booking has moved to our <a href="contact.html#book">contact page</a>.</p>
+  <p>Booking has moved to our <a href="contact#book">contact page</a>.</p>
 </body>
 </html>
 `);
@@ -287,19 +287,19 @@ ${J('contact')}
 
 /* ------------------------------------------------------------------ links, build, sitemap, llms */
 const LINKS = [
-  ['href="./#process"><b>How we work</b>', 'href="how-we-work.html"><b>How we work</b>'],
-  ['href="./#testimonials"><b>Client stories</b>', 'href="client-stories.html"><b>Client stories</b>'],
-  ['href="#contact"><b>Contact us</b>', 'href="contact.html"><b>Contact us</b>'],
-  ['href="./#process">How we work</a>', 'href="how-we-work.html">How we work</a>'],
-  ['href="./#testimonials">Client stories</a>', 'href="client-stories.html">Client stories</a>'],
-  ['href="#contact">Contact us</a>', 'href="contact.html">Contact us</a>'],
-  ['href="./#process">Process</a>', 'href="how-we-work.html">How we work</a>'],
-  ['href="#process">Process</a>', 'href="how-we-work.html">How we work</a>'],
-  ['href="./#testimonials">Testimonials</a>', 'href="client-stories.html">Client stories</a>'],
-  ['href="#testimonials">Testimonials</a>', 'href="client-stories.html">Client stories</a>'],
-  ['<li><a href="schedule.html"><b>Schedule a call</b><span>Book a free discovery call</span></a></li>', ''],
-  ['<a href="schedule.html">Schedule a call</a>', ''],
-  ['href="schedule.html"', 'href="contact.html#book"'],
+  ['href="./#process"><b>How we work</b>', 'href="how-we-work"><b>How we work</b>'],
+  ['href="./#testimonials"><b>Client stories</b>', 'href="client-stories"><b>Client stories</b>'],
+  ['href="#contact"><b>Contact us</b>', 'href="contact"><b>Contact us</b>'],
+  ['href="./#process">How we work</a>', 'href="how-we-work">How we work</a>'],
+  ['href="./#testimonials">Client stories</a>', 'href="client-stories">Client stories</a>'],
+  ['href="#contact">Contact us</a>', 'href="contact">Contact us</a>'],
+  ['href="./#process">Process</a>', 'href="how-we-work">How we work</a>'],
+  ['href="#process">Process</a>', 'href="how-we-work">How we work</a>'],
+  ['href="./#testimonials">Testimonials</a>', 'href="client-stories">Client stories</a>'],
+  ['href="#testimonials">Testimonials</a>', 'href="client-stories">Client stories</a>'],
+  ['<li><a href="schedule"><b>Schedule a call</b><span>Book a free discovery call</span></a></li>', ''],
+  ['<a href="schedule">Schedule a call</a>', ''],
+  ['href="schedule"', 'href="contact#book"'],
 ];
 for (const f of fs.readdirSync(R).filter((x) => x.endsWith('.html') && x !== 'admin.html')) {
   let s = read(f); const b = s;
@@ -307,14 +307,14 @@ for (const f of fs.readdirSync(R).filter((x) => x.endsWith('.html') && x !== 'ad
   if (s !== b) write(f, s);
 }
 let vite = read('vite.config.js');
-for (const [k, f] of [['howWeWork', 'how-we-work.html'], ['clientStories', 'client-stories.html'], ['contact', 'contact.html']]) {
-  if (!vite.includes(`'${f}'`)) vite = vite.replace("        faq: resolve(import.meta.dirname, 'faq.html'),", `        faq: resolve(import.meta.dirname, 'faq.html'),\n        ${k}: resolve(import.meta.dirname, '${f}'),`);
+for (const [k, f] of [['howWeWork', 'how-we-work'], ['clientStories', 'client-stories'], ['contact', 'contact']]) {
+  if (!vite.includes(`'${f}'`)) vite = vite.replace("        faq: resolve(import.meta.dirname, 'faq'),", `        faq: resolve(import.meta.dirname, 'faq'),\n        ${k}: resolve(import.meta.dirname, '${f}'),`);
 }
 write('vite.config.js', vite);
 let sm = read('public/sitemap.xml');
-for (const f of ['how-we-work.html', 'client-stories.html', 'contact.html']) if (!sm.includes(f)) sm = sm.replace('</urlset>', `  <url><loc>${BASE}${f}</loc><lastmod>2026-09-25</lastmod><priority>0.7</priority></url>\n</urlset>`);
+for (const f of ['how-we-work', 'client-stories', 'contact']) if (!sm.includes(f)) sm = sm.replace('</urlset>', `  <url><loc>${BASE}${f}</loc><lastmod>2026-09-25</lastmod><priority>0.7</priority></url>\n</urlset>`);
 write('public/sitemap.xml', sm);
 let llms = read('public/llms.txt');
-if (!llms.includes('how-we-work.html')) llms = llms.replace('## Contact', `## About\n- [About](${BASE}about.html): founded by Landon Williams; based in Michigan; works with clients worldwide, remotely\n- [How we work](${BASE}how-we-work.html): free call, design together, written scope with price (one-time or monthly), fast build, launch, support\n- [Contact](${BASE}contact.html): call or text ${PHONE}; replies within 24 hours\n\n## Contact`);
+if (!llms.includes('how-we-work')) llms = llms.replace('## Contact', `## About\n- [About](${BASE}about): founded by Landon Williams; based in Michigan; works with clients worldwide, remotely\n- [How we work](${BASE}how-we-work): free call, design together, written scope with price (one-time or monthly), fast build, launch, support\n- [Contact](${BASE}contact): call or text ${PHONE}; replies within 24 hours\n\n## Contact`);
 write('public/llms.txt', llms);
 console.log('menus, vite, sitemap, llms updated');

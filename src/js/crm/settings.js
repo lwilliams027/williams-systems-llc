@@ -145,7 +145,7 @@ export function openSettings(ctx) {
     everywhere.addEventListener('click', async () => {
       if (!armed) { armed = true; everywhere.textContent = 'Click again to confirm'; setTimeout(() => { armed = false; everywhere.textContent = 'Sign out everywhere'; }, 4000); return; }
       await supabase.auth.signOut({ scope: 'global' });
-      location.assign('login.html');
+      location.assign('login');
     });
     return [
       head('Password & security', 'Keep your account safe.'),

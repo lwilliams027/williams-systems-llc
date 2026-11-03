@@ -77,11 +77,11 @@ async function boot() {
   if (!isConfigured) { $('#configNotice').hidden = false; return; }
   // sign-in happens on login.html; only owners get past this point
   const { data: { session } } = await supabase.auth.getSession();
-  if (!session) return location.replace('login.html?next=admin.html');
+  if (!session) return location.replace('login?next=admin');
   const { data: admin } = await supabase.rpc('is_admin');
-  if (admin !== true) return location.replace('account.html');
+  if (admin !== true) return location.replace('account');
   enterApp(session.user);
-  supabase.auth.onAuthStateChange((event) => { if (event === 'SIGNED_OUT') location.replace('login.html'); });
+  supabase.auth.onAuthStateChange((event) => { if (event === 'SIGNED_OUT') location.replace('login'); });
 }
 
 const signOut = () => supabase.auth.signOut();
@@ -1179,7 +1179,7 @@ setInterval(() => { if (state.view === 'requests') renderList(); }, 60_000);
 /*  email has no open invite.                                          */
 /* ------------------------------------------------------------------ */
 const SITE = new URL('./', location.href).href;
-const inviteUrl = (token) => `${SITE}signup.html?invite=${token}`;
+const inviteUrl = (token) => `${SITE}signup?invite=${token}`;
 const inviteMail = (email, token) => `mailto:${encodeURIComponent(email)}?subject=${encodeURIComponent('Your Williams Systems account')}&body=${encodeURIComponent(`Hi,\n\nHere's your invite to create your Williams Systems account:\n${inviteUrl(token)}\n\nSee you inside,\nLandon`)}`;
 const access = { requests: [], invites: [] };
 
