@@ -356,7 +356,7 @@ const ALLOWED = [
 const DENIED = ['WebFetch', 'WebSearch', 'Bash(git:*)', 'Bash(curl:*)', 'Edit(**/node_modules/**)', 'Read(**/.env*)'];
 // ticket text is untrusted: keep Claude away from every key on this PC, and from
 // the files that decide what `npm run build` / `npm test` actually execute
-const SECRET_FILES = ['.env*', '.supabase-*','.stripe-key', '.smtp-password', '.resend-key', '.backup-token', 'ADMIN-LOGIN.txt', '*.pem', '*.key', 'key.sha256'];
+const SECRET_FILES = ['.env*', '.supabase-*', 'product.json', 'license-state.json*', '.stripe-key', '.smtp-password', '.resend-key', '.backup-token', 'ADMIN-LOGIN.txt', '*.pem', '*.key', 'key.sha256'];
 const SECRET_DIRS = ['~/.ssh/**', '~/.aws/**', '~/.claude/**', '~/.config/**', '~/.git-credentials', '~/AppData/Roaming/GitHub CLI/**', '~/AppData/Roaming/npm-cache/**', '~/.npmrc',
   `//${ROOT.replace(/\\/g, '/').replace(/^([A-Za-z]):/, (_, d) => d.toLowerCase())}/**`];   // the real repo (secrets live there); Claude works in worktrees
 const BUILD_FILES = ['package.json', 'package-lock.json', '.npmrc', 'vite.config.*', 'pubspec.yaml', '.github/**', 'scripts/**', 'autopilot/**'];
