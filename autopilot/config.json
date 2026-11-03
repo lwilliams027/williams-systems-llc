@@ -10,18 +10,62 @@
   "workRoot": "C:/Users/adapt/.ws-autopilot",
   "projects": {
     "face-mane": [
-      { "name": "face-and-mane", "path": "C:/Users/adapt/OneDrive/Desktop/face-and-mane", "base": "feat/jul02-plus-tunnel", "check": "npm run build:beta", "preview": { "build": null, "dir": "dist" } },
-      { "name": "face-and-mane-api", "path": "C:/Users/adapt/OneDrive/Desktop/face-and-mane-api", "base": "feat/backend-mvp", "check": null },
-      { "name": "face-and-mane-mobile", "path": "C:/Users/adapt/OneDrive/Desktop/face-and-mane-mobile", "base": "main", "pushTo": "autopilot/ticket-{n}", "check": "flutter analyze --no-fatal-infos", "preview": { "build": "flutter build web --release", "dir": "build/web" } }
+      {
+        "name": "face-and-mane",
+        "path": "C:/Users/adapt/OneDrive/Desktop/face-and-mane",
+        "base": "feat/jul02-plus-tunnel",
+        "check": "npm run build:beta",
+        "preview": {
+          "build": null,
+          "dir": "dist"
+        }
+      },
+      {
+        "name": "face-and-mane-api",
+        "path": "C:/Users/adapt/OneDrive/Desktop/face-and-mane-api",
+        "base": "feat/backend-mvp",
+        "check": null
+      },
+      {
+        "name": "face-and-mane-mobile",
+        "path": "C:/Users/adapt/OneDrive/Desktop/face-and-mane-mobile",
+        "base": "main",
+        "pushTo": "autopilot/ticket-{n}",
+        "check": "flutter analyze --no-fatal-infos",
+        "preview": {
+          "build": "flutter build web --release",
+          "dir": "build/web"
+        }
+      }
     ]
   },
   "afterPush": {
     "face-mane": [
-      { "label": "mobile web zip", "when": ["face-and-mane-mobile"], "in": "face-and-mane-mobile",
+      {
+        "label": "mobile web zip",
+        "when": [
+          "face-and-mane-mobile"
+        ],
+        "in": "face-and-mane-mobile",
         "run": "flutter build web --release && powershell -NoProfile -Command \"New-Item -ItemType Directory -Force ../fnm-deliverables | Out-Null; Compress-Archive -Force -Path build/web/* -DestinationPath ../fnm-deliverables/fnm-mobile-web.zip\"",
-        "copy": { "from": "fnm-deliverables", "to": "C:/Users/adapt/OneDrive/Desktop/fnm-deliverables" } },
-      { "label": "cPanel site zip + API zip", "when": ["face-and-mane", "face-and-mane-api"], "in": "face-and-mane", "run": "python scripts/make-deliverables.py",
-        "copy": { "from": "fnm-deliverables", "to": "C:/Users/adapt/OneDrive/Desktop/fnm-deliverables" } }
+        "copy": {
+          "from": "fnm-deliverables",
+          "to": "C:/Users/adapt/OneDrive/Desktop/fnm-deliverables"
+        }
+      },
+      {
+        "label": "cPanel site zip + API zip",
+        "when": [
+          "face-and-mane",
+          "face-and-mane-api"
+        ],
+        "in": "face-and-mane",
+        "run": "python scripts/make-deliverables.py",
+        "copy": {
+          "from": "fnm-deliverables",
+          "to": "C:/Users/adapt/OneDrive/Desktop/fnm-deliverables"
+        }
+      }
     ]
   }
 }

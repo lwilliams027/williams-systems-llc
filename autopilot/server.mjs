@@ -21,9 +21,10 @@
    Dependency-free, like backup-server: `npm run autopilot`.
 
    Secrets (all git-ignored, in the project folder)
-     .supabase-token   Supabase personal access token (reads/writes via the
-                       Management API SQL endpoint; fetches the service key
-                       for downloading ticket files)
+     .supabase-service-key  the project's service key (does not expire; the
+                       personal access token is NOT needed). Its rights are
+                       the grants at the bottom of supabase/automation.sql.
+                       Or set SUPABASE_SERVICE_KEY.
      .resend-key       Resend API key for sending email (without it: Windows
                        notifications only)
 
@@ -63,13 +64,14 @@ const CLAUDE = process.env.CLAUDE_BIN
 const SENSITIVE = /(^|\/)(\.github\/|\.env|\.ebextensions\/|\.platform\/|\.elasticbeanstalk\/|codemagic\.yaml$|package\.json$|requirements[^/]*\.txt$|pyproject\.toml$|pubspec\.yaml$)/i;
 
 const readSecret = async (f) => (existsSync(path.join(ROOT, f)) ? (await readFile(path.join(ROOT, f), 'utf8')).trim() : '');
-const PAT = await readSecret('.supabase-token');
+// The project's service key (never expires, unlike a personal access token).
+// Its rights are only the grants at the bottom of supabase/automation.sql.
+const SERVICE_KEY = process.env.SUPABASE_SERVICE_KEY || await readSecret('.supabase-service-key');
 const RESEND = await readSecret('.resend-key');
-if (!PAT) { console.error('No .supabase-token — the autopilot cannot see tickets.'); process.exit(1); }
+if (!SERVICE_KEY) { console.error('No .supabase-service-key — the autopilot cannot see tickets.'); process.exit(1); }
 
 const log = (...a) => console.log(new Date().toLocaleTimeString(), ...a);
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
-const lit = (v) => (v == null ? 'null' : `'${String(v).replace(/'/g, "''")}'`);
 const UUID = /^[0-9a-f-]{36}$/i;
 
 /* --------------------------------- state ------------------------------------ */
@@ -80,39 +82,32 @@ const saveState = () => writeFile(STATE_FILE, JSON.stringify(state, null, 2));
 await saveState();
 
 /* ------------------------------- supabase ----------------------------------- */
-async function api(p, opts = {}) {
-  const res = await fetch(`https://api.supabase.com${p}`, {
-    method: opts.method || 'GET',
-    headers: { Authorization: `Bearer ${PAT}`, 'Content-Type': 'application/json' },
-    body: opts.body ? JSON.stringify(opts.body) : undefined,
+const KEY_HEADERS = SERVICE_KEY.startsWith('sb_') ? { apikey: SERVICE_KEY } : { apikey: SERVICE_KEY, Authorization: `Bearer ${SERVICE_KEY}` };
+// PostgREST as the service role: rest('tickets?id=eq.…'), rest(path, { method: 'PATCH', body })
+async function rest(p, { method = 'GET', body, prefer = 'return=representation' } = {}) {
+  const res = await fetch(`https://${REF}.supabase.co/rest/v1/${p}`, {
+    method,
+    headers: { ...KEY_HEADERS, 'Content-Type': 'application/json', Prefer: prefer },
+    body: body ? JSON.stringify(body) : undefined,
   });
   const text = await res.text();
   if (!res.ok) throw Object.assign(new Error(`Supabase ${res.status}: ${text.slice(0, 300)}`), { status: res.status });
-  return text ? JSON.parse(text) : null;
+  return text ? JSON.parse(text) : [];
 }
-const sql = (q) => api(`/v1/projects/${REF}/database/query`, { method: 'POST', body: { query: q } });
-// writes run as the service role so the ticket triggers treat them as the owner's autopilot
-const asService = (q) => sql(`select set_config('request.jwt.claims', '{"role":"service_role"}', true), set_config('request.jwt.claim.role', 'service_role', true); ${q}`);
+const q = encodeURIComponent;
 
-let serviceKey;
 async function downloadFile(p, dest) {
-  if (!serviceKey) {
-    const keys = await api(`/v1/projects/${REF}/api-keys?reveal=true`);
-    serviceKey = keys.find((k) => ['service_role', 'secret'].includes(k.name) || k.type === 'secret')?.api_key;
-  }
-  const headers = serviceKey.startsWith('sb_') ? { apikey: serviceKey } : { apikey: serviceKey, Authorization: `Bearer ${serviceKey}` };
-  const res = await fetch(`https://${REF}.supabase.co/storage/v1/object/ticket-files/${p}`, { headers });
+  const res = await fetch(`https://${REF}.supabase.co/storage/v1/object/ticket-files/${p}`, { headers: KEY_HEADERS });
   if (!res.ok) throw new Error(`download ${p}: ${res.status}`);
   await writeFile(dest, Buffer.from(await res.arrayBuffer()));
 }
 
-const TICKET_COLS = `t.id, t.number, t.title, t.body, t.kind, t.priority, t.status, t.files, t.created_at,
-  c.slug, c.title as project, coalesce(nullif(p.full_name, ''), p.email, 'A client') as who`;
-const TICKET_FROM = `public.tickets t left join public.contracts c on c.id = t.contract_id left join public.profiles p on p.id = t.client_id`;
-const getTicket = async (id) => (await sql(`select ${TICKET_COLS} from ${TICKET_FROM} where t.id = ${lit(id)}`))[0];
-const setJob = (id, fields) => sql(`update public.automation_jobs set ${Object.entries(fields)
-  .map(([k, v]) => `${k} = ${k === 'details' ? `${lit(JSON.stringify(v))}::jsonb` : lit(v)}`).join(', ')} where id = ${lit(id)}`);
-const setTicketStatus = (id, s) => asService(`update public.tickets set status = ${lit(s)} where id = ${lit(id)} and status <> ${lit(s)}`);
+const TICKET_SELECT = 'id,number,title,body,kind,priority,status,files,created_at,contract:contracts(slug,title),client:profiles(full_name,email),job:automation_jobs(id)';
+const flat = (t) => ({ ...t, slug: t.contract?.slug ?? null, project: t.contract?.title ?? null,
+  who: t.client?.full_name || t.client?.email || 'A client' });
+const getTicket = async (id) => flat((await rest(`tickets?id=eq.${q(id)}&select=${TICKET_SELECT}`))[0]);
+const setJob = (id, fields) => rest(`automation_jobs?id=eq.${q(id)}`, { method: 'PATCH', body: fields, prefer: 'return=minimal' });
+const setTicketStatus = (id, s) => rest(`tickets?id=eq.${q(id)}&status=neq.${q(s)}`, { method: 'PATCH', body: { status: s }, prefer: 'return=minimal' });
 
 /* ------------------------------ notifications ------------------------------- */
 function toast(title, body, url) {
@@ -140,9 +135,16 @@ const ticketButtons = (q) => [
 ].join('');
 
 async function email(subject, parts) {
-  if (!RESEND) return log('(no .resend-key — email skipped)', subject);
   const html = `<div style="background:#0B0C10;padding:24px;font:15px/1.55 system-ui;color:#F2F3F5"><div style="max-width:620px;margin:0 auto">${parts.join('')}
     <p style="color:#6E7585;font-size:12px;margin-top:24px">Williams Systems Autopilot · running on your PC</p></div></div>`;
+  if (!RESEND) {
+    // no key yet: keep the email as a file so nothing is lost (autopilot/outbox, git-ignored)
+    const dir = path.join(HERE, 'outbox');
+    await mkdir(dir, { recursive: true });
+    const file = path.join(dir, `${new Date().toISOString().replace(/[:.]/g, '-')} ${subject.replace(/[^\w#@ .-]+/g, '_').slice(0, 90)}.html`);
+    await writeFile(file, `<!doctype html><meta charset="utf-8"><title>${esc(subject)}</title><body style="margin:0">${html}`);
+    return log('(no .resend-key) email saved to', path.relative(ROOT, file));
+  }
   const res = await fetch('https://api.resend.com/emails', {
     method: 'POST',
     headers: { Authorization: `Bearer ${RESEND}`, 'Content-Type': 'application/json' },
@@ -336,6 +338,15 @@ const ALLOWED = [
 ];
 // git is the server's job (commitAll / ship), never Claude's
 const DENIED = ['WebFetch', 'WebSearch', 'Bash(git:*)', 'Bash(curl:*)', 'Edit(**/node_modules/**)', 'Read(**/.env*)'];
+// ticket text is untrusted: keep Claude away from every key on this PC, and from
+// the files that decide what `npm run build` / `npm test` actually execute
+const SECRET_FILES = ['.env*', '.supabase-*','.stripe-key', '.smtp-password', '.resend-key', '.backup-token', 'ADMIN-LOGIN.txt', '*.pem', '*.key', 'key.sha256'];
+const SECRET_DIRS = ['~/.ssh/**', '~/.aws/**', '~/.claude/**', '~/.config/**', '~/.git-credentials', '~/AppData/Roaming/GitHub CLI/**', '~/AppData/Roaming/npm-cache/**', '~/.npmrc',
+  `//${ROOT.replace(/\\/g, '/').replace(/^([A-Za-z]):/, (_, d) => d.toLowerCase())}/**`];   // the real repo (secrets live there); Claude works in worktrees
+const BUILD_FILES = ['package.json', 'package-lock.json', '.npmrc', 'vite.config.*', 'pubspec.yaml', '.github/**', 'scripts/**', 'autopilot/**'];
+for (const s of SECRET_FILES) DENIED.push(`Read(**/${s})`, `Edit(**/${s})`, `Write(**/${s})`, `Grep(**/${s})`);
+for (const s of SECRET_DIRS) DENIED.push(`Read(${s})`, `Edit(${s})`, `Write(${s})`, `Grep(${s})`, `Glob(${s})`);
+for (const s of BUILD_FILES) DENIED.push(`Edit(**/${s})`, `Write(**/${s})`);
 
 async function askClaude(t, repos, dir, thread, note) {
   const prompt = `You are making a change for a client ticket at Williams Systems LLC (a software company). Project: "${t.project}".
@@ -377,8 +388,8 @@ const subject = (t, s) => `[#${t.number}] ${s} — ${t.title}`.slice(0, 180);
 
 async function newTicket(t) {
   const repos = reposFor(t);
-  const [job] = await sql(`insert into public.automation_jobs (ticket_id, status) values (${lit(t.id)}, ${lit(repos ? 'queued' : 'manual')})
-    on conflict (ticket_id) do nothing returning id`);
+  const [job] = await rest('automation_jobs?on_conflict=ticket_id&select=id', { method: 'POST',
+    body: { ticket_id: t.id, status: repos ? 'queued' : 'manual' }, prefer: 'resolution=ignore-duplicates,return=representation' });
   if (!job) return;
   log(`new ticket #${t.number} (${t.slug || 'no project'})`);
   toast(`New ticket #${t.number} · ${t.who}`, t.title, actUrl(`job=${job.id}`));
@@ -404,7 +415,7 @@ async function work(job) {
     const dir = await prepare(t, repos);
     dropPreviews(job.details);
     await withEnv(repos, t.number, false);
-    const thread = await sql(`select sender_role, body from public.ticket_messages where ticket_id = ${lit(t.id)} and kind = 'message' order by created_at`);
+    const thread = await rest(`ticket_messages?ticket_id=eq.${q(t.id)}&kind=eq.message&order=created_at&select=sender_role,body`);
     const { summary, clientReply } = await askClaude(t, repos, dir, thread, job.note);
     await commitAll(t, repos);
     await withEnv(repos, t.number, true);
@@ -550,29 +561,26 @@ async function discard(job) {
 let pollErrorAt = 0;
 async function poll() {
   // new tickets → job + email
-  const fresh = await sql(`select ${TICKET_COLS} from ${TICKET_FROM}
-    where t.created_at > ${lit(state.since)} and not exists (select 1 from public.automation_jobs j where j.ticket_id = t.id)
-    order by t.created_at`);
-  for (const t of fresh) await newTicket(t);
+  const fresh = await rest(`tickets?created_at=gt.${q(state.since)}&order=created_at&select=${TICKET_SELECT}`);
+  for (const t of fresh) if (!t.job) await newTicket(flat(t));
 
   // client replies → email
-  const replies = await sql(`select m.body, m.sender_name, m.created_at, t.number, t.title, t.id as ticket_id
-    from public.ticket_messages m join public.tickets t on t.id = m.ticket_id
-    where m.sender_role = 'client' and m.created_at > ${lit(state.msgSince)} order by m.created_at`);
+  const replies = (await rest(`ticket_messages?sender_role=eq.client&created_at=gt.${q(state.msgSince)}&order=created_at&select=body,sender_name,created_at,ticket_id,ticket:tickets(number,title)`))
+    .map((m) => ({ ...m, number: m.ticket?.number, title: m.ticket?.title }));
   for (const m of replies) {
     state.msgSince = m.created_at;
     toast(`${m.sender_name} replied on #${m.number}`, m.body, actUrl(`ticket=${m.ticket_id}&do=message`));
     await email(`[#${m.number}] ${m.sender_name} replied — ${m.title}`.slice(0, 180), [h(`${m.sender_name} replied on #${m.number}`), block(m.body),
-      button(actUrl(`ticket=${m.ticket_id}&do=message`), 'Reply', true), ticketButtons(`ticket=${m.ticket_id}`)]);
+      button(actUrl(`ticket=${m.ticket_id}&do=message`), 'Reply', true), ticketButtons(`ticket=${m.ticket_id}`).replace(/<a [^>]*>Message client<\/a>/, '')]);
   }
   if (replies.length) await saveState();
 
   // decisions and timers
-  const jobs = await sql(`select * from public.automation_jobs where status in ('ready', 'failed', 'no_change') and
-    (decision in ('approve', 'changes', 'discard') or (status = 'ready' and decision is null and deadline < now()))`);
+  const jobs = (await rest('automation_jobs?status=in.(ready,failed,no_change)&select=*')).filter((j) => ['approve', 'changes', 'discard'].includes(j.decision)
+    || (j.status === 'ready' && !j.decision && j.deadline && new Date(j.deadline) < new Date()));
   for (const job of jobs) {
     if (job.decision === 'discard') await discard(job);
-    else if (job.decision === 'changes') await sql(`update public.automation_jobs set status = 'queued', decision = null where id = ${lit(job.id)}`);
+    else if (job.decision === 'changes') await setJob(job.id, { status: 'queued', decision: null });
     else if (job.status === 'ready') await ship(job);
   }
 }
@@ -590,7 +598,7 @@ async function worker() {
   if (!busy) {
     busy = true;
     try {
-      const [job] = await sql(`select * from public.automation_jobs where status = 'queued' order by created_at limit 1`);
+      const [job] = await rest('automation_jobs?status=eq.queued&order=created_at&limit=1&select=*');
       if (job && UUID.test(job.id)) await work(job);
     } catch (e) { log('worker error:', e.message); }
     busy = false;
@@ -599,13 +607,14 @@ async function worker() {
 }
 
 // a job that was mid-work when the PC shut down starts over
-await sql(`update public.automation_jobs set status = 'queued' where status = 'working'`);
-await sql(`update public.automation_jobs set status = 'ready' where status = 'pushing'`);
+await rest('automation_jobs?status=eq.working', { method: 'PATCH', body: { status: 'queued' }, prefer: 'return=minimal' });
+await rest('automation_jobs?status=eq.pushing', { method: 'PATCH', body: { status: 'ready' }, prefer: 'return=minimal' });
 
 // previews: open the tunnel, then bring back the links of changes still waiting (the address is new)
 await startTunnel();
 log(tunnelUrl ? `previews via ${tunnelUrl}` : 'previews OFF (cloudflared tunnel did not start)');
-for (const job of await sql(`select id, details from public.automation_jobs where status in ('ready', 'failed', 'no_change') and details ? 'previews'`)) {
+for (const job of await rest('automation_jobs?status=in.(ready,failed,no_change)&select=id,details')) {
+  if (!job.details?.previews) continue;
   const list = (job.details.previews || []).filter((pv) => pv.token && existsSync(pv.dir));
   list.forEach((pv) => { previews.set(pv.token, pv.dir); pv.url = previewLink(pv.token); });
   await setJob(job.id, { details: { ...job.details, previews: list } });

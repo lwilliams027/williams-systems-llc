@@ -42,6 +42,13 @@ revoke all on public.automation_jobs from anon, authenticated;
 grant select on public.automation_jobs to authenticated;
 grant update (decision, note) on public.automation_jobs to authenticated;
 
+-- the autopilot server uses the service key (no personal access token): it reads
+-- tickets/threads, sets ticket status, and owns its job rows. Nothing more.
+grant usage on schema public to service_role;
+grant select, insert, update on public.automation_jobs to service_role;
+grant select on public.tickets, public.ticket_messages, public.contracts, public.profiles to service_role;
+grant update (status) on public.tickets to service_role;
+
 create or replace function public.automation_jobs_before()
 returns trigger
 language plpgsql

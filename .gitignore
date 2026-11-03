@@ -22,6 +22,8 @@ backup-server/data/
 # Zoho mail password for sending site email
 .smtp-password
 
-# Autopilot: Resend API key and its local watermark
+# Autopilot: Supabase service key, Resend API key and its local watermark
+.supabase-service-key
 .resend-key
 autopilot/state.json
+autopilot/outbox/
