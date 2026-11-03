@@ -1,10 +1,13 @@
 {
   "email": {
+    "account": "williamssystemsllc@gmail.com",
     "to": "lwilliams@williamssystems.dev",
-    "from": "Williams Systems Autopilot <onboarding@resend.dev>"
+    "owners": [
+      "lwilliams@williamssystems.dev"
+    ]
   },
   "site": "https://williamssystems.dev",
-  "reviewMinutes": 30,
+  "remindMinutes": 30,
   "pollSeconds": 15,
   "claudeMinutes": 45,
   "workRoot": "C:/Users/adapt/.ws-autopilot",
@@ -51,47 +54,49 @@
       }
     ]
   },
-  "afterPush": {
-    "sales-audit-system": [
-      {
-        "label": "SalesAudit build zip (not released)",
-        "when": [
-          "sales-audit"
-        ],
-        "in": "sales-audit",
-        "run": "npm run build:exe && powershell -NoProfile -Command \"New-Item -ItemType Directory -Force ../zips | Out-Null; Compress-Archive -Force -Path dist/SalesAudit.exe,dist/config,dist/supabase,dist/README.txt,dist/.env.example -DestinationPath ../zips/SalesAudit-ticket-{n}.zip\"",
-        "copy": {
-          "from": "zips",
-          "to": "C:/Users/adapt/OneDrive/Desktop/sales-audit-deliverables"
+  "release": {
+    "face-mane": {
+      "how": "uploading the zips (API to AWS first, then the site to cPanel)",
+      "manual": true,
+      "steps": [
+        {
+          "label": "mobile web zip",
+          "when": [
+            "face-and-mane-mobile"
+          ],
+          "in": "face-and-mane-mobile",
+          "run": "flutter build web --release && powershell -NoProfile -Command \"New-Item -ItemType Directory -Force ../fnm-deliverables | Out-Null; Compress-Archive -Force -Path build/web/* -DestinationPath ../fnm-deliverables/fnm-mobile-web.zip\"",
+          "copy": {
+            "from": "fnm-deliverables",
+            "to": "C:/Users/adapt/OneDrive/Desktop/fnm-deliverables"
+          }
+        },
+        {
+          "label": "cPanel site zip + API zip",
+          "when": [
+            "face-and-mane",
+            "face-and-mane-api"
+          ],
+          "in": "face-and-mane",
+          "run": "python scripts/make-deliverables.py",
+          "copy": {
+            "from": "fnm-deliverables",
+            "to": "C:/Users/adapt/OneDrive/Desktop/fnm-deliverables"
+          }
         }
-      }
-    ],
-    "face-mane": [
-      {
-        "label": "mobile web zip",
-        "when": [
-          "face-and-mane-mobile"
-        ],
-        "in": "face-and-mane-mobile",
-        "run": "flutter build web --release && powershell -NoProfile -Command \"New-Item -ItemType Directory -Force ../fnm-deliverables | Out-Null; Compress-Archive -Force -Path build/web/* -DestinationPath ../fnm-deliverables/fnm-mobile-web.zip\"",
-        "copy": {
-          "from": "fnm-deliverables",
-          "to": "C:/Users/adapt/OneDrive/Desktop/fnm-deliverables"
+      ]
+    },
+    "sales-audit-system": {
+      "how": "releasing the update to every Lush Lawn computer (npm run release)",
+      "manual": false,
+      "steps": [
+        {
+          "label": "npm run release (new version for every Lush Lawn computer)",
+          "before": true,
+          "in": "sales-audit",
+          "run": "npm run release -- --bump patch --notes \"Autopilot ticket #{n}\""
         }
-      },
-      {
-        "label": "cPanel site zip + API zip",
-        "when": [
-          "face-and-mane",
-          "face-and-mane-api"
-        ],
-        "in": "face-and-mane",
-        "run": "python scripts/make-deliverables.py",
-        "copy": {
-          "from": "fnm-deliverables",
-          "to": "C:/Users/adapt/OneDrive/Desktop/fnm-deliverables"
-        }
-      }
-    ]
+      ]
+    }
   }
 }

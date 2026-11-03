@@ -4,36 +4,40 @@
    Runs on the owner's PC and turns client tickets into shipped changes:
 
      ticket opened on williamssystems.dev
-       → Windows notification + email to the owner
+       → Windows notification + email to the owner; ticket = "Build in progress"
        → Claude Code makes the change in a separate git worktree (branch
-         ticket-<n>), the repo's build check runs
-       → "ready" email: summary, changed files, buttons
-       → 30 minutes of silence (or "Approve") → rebased onto main and pushed
-       → release zips built (make-deliverables etc.) and a "zips ready" email with
-         a draft reply for the client. NOTHING is deployed: the owner uploads
-         the zips to AWS / cPanel by hand
+         ticket-<n>), the repo's build check runs, a private preview is built
+       → "built" email with the preview link; ticket = "Under review"
+       → the owner REPLIES to the email: "yes" → it goes live the way that
+         project goes live (CFG.release, chosen by Claude when it set the
+         project up: push, `npm run release`, or zips for the owner to upload);
+         anything else → Claude's next instruction for the ticket
+       → live: ticket = "Completed" (zip projects: when the owner replies "done")
+     Silence never approves: one reminder after remindMinutes, then it waits.
 
-   The email buttons open act.html (owner login), which writes the decision
-   to public.automation_jobs; this server picks it up on its next poll.
-   From there the owner can also mark the ticket done/closed/waiting and
-   message the client. Client replies on a ticket are emailed too.
+   Email: sent from CFG.email.account (Gmail SMTP) to CFG.email.to; the owner's
+   replies are read from that Gmail inbox (IMAP) and only count when Gmail
+   verified they really come from an address in CFG.email.owners. Every email
+   carries the job id in its Message-ID, so a reply finds its ticket.
+   act.html (owner login) still works as buttons for the same decisions, and to
+   set the ticket status or message the client. Client replies are emailed too.
 
-   Dependency-free, like backup-server: `npm run autopilot`.
+   `npm run autopilot` (needs the nodemailer, imapflow, mailparser dev deps).
 
    Secrets (all git-ignored, in the project folder)
      .supabase-service-key  the project's service key (does not expire; the
                        personal access token is NOT needed). Its rights are
                        the grants at the bottom of supabase/automation.sql.
                        Or set SUPABASE_SERVICE_KEY.
-     .resend-key       Resend API key for sending email (without it: Windows
-                       notifications only)
+     .gmail-app-password    Google app password for CFG.email.account (without it
+                       emails are saved to autopilot/outbox and replies aren't read)
 
    Safety
      · Ticket text is client-written: Claude gets it as data, with a scoped
-       tool allowlist (edit files, run the check, commit). No push, no web,
-       no shell beyond that. This server does the pushing.
-     · A change that touches CI, deploy config, env files or dependency
-       manifests is never pushed on silence; it waits for "Approve".
+       tool allowlist (edit files, run the check). No git, no web, no secrets.
+       This server commits, pushes and releases. Release commands are fixed in
+       config.json; client text is never put into a command.
+     · The owner's reply is trusted only when Gmail verified the sender.
      · Your own checkouts are never touched; work happens in workRoot.
 
    Previews (secret links)
@@ -67,7 +71,9 @@ const readSecret = async (f) => (existsSync(path.join(ROOT, f)) ? (await readFil
 // The project's service key (never expires, unlike a personal access token).
 // Its rights are only the grants at the bottom of supabase/automation.sql.
 const SERVICE_KEY = process.env.SUPABASE_SERVICE_KEY || await readSecret('.supabase-service-key');
-const RESEND = await readSecret('.resend-key');
+// Gmail app password for CFG.email.account: sends every email (SMTP) and reads the owner's replies (IMAP)
+const GMAIL_PASSWORD = (await readSecret('.gmail-app-password')).replace(/\s+/g, '');
+const MAIL_ON = Boolean(GMAIL_PASSWORD && CFG.email?.account);
 if (!SERVICE_KEY) { console.error('No .supabase-service-key — the autopilot cannot see tickets.'); process.exit(1); }
 
 const log = (...a) => console.log(new Date().toLocaleTimeString(), ...a);
@@ -134,24 +140,133 @@ const ticketButtons = (q) => [
   button(actUrl(`${q}&do=close`), 'Close ticket'),
 ].join('');
 
-async function email(subject, parts) {
+// how to answer, at the top of every email about a change
+const replyHelp = (live) => `<div style="margin:0 0 16px;padding:12px 14px;border-radius:10px;border:1px solid #2E9BFF;color:#F2F3F5;font:14px/1.5 system-ui">
+  <b>Just reply to this email.</b> Reply <b>yes</b> and it goes live (${esc(live)}). Anything else you write becomes Claude’s next instruction for this ticket.
+  <span style="color:#A9AFBC">Also: <b>hold</b> · <b>discard</b> · <b>done</b> (marks the ticket Completed).</span></div>`;
+
+let smtp;
+// every email of a job carries its id in the Message-ID, so a reply (In-Reply-To) finds the job again
+async function email(subject, parts, { jobId } = {}) {
   const html = `<div style="background:#0B0C10;padding:24px;font:15px/1.55 system-ui;color:#F2F3F5"><div style="max-width:620px;margin:0 auto">${parts.join('')}
     <p style="color:#6E7585;font-size:12px;margin-top:24px">Williams Systems Autopilot · running on your PC</p></div></div>`;
-  if (!RESEND) {
-    // no key yet: keep the email as a file so nothing is lost (autopilot/outbox, git-ignored)
+  if (!MAIL_ON) {
+    // no Gmail password yet: keep the email as a file so nothing is lost (autopilot/outbox, git-ignored)
     const dir = path.join(HERE, 'outbox');
     await mkdir(dir, { recursive: true });
     const file = path.join(dir, `${new Date().toISOString().replace(/[:.]/g, '-')} ${subject.replace(/[^\w#@ .-]+/g, '_').slice(0, 90)}.html`);
     await writeFile(file, `<!doctype html><meta charset="utf-8"><title>${esc(subject)}</title><body style="margin:0">${html}`);
-    return log('(no .resend-key) email saved to', path.relative(ROOT, file));
+    return log('(no .gmail-app-password) email saved to', path.relative(ROOT, file));
   }
-  const res = await fetch('https://api.resend.com/emails', {
-    method: 'POST',
-    headers: { Authorization: `Bearer ${RESEND}`, 'Content-Type': 'application/json' },
-    body: JSON.stringify({ from: CFG.email.from, to: [CFG.email.to], subject, html }),
-  });
-  if (!res.ok) log('email failed', res.status, (await res.text()).slice(0, 300));
+  try {
+    if (!smtp) {
+      const { default: nodemailer } = await import('nodemailer');
+      smtp = nodemailer.createTransport({ host: 'smtp.gmail.com', port: 465, secure: true, auth: { user: CFG.email.account, pass: GMAIL_PASSWORD } });
+    }
+    await smtp.sendMail({
+      from: `Williams Systems Autopilot <${CFG.email.account}>`, to: CFG.email.to, subject, html,
+      messageId: `<ws-${jobId || 'note'}-${randomBytes(6).toString('hex')}@autopilot.williamssystems.dev>`,
+    });
+  } catch (e) { log('email failed:', e.message); toast('Autopilot email failed', e.message); }
 }
+/* --------------------------------- replies ---------------------------------- */
+// The owner answers by replying to an autopilot email. Only mail FROM an owner address
+// that Gmail verified (DMARC/DKIM/SPF pass for that domain) is read; anything else is ignored.
+const OWNERS = (CFG.email?.owners || [CFG.email?.to]).filter(Boolean).map((a) => a.toLowerCase());
+const COMMANDS = [
+  ['approve', /^(yes|y|yep|yeah|yup|approve[d]?|ship it|go|go ahead|push it|looks good|lgtm)\b[\s.!]*$/i],
+  ['done', /^(done|uploaded|completed?|it'?s live)\b[\s.!]*$/i],
+  ['hold', /^(no|hold|wait|stop|not yet)\b[\s.!]*$/i],
+  ['discard', /^(discard|cancel|scrap it|throw it away)\b[\s.!]*$/i],
+];
+// the reply's own words: everything above the quoted earlier email
+function replyText(text) {
+  const out = [];
+  for (const line of String(text || '').replace(/\r/g, '').split('\n')) {
+    if (/^>/.test(line) || /^On .+wrote:\s*$/.test(line) || /^-{2,}\s*(Original|Forwarded) Message/i.test(line) || /^From: /.test(line)
+      || /^Sent from my /i.test(line) || /^_{5,}/.test(line)) break;
+    out.push(line);
+  }
+  return out.join('\n').trim();
+}
+function verified(parsed, from) {
+  const domain = from.split('@')[1];
+  const auth = [].concat(parsed.headers.get('authentication-results') || []).join(' ').toLowerCase();
+  return new RegExp(`dmarc=pass[^;]*header\\.from=${domain.replace(/\./g, '\\.')}`).test(auth)
+    || new RegExp(`dkim=pass[^;]*header\\.(i|d)=@?${domain.replace(/\./g, '\\.')}`).test(auth)
+    || new RegExp(`spf=pass[^;]*@${domain.replace(/\./g, '\\.')}`).test(auth);
+}
+
+let repliesAt = 0;
+async function checkReplies() {
+  const TEST_INBOX = process.env.AUTOPILOT_TEST_INBOX;   // tests: a folder of .eml files instead of Gmail
+  if (!MAIL_ON && !TEST_INBOX) return;
+  if (Date.now() - repliesAt < 30_000) return;
+  repliesAt = Date.now();
+  const { simpleParser } = await import('mailparser');
+  const found = [];
+  if (TEST_INBOX) {
+    for (const f of existsSync(TEST_INBOX) ? (await readdir(TEST_INBOX)).filter((f) => f.endsWith('.eml')) : []) {
+      found.push(await simpleParser(await readFile(path.join(TEST_INBOX, f))));
+      await unlink(path.join(TEST_INBOX, f));
+    }
+  } else {
+    const { ImapFlow } = await import('imapflow');
+    const imap = new ImapFlow({ host: 'imap.gmail.com', port: 993, secure: true, auth: { user: CFG.email.account, pass: GMAIL_PASSWORD }, logger: false });
+    await imap.connect();
+    const lock = await imap.getMailboxLock('INBOX');
+    try {
+      const uids = await imap.search({ seen: false }, { uid: true });
+      for (const uid of uids || []) {
+        const msg = await imap.fetchOne(String(uid), { source: true }, { uid: true });
+        found.push(await simpleParser(msg.source));
+        await imap.messageFlagsAdd(String(uid), ['\\Seen'], { uid: true });
+      }
+    } finally { lock.release(); await imap.logout().catch(() => {}); }
+  }
+
+  for (const m of found) {
+    const from = (m.from?.value?.[0]?.address || '').toLowerCase();
+    if (!OWNERS.includes(from)) continue;
+    if (!verified(m, from)) { log(`ignored a reply claiming to be from ${from}: not verified by Gmail`); toast('Autopilot ignored an email', `“${m.subject}” said it was from ${from} but Gmail couldn’t verify it.`); continue; }
+    const jobId = /<ws-([0-9a-f-]{36})-[0-9a-f]+@autopilot\.williamssystems\.dev>/i.exec(`${m.inReplyTo || ''} ${[].concat(m.references || []).join(' ')}`)?.[1];
+    const num = /\[#(\d+)\]/.exec(m.subject || '')?.[1];
+    const [job] = jobId ? await rest(`automation_jobs?id=eq.${q(jobId)}&select=*`)
+      : num ? (await rest(`tickets?number=eq.${q(num)}&select=job:automation_jobs(*)`)).map((t) => t.job).filter(Boolean) : [];
+    const text = replyText(m.text);
+    if (!job) { log('a reply matched no ticket:', m.subject); continue; }
+    await answer(job, text);
+  }
+}
+
+async function answer(job, text) {
+  const t = await getTicket(job.ticket_id);
+  const first = text.split('\n').find((l) => l.trim()) || '';
+  const cmd = COMMANDS.find(([, re]) => re.test(first.trim()))?.[0] || (text ? 'prompt' : null);
+  log(`#${t.number}: your reply → ${cmd}`);
+  if (!cmd) return;
+  if (cmd === 'done') {
+    await setTicketStatus(t.id, 'resolved');
+    return toast(`#${t.number} marked Completed`, t.title);
+  }
+  if (['queued', 'working', 'pushing'].includes(job.status)) {
+    return email(subject(t, 'Still working'), [h(`#${t.number}: Claude is still on it`),
+      p('Your reply came in while Claude was working, so it was not applied. Reply to the next email (the review) instead.'), block(text)], { jobId: job.id });
+  }
+  if (job.status === 'manual') {
+    return email(subject(t, 'Not connected'), [h(`#${t.number} isn’t connected to a code folder`),
+      p('The autopilot can’t work on this project yet. Ask Claude Code to add it (Claude works out how it goes live), then reply again.')], { jobId: job.id });
+  }
+  if (cmd === 'approve') {
+    if (job.status !== 'ready') return email(subject(t, 'Nothing to approve'), [h(`#${t.number}: nothing waiting for a yes`), p(`This change is ${job.status.replace('_', ' ')}. Reply with what Claude should do instead.`)], { jobId: job.id });
+    return setJob(job.id, { decision: 'approve' });
+  }
+  if (cmd === 'hold') return setJob(job.id, { decision: 'hold' });
+  if (cmd === 'discard') return setJob(job.id, { decision: 'discard' });
+  // anything else: the owner's words become Claude's next instruction (trusted: verified owner mail)
+  await setJob(job.id, { status: 'queued', decision: null, note: text.slice(0, 4000) });
+}
+
 const h = (text) => `<h2 style="font:700 20px system-ui;margin:0 0 6px;color:#fff">${esc(text)}</h2>`;
 const p = (text) => `<p style="color:#A9AFBC;margin:6px 0 14px">${esc(text)}</p>`;
 
@@ -413,10 +528,10 @@ async function newTicket(t) {
     h(`#${t.number} · ${t.title}`),
     p(`${t.who} · ${t.project || 'no project'} · ${t.kind}, ${t.priority} priority${(t.files || []).length ? ` · ${t.files.length} file(s)` : ''}`),
     block(t.body || '(no description)'),
-    p(repos ? 'Claude has started on it. You’ll get another email with the change to review before anything is saved.'
-      : `“${t.project || 'This ticket'}” isn’t connected to a code folder yet (project id: ${t.slug || 'none'}), so Claude won’t work on it automatically. Ask Claude Code to “add ${t.project || 'this project'} to the autopilot” with the folder it lives in, then reply to the client or handle it by hand.`),
+    p(repos ? 'Claude has started building it (the client sees “Build in progress”). You’ll get the change with a private preview link to say yes to before anything goes live.'
+      : `“${t.project || 'This ticket'}” isn’t connected to a code folder yet (project id: ${t.slug || 'none'}), so Claude won’t work on it automatically. Ask Claude Code to “add ${t.project || 'this project'} to the autopilot” with the folder it lives in; Claude works out how that project goes live when it sets it up.`),
     button(actUrl(`job=${job.id}`), 'Open ticket', true), ticketButtons(`job=${job.id}`),
-  ]);
+  ], { jobId: job.id });
 }
 
 async function work(job) {
@@ -424,7 +539,7 @@ async function work(job) {
   const repos = reposFor(t);
   if (!repos) return setJob(job.id, { status: 'manual' });
   await setJob(job.id, { status: 'working', deadline: null });
-  if (!job.note) await setTicketStatus(t.id, 'in_progress');
+  await setTicketStatus(t.id, 'in_progress');   // client sees "Build in progress"
   log(`#${t.number}: Claude working${job.note ? ' (revision)' : ''}`);
   const details = { ...job.details };
   try {
@@ -445,8 +560,9 @@ async function work(job) {
       details.check = null;
       await setJob(job.id, { status: 'no_change', summary, details, decision: null, note: null });
       toast(`#${t.number}: no change made`, summary.slice(0, 200), actUrl(`job=${job.id}`));
-      return email(subject(t, 'Needs you'), [h(`Claude made no change for #${t.number}`), block(summary),
-        button(actUrl(`job=${job.id}&do=changes`), 'Tell Claude what to do', true), ticketButtons(`job=${job.id}`)]);
+      return email(subject(t, 'Needs you'), [h(`Claude made no change for #${t.number}`),
+        p('Reply to this email with what Claude should do, and it starts again.'), block(summary),
+        button(actUrl(`job=${job.id}&do=changes`), 'Or open the ticket'), ticketButtons(`job=${job.id}`)], { jobId: job.id });
     }
 
     const checks = [];
@@ -458,45 +574,56 @@ async function work(job) {
     const failed = checks.filter((c) => !c.ok);
     details.check = checks.length ? (failed.length ? `failed in ${failed.map((c) => c.name).join(', ')}` : 'passed') : 'none configured';
     const sensitive = changed.flatMap((c) => c.files.filter((f) => SENSITIVE.test(f)).map((f) => `${c.repo.name}/${f}`));
-    details.needsApproval = sensitive.length ? `touches ${sensitive.join(', ')}`
-      : !RESEND ? 'was made while email is off (silence only counts as a yes when you were emailed)' : null;
+    details.needsApproval = sensitive.length ? `touches ${sensitive.join(', ')}` : null;
 
     if (failed.length) {
       details.error = failed.map((c) => `${c.name}: ${c.out}`).join('\n\n');
       await setJob(job.id, { status: 'failed', summary, details, decision: null, note: null });
-      toast(`#${t.number}: build check failed`, 'Nothing saved. Open the email to decide.', actUrl(`job=${job.id}`));
-      return email(subject(t, 'Build check failed'), [h(`#${t.number}: the change doesn’t build`), block(summary), mono(details.diffstat), mono(details.error),
-        button(actUrl(`job=${job.id}&do=changes`), 'Tell Claude to fix it', true), button(actUrl(`job=${job.id}&do=discard`), 'Discard'), ticketButtons(`job=${job.id}`)]);
+      toast(`#${t.number}: build check failed`, 'Nothing saved. Reply to the email with what to do.', actUrl(`job=${job.id}`));
+      return email(subject(t, 'Build check failed'), [h(`#${t.number}: the change doesn’t build`),
+        p('Reply with what Claude should do (e.g. “fix the build”), or “discard”.'), block(summary), mono(details.diffstat), mono(details.error),
+        button(actUrl(`job=${job.id}&do=changes`), 'Or open the ticket'), ticketButtons(`job=${job.id}`)], { jobId: job.id });
     }
 
     details.previews = await makePreviews(changed);
-    const deadline = details.needsApproval ? null : new Date(Date.now() + CFG.reviewMinutes * 60_000);
-    await setJob(job.id, { status: 'ready', summary, details, decision: null, note: null, deadline: deadline?.toISOString() ?? null });
-    const at = deadline?.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
-    log(`#${t.number}: ready${at ? `, saved + zipped at ${at}` : ' (needs approval)'}`);
-    toast(`#${t.number} ready${at ? ` · zips at ${at}` : ' · needs your approval'}`, t.title, actUrl(`job=${job.id}`));
-    await email(subject(t, at ? `Zips build at ${at}` : 'Needs your approval'), [
-      h(`#${t.number} · ${t.title}`),
-      p(at ? `Claude finished the change and the build check ${details.check}. At ${at} it is saved and the upload zips are built, unless you hold it. Nothing goes live until you upload them.`
-        : `This change ${details.needsApproval}, so it waits for your approval before it is saved or zipped.`),
-      block(summary), mono(details.diffstat),
-      details.previews.length ? `<div style="margin:6px 0 14px">${details.previews.map((pv) => (pv.url
-        ? button(pv.url, `Preview the ${pv.name} change ↗`, true)
-        : p(`No preview for ${pv.name}: ${pv.error || 'the preview tunnel is down'}`))).join('')}
-        <div style="color:#6E7585;font-size:12px">Secret link: works for anyone who has it, until the change is pushed or discarded.</div></div>` : '',
-      button(actUrl(`job=${job.id}&do=approve`), 'Approve & build zips now', !details.previews.length),
-      button(actUrl(`job=${job.id}&do=hold`), 'Hold'), button(actUrl(`job=${job.id}&do=changes`), 'Request changes'),
-      button(actUrl(`job=${job.id}&do=discard`), 'Discard'),
-      `<div style="margin-top:10px">${ticketButtons(`job=${job.id}`)}</div>`,
-    ]);
+    // no timer: nothing goes live without the owner's yes; one reminder at `deadline`
+    const remindAt = new Date(Date.now() + (CFG.remindMinutes || 30) * 60_000).toISOString();
+    await setJob(job.id, { status: 'ready', summary, details, decision: null, note: null, deadline: remindAt });
+    await setTicketStatus(t.id, 'review');   // client sees "Under review"
+    log(`#${t.number}: ready — waiting for your yes`);
+    toast(`#${t.number} built · reply yes to go live`, t.title, details.previews.find((pv) => pv.url)?.url || actUrl(`job=${job.id}`));
+    await email(subject(t, 'Built — reply yes to go live'), readyEmail(t, job, details, summary), { jobId: job.id });
   } catch (e) {
     details.error = String(e.message || e).slice(0, 3000);
     await setJob(job.id, { status: 'failed', details, decision: null, note: null });
     log(`#${t.number}: failed —`, details.error);
     toast(`#${t.number}: autopilot error`, details.error.slice(0, 200), actUrl(`job=${job.id}`));
-    await email(subject(t, 'Autopilot error'), [h(`#${t.number}: something went wrong`), mono(details.error),
-      button(actUrl(`job=${job.id}&do=changes`), 'Retry with a note', true), button(actUrl(`job=${job.id}&do=discard`), 'Discard'), ticketButtons(`job=${job.id}`)]);
+    await email(subject(t, 'Autopilot error'), [h(`#${t.number}: something went wrong`),
+      p('Reply with what Claude should do to retry, or “discard”.'), mono(details.error),
+      button(actUrl(`job=${job.id}&do=changes`), 'Or open the ticket'), ticketButtons(`job=${job.id}`)], { jobId: job.id });
   }
+}
+
+// how a project goes live (CFG.release[slug], chosen by Claude when it sets the project up):
+//   { how: 'words for the email', manual: true|false, steps: [{ label, in, run, before?, copy? }] }
+// no entry = pushing the code IS going live (e.g. a site that deploys from its branch)
+const releaseFor = (t) => CFG.release?.[t.slug] || { how: 'push it live', manual: false, steps: [] };
+
+function readyEmail(t, job, details, summary) {
+  const rel = releaseFor(t);
+  return [
+    replyHelp(rel.how),
+    h(`#${t.number} · ${t.title}`),
+    p(`Built for ${t.who} · ${t.project}. Build check ${details.check}.${details.needsApproval ? ` Heads-up: this change ${details.needsApproval}.` : ''}`),
+    details.previews?.length ? `<div style="margin:6px 0 14px">${details.previews.map((pv) => (pv.url
+      ? button(pv.url, `Open the private preview (${pv.name}) ↗`, true)
+      : p(`No preview for ${pv.name}: ${pv.error || 'the preview tunnel is down'}`))).join('')}
+      <div style="color:#6E7585;font-size:12px">Private link: works for anyone who has it, until the change goes live or is discarded.</div></div>` : '',
+    block(summary), mono(details.diffstat),
+    `<div style="margin-top:10px;color:#6E7585;font-size:12px">Or use the page:</div>`,
+    button(actUrl(`job=${job.id}&do=approve`), 'Yes, go live'), button(actUrl(`job=${job.id}&do=changes`), 'Ask for changes'),
+    button(actUrl(`job=${job.id}&do=hold`), 'Hold'), button(actUrl(`job=${job.id}&do=discard`), 'Discard'),
+  ];
 }
 
 async function ship(job) {
@@ -513,7 +640,16 @@ async function ship(job) {
       const rb = await git(c.wt, 'rebase', baseRef(c.repo));
       if (rb.code !== 0) { await git(c.wt, 'rebase', '--abort'); throw new Error(`${c.repo.name}: ${c.repo.base} moved on and the change no longer applies cleanly. Ask Claude for changes to redo it on top.`); }
     }
-    // pushTo: a branch that deploys nothing, for repos whose base branch auto-deploys (owner's rule: nothing goes live by itself)
+    const rel = releaseFor(t);
+    const names = changed.map((c) => c.repo.name);
+    // release steps that must run on the code before it is saved (e.g. sales-audit's
+    // `npm run release`, which bumps the version): their changes are committed with it
+    details.released = await release(t, names, true);
+    const broke = details.released.find((s) => !s.ok);
+    if (broke) throw new Error(`${broke.label} failed, so nothing went live:\n${broke.out}`);
+    if (details.released.length) await commitAll({ ...t, title: `release for ticket #${t.number}` }, changed.map((c) => c.repo));
+
+    // pushTo: a branch other than the base (e.g. face-and-mane-mobile, whose main auto-deploys but goes live by zip)
     const target = (r) => (r.pushTo || r.base).replace('{n}', t.number);
     for (const c of changed) {
       if (isLocal(c.repo)) { await gitOk(c.repo.path, 'merge', '--ff-only', branch(t.number)); continue; }
@@ -524,33 +660,38 @@ async function ship(job) {
     dropPreviews(details);
     details.previews = [];
     await setJob(job.id, { status: 'pushed', details });
-    details.released = await release(t, changed.map((c) => c.repo.name));
+    details.released.push(...await release(t, names, false));
     await setJob(job.id, { details });
     await cleanup(t.number, repos);
-    log(`#${t.number}: pushed (${changed.map((c) => c.repo.name).join(', ')})`);
-    toast(`#${t.number}: zips ready`, `${t.title} — nothing is live until you upload`, actUrl(`job=${job.id}&do=message`));
-    await email(subject(t, 'Zips ready to upload'), [
-      h(`#${t.number}: ready for you to upload`),
-      p(`Code saved to ${changed.map((c) => `${c.repo.name} (${target(c.repo)})`).join(', ')}${job.decision === 'approve' ? ' after your approval' : ' after the 30-minute window'}. Nothing is live until you upload the zips yourself.`),
-      ...(details.released || []).map((s) => (s.ok ? p(`✓ ${s.label}: ${s.out}`) : `${p(`✗ ${s.label} failed:`)}${mono(s.out)}`)),
-      details.clientReply ? `${p('Draft reply for the client (it’s pre-filled on the page; nothing is sent until you press Send):')}${block(details.clientReply)}` : '',
-      button(actUrl(`job=${job.id}&do=message`), 'Message client', true), button(actUrl(`job=${job.id}&do=done`), 'Mark done'),
-      button(actUrl(`job=${job.id}&do=close`), 'Close ticket'),
-    ]);
+    const after = details.released.filter((s) => !s.ok);
+    const live = !rel.manual && !after.length;
+    if (live) await setTicketStatus(t.id, 'resolved');   // client sees "Completed"
+    log(`#${t.number}: ${live ? 'live' : 'saved, waiting on your upload'} (${names.join(', ')})`);
+    toast(live ? `#${t.number} is live` : `#${t.number}: ready to upload`, t.title, actUrl(`job=${job.id}&do=message`));
+    await email(subject(t, live ? 'Live' : 'Ready for you to upload'), [
+      h(live ? `#${t.number} is live` : `#${t.number}: your part — upload it`),
+      p(live ? `Done after your yes: ${rel.how}. The ticket shows Completed to ${t.who}.`
+        : `Code saved to ${changed.map((c) => `${c.repo.name} (${target(c.repo)})`).join(', ')}. This project goes live by ${rel.how}. When it’s up, reply “done” and the ticket shows Completed to ${t.who}.`),
+      ...details.released.map((s) => (s.ok ? p(`✓ ${s.label}: ${s.out}`) : `${p(`✗ ${s.label} failed:`)}${mono(s.out)}`)),
+      details.clientReply ? `${p('Draft reply for the client (pre-filled on the page; nothing is sent until you press Send):')}${block(details.clientReply)}` : '',
+      button(actUrl(`job=${job.id}&do=message`), 'Message client', true), live ? '' : button(actUrl(`job=${job.id}&do=done`), 'Mark completed'),
+    ], { jobId: job.id });
   } catch (e) {
     details.error = String(e.message || e).slice(0, 3000);
     await setJob(job.id, { status: 'failed', details, decision: null });
-    toast(`#${t.number}: push failed`, details.error.slice(0, 200), actUrl(`job=${job.id}`));
-    await email(subject(t, 'Push failed'), [h(`#${t.number}: couldn’t push`), mono(details.error),
-      button(actUrl(`job=${job.id}&do=changes`), 'Ask Claude to redo it', true), button(actUrl(`job=${job.id}&do=discard`), 'Discard')]);
+    toast(`#${t.number}: going live failed`, details.error.slice(0, 200), actUrl(`job=${job.id}`));
+    await email(subject(t, 'Going live failed'), [h(`#${t.number}: couldn’t go live`),
+      p('Nothing went live. Reply with what Claude should do (e.g. “redo it on top of the latest code”), or “discard”.'), mono(details.error)], { jobId: job.id });
   }
 }
 
-// after a push: the project's release steps (e.g. build the cPanel/API zips),
-// run from the job folder so they build exactly what was pushed
-async function release(t, changedRepos) {
+// the project's release steps (CFG.release[slug].steps), run from the job folder so they
+// release exactly the approved code. before = run ahead of saving/pushing; else after it.
+// Commands are fixed in config.json; only {n} (the ticket number) is filled in, never client text.
+async function release(t, changedRepos, before) {
   const out = [];
-  for (const step of CFG.afterPush?.[t.slug] || []) {
+  for (const step of releaseFor(t).steps || []) {
+    if (Boolean(step.before) !== before) continue;
     if (step.when && !step.when.some((n) => changedRepos.includes(n))) continue;
     const r = await run(step.run.replaceAll('{n}', t.number), [], { cwd: path.join(jobDir(t.number), step.in), shell: true, timeout: 30 * 60_000 });
     if (r.code !== 0) { out.push({ label: step.label, ok: false, out: r.out.slice(-1200) }); continue; }
@@ -593,20 +734,27 @@ async function poll() {
   }
   if (replies.length) await saveState();
 
-  // decisions and timers
-  const jobs = (await rest('automation_jobs?status=in.(ready,failed,no_change)&select=*')).filter((j) => ['approve', 'changes', 'discard'].includes(j.decision)
-    || (j.status === 'ready' && !j.decision && j.deadline && new Date(j.deadline) < new Date()));
-  for (const job of jobs) {
+  // the owner's email replies → decisions (or a new instruction for Claude)
+  try { await checkReplies(); } catch (e) { log('reading replies failed:', e.message); }
+
+  // decisions (from replies or act.html). Silence never approves: one reminder, then it waits.
+  for (const job of await rest('automation_jobs?status=in.(ready,failed,no_change)&select=*')) {
     if (job.decision === 'discard') await discard(job);
     else if (job.decision === 'changes') await setJob(job.id, { status: 'queued', decision: null });
-    else if (job.status === 'ready') await ship(job);
+    else if (job.decision === 'approve' && job.status === 'ready') await ship(job);
+    else if (job.status === 'ready' && !job.decision && job.deadline && new Date(job.deadline) < new Date()) {
+      await setJob(job.id, { deadline: null });
+      const t = await getTicket(job.ticket_id);
+      await email(subject(t, 'Still waiting for your yes'), [h(`#${t.number} is built and waiting on you`),
+        ...readyEmail(t, job, job.details || {}, job.summary || '')], { jobId: job.id });
+    }
   }
 }
 
 async function loop() {
   try { await poll(); } catch (e) {
     log('poll error:', e.message);
-    if (Date.now() - pollErrorAt > 3600_000) { pollErrorAt = Date.now(); toast('Autopilot can’t reach Supabase', e.status === 401 ? 'The .supabase-token expired. Make a new one.' : e.message); }
+    if (Date.now() - pollErrorAt > 3600_000) { pollErrorAt = Date.now(); toast('Autopilot can’t reach Supabase', e.status === 401 ? 'The .supabase-service-key was rejected.' : e.message); }
   }
   setTimeout(loop, CFG.pollSeconds * 1000);
 }
@@ -637,7 +785,7 @@ for (const job of await rest('automation_jobs?status=in.(ready,failed,no_change)
   list.forEach((pv) => { previews.set(pv.token, pv.dir); pv.url = previewLink(pv.token); });
   await setJob(job.id, { details: { ...job.details, previews: list } });
 }
-log(`Autopilot on · watching tickets since ${new Date(state.since).toLocaleString()} · email ${RESEND ? `to ${CFG.email.to}` : 'OFF (no .resend-key)'}`);
-log(`projects: ${Object.keys(CFG.projects).join(', ') || 'none'} · ${CFG.reviewMinutes}-minute review window`);
+log(`Autopilot on · watching tickets since ${new Date(state.since).toLocaleString()} · email ${MAIL_ON ? `${CFG.email.account} → ${CFG.email.to}, replies read from that inbox` : 'OFF (no .gmail-app-password; emails go to autopilot/outbox)'}`);
+log(`projects: ${Object.keys(CFG.projects).map((s) => `${s} (${releaseFor({ slug: s }).how})`).join(', ') || 'none'} · nothing goes live without your yes`);
 loop();
 worker();

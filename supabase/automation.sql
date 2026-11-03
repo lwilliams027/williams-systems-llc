@@ -42,6 +42,13 @@ revoke all on public.automation_jobs from anon, authenticated;
 grant select on public.automation_jobs to authenticated;
 grant update (decision, note) on public.automation_jobs to authenticated;
 
+-- ticket statuses the client sees while the autopilot works (labels in tickets.sql
+-- ticket_status_label): in_progress = "Build in progress", review = "Under review",
+-- resolved = "Completed". 'review' is new; existing tables get it here.
+alter table public.tickets drop constraint if exists tickets_status_check;
+alter table public.tickets add constraint tickets_status_check
+  check (status in ('open', 'in_progress', 'review', 'waiting', 'resolved', 'closed'));
+
 -- the autopilot server uses the service key (no personal access token): it reads
 -- tickets/threads, sets ticket status, and owns its job rows. Nothing more.
 grant usage on schema public to service_role;

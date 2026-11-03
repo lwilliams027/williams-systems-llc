@@ -13,11 +13,12 @@ import {
 } from './util.js';
 
 export const BUCKET = 'ticket-files';
-export const T_STATUS = { open: 'Open', in_progress: 'In progress', waiting: 'Waiting on client', resolved: 'Resolved', closed: 'Closed' };
+// the autopilot moves a ticket Build in progress → Under review → Completed
+export const T_STATUS = { open: 'Open', in_progress: 'Build in progress', review: 'Under review', waiting: 'Waiting on client', resolved: 'Completed', closed: 'Closed' };
 const T_STATUS_CLIENT = { ...T_STATUS, open: 'Sent', waiting: 'Waiting on you' };
 export const T_KIND = { change: 'Change request', bug: 'Something’s broken', question: 'Question', feature: 'New feature', other: 'Other' };
 export const T_PRIORITY = { low: 'Low', normal: 'Normal', high: 'High', urgent: 'Urgent' };
-export const OPEN_STATES = ['open', 'in_progress', 'waiting'];
+export const OPEN_STATES = ['open', 'in_progress', 'review', 'waiting'];
 const MAX = 25 * 1024 * 1024;
 const statusLabel = (st, owner) => (owner ? T_STATUS : T_STATUS_CLIENT)[st] || st;
 
@@ -37,6 +38,7 @@ export function statusIcon(st) {
   const inner = {
     open: '',
     in_progress: '<path d="M12 5a7 7 0 0 1 0 14z" fill="currentColor" stroke="none"/>',
+    review: '<circle cx="12" cy="12" r="2.6" fill="currentColor" stroke="none"/>',
     waiting: '<path d="M12 8v4l2.5 1.5"/>',
     resolved: '<path d="m8.5 12.5 2.3 2.3 4.7-5.1"/>',
     closed: '<path d="m8.5 12.5 2.3 2.3 4.7-5.1"/>',

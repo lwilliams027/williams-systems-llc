@@ -25,5 +25,6 @@ backup-server/data/
 # Autopilot: Supabase service key, Resend API key and its local watermark
 .supabase-service-key
 .resend-key
+.gmail-app-password
 autopilot/state.json
 autopilot/outbox/

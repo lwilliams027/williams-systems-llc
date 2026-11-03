@@ -27,7 +27,7 @@ create table if not exists public.tickets (
   body         text check (char_length(body) <= 8000),
   kind         text not null default 'change' check (kind in ('change', 'bug', 'question', 'feature', 'other')),
   priority     text not null default 'normal' check (priority in ('low', 'normal', 'high', 'urgent')),
-  status       text not null default 'open' check (status in ('open', 'in_progress', 'waiting', 'resolved', 'closed')),
+  status       text not null default 'open' check (status in ('open', 'in_progress', 'review', 'waiting', 'resolved', 'closed')),
   files        jsonb not null default '[]'::jsonb check (jsonb_typeof(files) = 'array' and jsonb_array_length(files) <= 20),
   sow_added_at timestamptz,
   resolved_at  timestamptz
@@ -212,8 +212,8 @@ language sql
 immutable
 set search_path = ''
 as $$
-  select case s when 'open' then 'Open' when 'in_progress' then 'In progress' when 'waiting' then 'Waiting on you'
-                when 'resolved' then 'Resolved' when 'closed' then 'Closed' else s end;
+  select case s when 'open' then 'Open' when 'in_progress' then 'Build in progress' when 'review' then 'Under review'
+                when 'waiting' then 'Waiting on you' when 'resolved' then 'Completed' when 'closed' then 'Closed' else s end;
 $$;
 
 create or replace function public.tickets_after()
