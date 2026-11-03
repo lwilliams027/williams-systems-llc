@@ -28,3 +28,4 @@ backup-server/data/
 .gmail-app-password
 autopilot/state.json
 autopilot/outbox/
+autopilot/run-always.result
