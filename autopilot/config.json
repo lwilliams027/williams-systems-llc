@@ -37,9 +37,35 @@
           "dir": "build/web"
         }
       }
+    ],
+    "sales-audit-system": [
+      {
+        "name": "sales-audit",
+        "path": "C:/Users/adapt/sales-audit",
+        "base": "main",
+        "remote": false,
+        "secretFiles": [
+          "build/product.json"
+        ],
+        "check": "npm run build:exe"
+      }
     ]
   },
   "afterPush": {
+    "sales-audit-system": [
+      {
+        "label": "SalesAudit build zip (not released)",
+        "when": [
+          "sales-audit"
+        ],
+        "in": "sales-audit",
+        "run": "npm run build:exe && powershell -NoProfile -Command \"New-Item -ItemType Directory -Force ../zips | Out-Null; Compress-Archive -Force -Path dist/SalesAudit.exe,dist/config,dist/supabase,dist/README.txt,dist/.env.example -DestinationPath ../zips/SalesAudit-ticket-{n}.zip\"",
+        "copy": {
+          "from": "zips",
+          "to": "C:/Users/adapt/OneDrive/Desktop/sales-audit-deliverables"
+        }
+      }
+    ],
     "face-mane": [
       {
         "label": "mobile web zip",

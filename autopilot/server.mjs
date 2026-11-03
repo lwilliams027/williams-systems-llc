@@ -178,6 +178,19 @@ async function gitOk(cwd, ...args) {
 /* -------------------------------- worktrees --------------------------------- */
 const jobDir = (n) => path.join(CFG.workRoot, 'jobs', `t${n}`);
 const branch = (n) => `ticket-${n}`;
+// "remote": false = a repo that lives only on this PC (e.g. sales-audit): no fetch/push;
+// the base is the local branch and an approved change is merged into the folder itself
+const isLocal = (r) => r.remote === false;
+const baseRef = (r) => (isLocal(r) ? r.base : `origin/${r.base}`);
+const AUTOPILOT_ID = ['-c', 'user.name=Williams Systems Autopilot', '-c', 'user.email=lwilliams@williamssystems.dev'];
+// local repos get edited in place (other chats don't commit): save the folder as it is first,
+// so Claude starts from the real current code and the merge back never trips over it
+async function snapshot(r, why) {
+  if (!isLocal(r)) return;
+  if ((await git(r.path, 'branch', '--show-current')).out !== r.base) throw new Error(`${r.name}: the folder isn't on its ${r.base} branch`);
+  await gitOk(r.path, 'add', '-A');
+  if ((await git(r.path, 'diff', '--cached', '--quiet')).code !== 0) await gitOk(r.path, ...AUTOPILOT_ID, 'commit', '-m', `Snapshot ${why}`);
+}
 
 async function prepare(t, repos) {
   const dir = jobDir(t.number);
@@ -185,9 +198,10 @@ async function prepare(t, repos) {
   for (const r of repos) {
     const wt = path.join(dir, r.name);
     if (existsSync(wt)) continue;
-    await gitOk(r.path, 'fetch', 'origin', r.base);
+    if (isLocal(r)) await snapshot(r, `before ticket #${t.number}`);
+    else await gitOk(r.path, 'fetch', 'origin', r.base);
     await git(r.path, 'branch', '-D', branch(t.number)); // leftover from a discarded run
-    await gitOk(r.path, 'worktree', 'add', '-b', branch(t.number), wt, `origin/${r.base}`);
+    await gitOk(r.path, 'worktree', 'add', '-b', branch(t.number), wt, baseRef(r));
     if (existsSync(path.join(r.path, 'node_modules'))) await symlink(path.join(r.path, 'node_modules'), path.join(wt, 'node_modules'), 'junction');
   }
   const files = Array.isArray(t.files) ? t.files : [];
@@ -219,8 +233,7 @@ async function commitAll(t, repos) {
     if (!existsSync(wt)) continue;
     await gitOk(wt, 'add', '-A', '--', '.', ':!node_modules');
     if ((await git(wt, 'diff', '--cached', '--quiet')).code === 0) continue;
-    await gitOk(wt, '-c', 'user.name=Williams Systems Autopilot', '-c', 'user.email=lwilliams@williamssystems.dev',
-      'commit', '-m', `Ticket #${t.number}: ${t.title}`.slice(0, 120));
+    await gitOk(wt, ...AUTOPILOT_ID, 'commit', '-m', `Ticket #${t.number}: ${t.title}`.slice(0, 120));
   }
 }
 
@@ -229,10 +242,10 @@ async function changes(n, repos) {
   for (const r of repos) {
     const wt = path.join(jobDir(n), r.name);
     if (!existsSync(wt)) continue;
-    const ahead = Number((await git(wt, 'rev-list', '--count', `origin/${r.base}..HEAD`)).out) || 0;
+    const ahead = Number((await git(wt, 'rev-list', '--count', `${baseRef(r)}..HEAD`)).out) || 0;
     if (!ahead) continue;
-    const files = (await gitOk(wt, 'diff', '--name-only', `origin/${r.base}..HEAD`)).split('\n').filter(Boolean);
-    const stat = await gitOk(wt, 'diff', '--stat', `origin/${r.base}..HEAD`);
+    const files = (await gitOk(wt, 'diff', '--name-only', `${baseRef(r)}...HEAD`)).split('\n').filter(Boolean);
+    const stat = await gitOk(wt, 'diff', '--stat', `${baseRef(r)}...HEAD`);
     out.push({ repo: r, wt, files, stat });
   }
   return out;
@@ -246,10 +259,13 @@ async function withEnv(repos, n, on) {
   for (const r of repos) {
     const wt = path.join(jobDir(n), r.name);
     if (!existsSync(wt)) continue;
-    for (const f of (await readdir(r.path)).filter((f) => ENV_FILE.test(f))) {
+    // plus the repo's own "secretFiles" (e.g. sales-audit's build/product.json with the baked-in keys)
+    const files = [...(await readdir(r.path)).filter((f) => ENV_FILE.test(f)), ...(r.secretFiles || [])];
+    for (const f of files) {
+      if (!existsSync(path.join(r.path, f))) continue;
       const tracked = (await git(r.path, 'ls-files', '--error-unmatch', f)).code === 0;
       if (tracked) continue;
-      if (on) await copyFile(path.join(r.path, f), path.join(wt, f));
+      if (on) { await mkdir(path.dirname(path.join(wt, f)), { recursive: true }); await copyFile(path.join(r.path, f), path.join(wt, f)); }
       else await unlink(path.join(wt, f)).catch(() => {});
     }
   }
@@ -398,7 +414,7 @@ async function newTicket(t) {
     p(`${t.who} · ${t.project || 'no project'} · ${t.kind}, ${t.priority} priority${(t.files || []).length ? ` · ${t.files.length} file(s)` : ''}`),
     block(t.body || '(no description)'),
     p(repos ? 'Claude has started on it. You’ll get another email with the change to review before anything is saved.'
-      : 'No repo is mapped for this project, so Claude won’t work on it automatically. Handle it by hand.'),
+      : `“${t.project || 'This ticket'}” isn’t connected to a code folder yet (project id: ${t.slug || 'none'}), so Claude won’t work on it automatically. Ask Claude Code to “add ${t.project || 'this project'} to the autopilot” with the folder it lives in, then reply to the client or handle it by hand.`),
     button(actUrl(`job=${job.id}`), 'Open ticket', true), ticketButtons(`job=${job.id}`),
   ]);
 }
@@ -492,13 +508,15 @@ async function ship(job) {
     const changed = await changes(t.number, repos);
     if (!changed.length) throw new Error('The change’s worktree is gone, so there is nothing to push. Ask Claude for changes to redo it.');
     for (const c of changed) {
-      await gitOk(c.wt, 'fetch', 'origin', c.repo.base);
-      const rb = await git(c.wt, 'rebase', `origin/${c.repo.base}`);
-      if (rb.code !== 0) { await git(c.wt, 'rebase', '--abort'); throw new Error(`${c.repo.name}: main moved on and the change no longer applies cleanly. Ask Claude for changes to redo it on top.`); }
+      if (isLocal(c.repo)) await snapshot(c.repo, `before merging ticket #${t.number}`);
+      else await gitOk(c.wt, 'fetch', 'origin', c.repo.base);
+      const rb = await git(c.wt, 'rebase', baseRef(c.repo));
+      if (rb.code !== 0) { await git(c.wt, 'rebase', '--abort'); throw new Error(`${c.repo.name}: ${c.repo.base} moved on and the change no longer applies cleanly. Ask Claude for changes to redo it on top.`); }
     }
     // pushTo: a branch that deploys nothing, for repos whose base branch auto-deploys (owner's rule: nothing goes live by itself)
     const target = (r) => (r.pushTo || r.base).replace('{n}', t.number);
     for (const c of changed) {
+      if (isLocal(c.repo)) { await gitOk(c.repo.path, 'merge', '--ff-only', branch(t.number)); continue; }
       await gitOk(c.wt, 'push', 'origin', `HEAD:refs/heads/${target(c.repo)}`);
       // keep your own checkout current when it sits on that branch (best effort, never forced)
       if ((await git(c.repo.path, 'branch', '--show-current')).out === target(c.repo)) await git(c.repo.path, 'pull', '--ff-only');
@@ -534,7 +552,7 @@ async function release(t, changedRepos) {
   const out = [];
   for (const step of CFG.afterPush?.[t.slug] || []) {
     if (step.when && !step.when.some((n) => changedRepos.includes(n))) continue;
-    const r = await run(step.run, [], { cwd: path.join(jobDir(t.number), step.in), shell: true, timeout: 30 * 60_000 });
+    const r = await run(step.run.replaceAll('{n}', t.number), [], { cwd: path.join(jobDir(t.number), step.in), shell: true, timeout: 30 * 60_000 });
     if (r.code !== 0) { out.push({ label: step.label, ok: false, out: r.out.slice(-1200) }); continue; }
     const copied = [];
     if (step.copy) {
