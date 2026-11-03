@@ -82,6 +82,9 @@ async function render() {
         ? `<p>Goes live <span class="act-timer" id="timer"></span> unless you hold it.</p>` : ''}
       ${job.decision === 'hold' ? '<p>On hold — the timer is stopped.</p>' : ''}
       ${job.summary ? `<p class="act-body">${esc(job.summary)}</p>` : ''}
+      ${(d.previews || []).length ? `<div class="act-row">${d.previews.map((pv) => (pv.url
+        ? `<a class="btn btn-primary" href="${esc(pv.url)}" target="_blank" rel="noopener noreferrer">Preview ${esc(pv.name)} ↗</a>`
+        : `<span class="act-pill">No ${esc(pv.name)} preview${pv.error ? ': ' + esc(pv.error.slice(0, 120)) : ''}</span>`)).join('')}</div>` : ''}
       ${d.diffstat ? `<pre class="act-files">${esc(d.diffstat)}</pre>` : ''}
       ${d.check ? `<p>Build check: <b>${esc(d.check)}</b></p>` : ''}
       ${d.error ? `<p class="auth-msg err">${esc(d.error)}</p>` : ''}

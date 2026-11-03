@@ -32,12 +32,24 @@
      · A change that touches CI, deploy config, env files or dependency
        manifests never goes live on silence; it waits for "Approve".
      · Your own checkouts are never touched; work happens in workRoot.
+
+   Previews (secret links)
+     A repo with "preview" in config.json gets its change built and served
+     from this PC through a Cloudflare quick tunnel (cloudflared, no
+     account): https://<random>.trycloudflare.com/p/<secret>. The secret
+     link sets a cookie and the built site is served from / so absolute
+     asset paths and SPA routes work. Only the build output is reachable;
+     anything without a valid secret is a 404. The link dies when the change
+     is pushed or discarded, and the tunnel address changes when this
+     server restarts (act.html always shows the current one).
 ============================================================================= */
 import { spawn } from 'node:child_process';
-import { existsSync } from 'node:fs';
-import { mkdir, readFile, writeFile, rm, symlink, unlink } from 'node:fs/promises';
+import http from 'node:http';
+import { existsSync, createReadStream } from 'node:fs';
+import { mkdir, readFile, writeFile, rm, symlink, unlink, stat, readdir, copyFile } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { randomBytes } from 'node:crypto';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.join(HERE, '..');
@@ -222,6 +234,98 @@ async function changes(n, repos) {
   return out;
 }
 
+/* --------------------------------- env files -------------------------------- */
+// The build needs the repo's git-ignored .env files, but Claude must never see
+// them: they are copied in after Claude is done and removed before it runs again.
+const ENV_FILE = /^\.env(\.(?!example$)[\w.-]+)?$/;
+async function withEnv(repos, n, on) {
+  for (const r of repos) {
+    const wt = path.join(jobDir(n), r.name);
+    if (!existsSync(wt)) continue;
+    for (const f of (await readdir(r.path)).filter((f) => ENV_FILE.test(f))) {
+      const tracked = (await git(r.path, 'ls-files', '--error-unmatch', f)).code === 0;
+      if (tracked) continue;
+      if (on) await copyFile(path.join(r.path, f), path.join(wt, f));
+      else await unlink(path.join(wt, f)).catch(() => {});
+    }
+  }
+}
+
+/* --------------------------------- previews --------------------------------- */
+const PREVIEW_PORT = Number(process.env.AUTOPILOT_PREVIEW_PORT || 4430);
+const previews = new Map();               // secret → build folder
+let tunnelUrl = null;
+const TYPES = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript', '.mjs': 'text/javascript', '.css': 'text/css', '.json': 'application/json',
+  '.svg': 'image/svg+xml', '.png': 'image/png', '.jpg': 'image/jpeg', '.jpeg': 'image/jpeg', '.webp': 'image/webp', '.avif': 'image/avif', '.gif': 'image/gif',
+  '.ico': 'image/x-icon', '.woff2': 'font/woff2', '.woff': 'font/woff', '.ttf': 'font/ttf', '.mp4': 'video/mp4', '.webm': 'video/webm', '.txt': 'text/plain',
+  '.xml': 'application/xml', '.wasm': 'application/wasm', '.webmanifest': 'application/manifest+json', '.pdf': 'application/pdf' };
+const isFile = async (f) => { try { return (await stat(f)).isFile(); } catch { return false; } };
+
+http.createServer(async (req, res) => {
+  const head = { 'X-Robots-Tag': 'noindex, nofollow', 'Cache-Control': 'no-store', 'Referrer-Policy': 'no-referrer' };
+  const notFound = () => { res.writeHead(404, { ...head, 'Content-Type': 'text/plain' }); res.end('Not found'); };
+  try {
+    const url = new URL(req.url, 'http://x');
+    const m = /^\/p\/([\w-]{20,})(\/.*)?$/.exec(url.pathname);
+    if (m) {
+      if (!previews.has(m[1])) return notFound();
+      res.writeHead(302, { ...head, 'Set-Cookie': `pv=${m[1]}; Path=/; HttpOnly; Secure; SameSite=Lax`, Location: m[2] || '/' });
+      return res.end();
+    }
+    const token = /(?:^|;\s*)pv=([\w-]+)/.exec(req.headers.cookie || '')?.[1];
+    const dir = token && previews.get(token);
+    if (!dir || !['GET', 'HEAD'].includes(req.method)) return notFound();
+    const rel = path.normalize(decodeURIComponent(url.pathname)).replace(/^([/\\])+/, '');
+    const base = path.join(dir, rel);
+    if (base !== dir && !base.startsWith(dir + path.sep)) return notFound();
+    // file, folder/index.html (prerendered pages), page.html, then the SPA shell
+    const candidates = [base, path.join(base, 'index.html'), `${base}.html`];
+    if (!path.extname(rel)) candidates.push(path.join(dir, 'index.html'));
+    for (const f of candidates) {
+      if (!(await isFile(f))) continue;
+      res.writeHead(200, { ...head, 'Content-Type': TYPES[path.extname(f).toLowerCase()] || 'application/octet-stream' });
+      return req.method === 'HEAD' ? res.end() : createReadStream(f).pipe(res);
+    }
+    notFound();
+  } catch { notFound(); }
+}).listen(PREVIEW_PORT, '127.0.0.1');
+
+function startTunnel() {
+  return new Promise((resolve) => {
+    const child = spawn('cloudflared', ['tunnel', '--no-autoupdate', '--url', `http://127.0.0.1:${PREVIEW_PORT}`], { windowsHide: true });
+    const done = setTimeout(() => resolve(null), 45_000);
+    const watch = (d) => {
+      const u = /https:\/\/[a-z0-9-]+\.trycloudflare\.com/.exec(String(d))?.[0];
+      if (u && !tunnelUrl) { tunnelUrl = u; clearTimeout(done); resolve(u); }
+    };
+    child.stdout.on('data', watch);
+    child.stderr.on('data', watch);
+    child.on('error', (e) => { log('cloudflared:', e.message); clearTimeout(done); resolve(null); });
+    child.on('exit', () => { tunnelUrl = null; log('preview tunnel closed; restarting in 30s'); setTimeout(startTunnel, 30_000); });
+    process.on('exit', () => child.kill());
+  });
+}
+const previewLink = (token) => (tunnelUrl ? `${tunnelUrl}/p/${token}/` : null);
+
+async function makePreviews(changed) {
+  const out = [];
+  for (const c of changed) {
+    const pv = c.repo.preview;
+    if (!pv) continue;
+    if (pv.build) {
+      const r = await run(pv.build, [], { cwd: c.wt, shell: true, timeout: 15 * 60_000 });
+      if (r.code !== 0) { out.push({ name: c.repo.name, error: r.out.slice(-800) }); continue; }
+    }
+    const dir = path.resolve(c.wt, pv.dir);
+    if (!existsSync(dir)) { out.push({ name: c.repo.name, error: `no ${pv.dir} folder after the build` }); continue; }
+    const token = randomBytes(24).toString('base64url');
+    previews.set(token, dir);
+    out.push({ name: c.repo.name, token, dir, url: previewLink(token) });
+  }
+  return out;
+}
+const dropPreviews = (details) => { for (const p of details?.previews || []) previews.delete(p.token); };
+
 /* ---------------------------------- claude ---------------------------------- */
 const ALLOWED = [
   'Read', 'Edit', 'Write', 'Glob', 'Grep', 'TodoWrite',
@@ -296,9 +400,12 @@ async function work(job) {
   const details = { ...job.details };
   try {
     const dir = await prepare(t, repos);
+    dropPreviews(job.details);
+    await withEnv(repos, t.number, false);
     const thread = await sql(`select sender_role, body from public.ticket_messages where ticket_id = ${lit(t.id)} and kind = 'message' order by created_at`);
     const { summary, clientReply } = await askClaude(t, repos, dir, thread, job.note);
     await commitAll(t, repos);
+    await withEnv(repos, t.number, true);
     const changed = await changes(t.number, repos);
     details.repos = changed.map((c) => c.repo.name);
     details.diffstat = changed.map((c) => `${c.repo.name}\n${c.stat}`).join('\n\n');
@@ -333,6 +440,7 @@ async function work(job) {
         button(actUrl(`job=${job.id}&do=changes`), 'Tell Claude to fix it', true), button(actUrl(`job=${job.id}&do=discard`), 'Discard'), ticketButtons(`job=${job.id}`)]);
     }
 
+    details.previews = await makePreviews(changed);
     const deadline = details.needsApproval ? null : new Date(Date.now() + CFG.reviewMinutes * 60_000);
     await setJob(job.id, { status: 'ready', summary, details, decision: null, note: null, deadline: deadline?.toISOString() ?? null });
     const at = deadline?.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
@@ -343,7 +451,11 @@ async function work(job) {
       p(at ? `Claude finished the change and the build check ${details.check}. It goes live at ${at} unless you hold it.`
         : `This change ${details.needsApproval}, so it will NOT go live until you approve it.`),
       block(summary), mono(details.diffstat),
-      button(actUrl(`job=${job.id}&do=approve`), 'Approve & push now', true),
+      details.previews.length ? `<div style="margin:6px 0 14px">${details.previews.map((pv) => (pv.url
+        ? button(pv.url, `Preview the ${pv.name} change ↗`, true)
+        : p(`No preview for ${pv.name}: ${pv.error || 'the preview tunnel is down'}`))).join('')}
+        <div style="color:#6E7585;font-size:12px">Secret link: works for anyone who has it, until the change is pushed or discarded.</div></div>` : '',
+      button(actUrl(`job=${job.id}&do=approve`), 'Approve & push now', !details.previews.length),
       button(actUrl(`job=${job.id}&do=hold`), 'Hold'), button(actUrl(`job=${job.id}&do=changes`), 'Request changes'),
       button(actUrl(`job=${job.id}&do=discard`), 'Discard'),
       `<div style="margin-top:10px">${ticketButtons(`job=${job.id}`)}</div>`,
@@ -376,6 +488,8 @@ async function ship(job) {
       // keep your own checkout current when it sits on that branch (best effort, never forced)
       if ((await git(c.repo.path, 'branch', '--show-current')).out === c.repo.base) await git(c.repo.path, 'pull', '--ff-only');
     }
+    dropPreviews(details);
+    details.previews = [];
     await setJob(job.id, { status: 'pushed', details });
     await cleanup(t.number, repos);
     log(`#${t.number}: pushed (${changed.map((c) => c.repo.name).join(', ')})`);
@@ -398,8 +512,9 @@ async function ship(job) {
 
 async function discard(job) {
   const t = await getTicket(job.ticket_id);
+  dropPreviews(job.details);
   if (reposFor(t)) await cleanup(t.number, reposFor(t));
-  await setJob(job.id, { status: 'discarded', deadline: null });
+  await setJob(job.id, { status: 'discarded', deadline: null, details: { ...job.details, previews: [] } });
   log(`#${t.number}: discarded`);
 }
 
@@ -458,6 +573,15 @@ async function worker() {
 // a job that was mid-work when the PC shut down starts over
 await sql(`update public.automation_jobs set status = 'queued' where status = 'working'`);
 await sql(`update public.automation_jobs set status = 'ready' where status = 'pushing'`);
+
+// previews: open the tunnel, then bring back the links of changes still waiting (the address is new)
+await startTunnel();
+log(tunnelUrl ? `previews via ${tunnelUrl}` : 'previews OFF (cloudflared tunnel did not start)');
+for (const job of await sql(`select id, details from public.automation_jobs where status in ('ready', 'failed', 'no_change') and details ? 'previews'`)) {
+  const list = (job.details.previews || []).filter((pv) => pv.token && existsSync(pv.dir));
+  list.forEach((pv) => { previews.set(pv.token, pv.dir); pv.url = previewLink(pv.token); });
+  await setJob(job.id, { details: { ...job.details, previews: list } });
+}
 log(`Autopilot on · watching tickets since ${new Date(state.since).toLocaleString()} · email ${RESEND ? `to ${CFG.email.to}` : 'OFF (no .resend-key)'}`);
 log(`projects: ${Object.keys(CFG.projects).join(', ') || 'none'} · ${CFG.reviewMinutes}-minute review window`);
 loop();

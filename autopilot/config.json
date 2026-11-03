@@ -10,9 +10,9 @@
   "workRoot": "C:/Users/adapt/.ws-autopilot",
   "projects": {
     "face-mane": [
-      { "name": "web", "path": "C:/Users/adapt/OneDrive/Desktop/face-and-mane", "base": "main", "check": "npm run build" },
+      { "name": "web", "path": "C:/Users/adapt/OneDrive/Desktop/face-and-mane", "base": "main", "check": "npm run build", "preview": { "build": null, "dir": "dist" } },
       { "name": "api", "path": "C:/Users/adapt/OneDrive/Desktop/face-and-mane-api", "base": "main", "check": null },
-      { "name": "mobile", "path": "C:/Users/adapt/OneDrive/Desktop/face-and-mane-mobile", "base": "main", "check": "flutter analyze --no-fatal-infos" }
+      { "name": "mobile", "path": "C:/Users/adapt/OneDrive/Desktop/face-and-mane-mobile", "base": "main", "check": "flutter analyze --no-fatal-infos", "preview": { "build": "flutter build web --release", "dir": "build/web" } }
     ]
   }
 }
