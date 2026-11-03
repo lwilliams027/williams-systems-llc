@@ -53,11 +53,14 @@ function friendly(err) {
 
 // Where someone goes once they're signed in: owners to the dashboard, clients to their project portal.
 // ?next= can only name one of our own pages.
-const SAFE_NEXT = ['admin.html', 'account.html', 'portal.html'];
+// act.html (the autopilot email buttons) keeps its ?job=… so the link still works after signing in.
+const SAFE_NEXT = ['admin.html', 'account.html', 'portal.html', 'act.html'];
+const OWNER_ONLY = ['admin.html', 'act.html'];
 async function goHome() {
-  const next = new URLSearchParams(location.search).get('next');
+  const next = new URLSearchParams(location.search).get('next') || '';
+  const [page, query = ''] = next.split('?');
   const { data: role } = await supabase.rpc('my_role');
-  if (next && SAFE_NEXT.includes(next) && !(next === 'admin.html' && role !== 'owner')) return location.assign(next);
+  if (SAFE_NEXT.includes(page) && /^[\w=&%.-]*$/.test(query) && !(OWNER_ONLY.includes(page) && role !== 'owner')) return location.assign(next);
   location.assign(role === 'owner' ? 'admin.html' : 'portal.html');
 }
 

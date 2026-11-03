@@ -1,0 +1,18 @@
+{
+  "email": {
+    "to": "lwilliams@williamssystems.dev",
+    "from": "Williams Systems Autopilot <onboarding@resend.dev>"
+  },
+  "site": "https://williamssystems.dev",
+  "reviewMinutes": 30,
+  "pollSeconds": 15,
+  "claudeMinutes": 45,
+  "workRoot": "C:/Users/adapt/.ws-autopilot",
+  "projects": {
+    "face-mane": [
+      { "name": "web", "path": "C:/Users/adapt/OneDrive/Desktop/face-and-mane", "base": "main", "check": "npm run build" },
+      { "name": "api", "path": "C:/Users/adapt/OneDrive/Desktop/face-and-mane-api", "base": "main", "check": null },
+      { "name": "mobile", "path": "C:/Users/adapt/OneDrive/Desktop/face-and-mane-mobile", "base": "main", "check": "flutter analyze --no-fatal-infos" }
+    ]
+  }
+}

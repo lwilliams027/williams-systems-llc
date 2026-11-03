@@ -21,6 +21,7 @@ export default defineConfig({
         signup: resolve(import.meta.dirname, 'signup.html'),
         account: resolve(import.meta.dirname, 'account.html'),
         portal: resolve(import.meta.dirname, 'portal.html'),
+        act: resolve(import.meta.dirname, 'act.html'),
         about: resolve(import.meta.dirname, 'about.html'),
         schedule: resolve(import.meta.dirname, 'schedule.html'),
         faq: resolve(import.meta.dirname, 'faq.html'),

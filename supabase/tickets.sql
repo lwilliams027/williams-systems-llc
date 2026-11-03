@@ -89,6 +89,12 @@ security definer
 set search_path = ''
 as $$
 begin
+  -- the autopilot (service key, see autopilot/server.mjs) acts for the owner
+  if auth.role() = 'service_role' then
+    new.updated_at = now();
+    if tg_op = 'UPDATE' and new.status in ('resolved', 'closed') and old.status not in ('resolved', 'closed') then new.resolved_at = now(); end if;
+    return new;
+  end if;
   if tg_op = 'INSERT' then
     if not public.is_admin() then
       new.status = 'open'; new.sow_added_at = null; new.resolved_at = null;

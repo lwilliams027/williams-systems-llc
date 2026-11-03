@@ -10,7 +10,8 @@
     "preview": "vite preview",
     "provision": "node scripts/provision.mjs",
     "backup:server": "node backup-server/server.mjs",
-    "backup": "node scripts/backup.mjs"
+    "backup": "node scripts/backup.mjs",
+    "autopilot": "node autopilot/server.mjs"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.117.1",
