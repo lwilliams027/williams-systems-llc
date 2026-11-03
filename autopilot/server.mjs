@@ -143,7 +143,7 @@ const ticketButtons = (q) => [
 // how to answer, at the top of every email about a change
 const replyHelp = (live) => `<div style="margin:0 0 16px;padding:12px 14px;border-radius:10px;border:1px solid #2E9BFF;color:#F2F3F5;font:14px/1.5 system-ui">
   <b>Just reply to this email.</b> Reply <b>yes</b> and it goes live (${esc(live)}). Anything else you write becomes Claude’s next instruction for this ticket.
-  <span style="color:#A9AFBC">Also: <b>hold</b> · <b>discard</b> · <b>done</b> (marks the ticket Completed).</span></div>`;
+  <span style="color:#A9AFBC">Also: <b>hold</b> · <b>discard</b>. Your yes also marks the ticket Completed.</span></div>`;
 
 let smtp;
 // every email of a job carries its id in the Message-ID, so a reply (In-Reply-To) finds the job again
@@ -663,18 +663,20 @@ async function ship(job) {
     details.released.push(...await release(t, names, false));
     await setJob(job.id, { details });
     await cleanup(t.number, repos);
+    // the owner's yes completes the ticket, also for projects that go live by an upload (owner's rule)
     const after = details.released.filter((s) => !s.ok);
-    const live = !rel.manual && !after.length;
-    if (live) await setTicketStatus(t.id, 'resolved');   // client sees "Completed"
-    log(`#${t.number}: ${live ? 'live' : 'saved, waiting on your upload'} (${names.join(', ')})`);
-    toast(live ? `#${t.number} is live` : `#${t.number}: ready to upload`, t.title, actUrl(`job=${job.id}&do=message`));
-    await email(subject(t, live ? 'Live' : 'Ready for you to upload'), [
-      h(live ? `#${t.number} is live` : `#${t.number}: your part — upload it`),
-      p(live ? `Done after your yes: ${rel.how}. The ticket shows Completed to ${t.who}.`
-        : `Code saved to ${changed.map((c) => `${c.repo.name} (${target(c.repo)})`).join(', ')}. This project goes live by ${rel.how}. When it’s up, reply “done” and the ticket shows Completed to ${t.who}.`),
+    const upload = rel.manual;
+    if (!after.length) await setTicketStatus(t.id, 'resolved');   // client sees "Completed"
+    log(`#${t.number}: ${upload ? 'zips ready, ticket Completed' : 'live'} (${names.join(', ')})`);
+    toast(upload ? `#${t.number}: Completed · zips ready to upload` : `#${t.number} is live`, t.title, actUrl(`job=${job.id}&do=message`));
+    await email(subject(t, upload ? 'Completed — zips ready to upload' : 'Live'), [
+      h(upload ? `#${t.number} is Completed — upload the zips` : `#${t.number} is live`),
+      p(upload ? `Code saved to ${changed.map((c) => `${c.repo.name} (${target(c.repo)})`).join(', ')} and the ticket shows Completed to ${t.who}. This project goes live by ${rel.how}.`
+        : `Done after your yes: ${rel.how}. The ticket shows Completed to ${t.who}.`),
       ...details.released.map((s) => (s.ok ? p(`✓ ${s.label}: ${s.out}`) : `${p(`✗ ${s.label} failed:`)}${mono(s.out)}`)),
+      after.length ? p('Because a step failed, the ticket was left Under review.') : '',
       details.clientReply ? `${p('Draft reply for the client (pre-filled on the page; nothing is sent until you press Send):')}${block(details.clientReply)}` : '',
-      button(actUrl(`job=${job.id}&do=message`), 'Message client', true), live ? '' : button(actUrl(`job=${job.id}&do=done`), 'Mark completed'),
+      button(actUrl(`job=${job.id}&do=message`), 'Message client', true),
     ], { jobId: job.id });
   } catch (e) {
     details.error = String(e.message || e).slice(0, 3000);
