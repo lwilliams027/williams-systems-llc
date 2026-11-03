@@ -184,6 +184,7 @@ function replyText(text) {
   const out = [];
   for (const line of String(text || '').replace(/\r/g, '').split('\n')) {
     if (/^>/.test(line) || /^On .+wrote:\s*$/.test(line) || /^-{2,}\s*(Original|Forwarded) Message/i.test(line) || /^From: /.test(line)
+      || /^\s*-{2,}\s*On .+wrote\s*-{2,}\s*$/i.test(line)   // Zoho Mail: "---- On Mon, 02 Nov 2026 … wrote ----"
       || /^Sent from my /i.test(line) || /^_{5,}/.test(line)) break;
     out.push(line);
   }
