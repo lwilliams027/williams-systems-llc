@@ -9,7 +9,9 @@
          ticket-<n>), the repo's build check runs
        → "ready" email: summary, changed files, buttons
        → 30 minutes of silence (or "Approve") → rebased onto main and pushed
-       → "live" email with a draft reply for the client
+       → release zips built (make-deliverables etc.) and a "zips ready" email with
+         a draft reply for the client. NOTHING is deployed: the owner uploads
+         the zips to AWS / cPanel by hand
 
    The email buttons open act.html (owner login), which writes the decision
    to public.automation_jobs; this server picks it up on its next poll.
@@ -30,7 +32,7 @@
        tool allowlist (edit files, run the check, commit). No push, no web,
        no shell beyond that. This server does the pushing.
      · A change that touches CI, deploy config, env files or dependency
-       manifests never goes live on silence; it waits for "Approve".
+       manifests is never pushed on silence; it waits for "Approve".
      · Your own checkouts are never touched; work happens in workRoot.
 
    Previews (secret links)
@@ -384,7 +386,7 @@ async function newTicket(t) {
     h(`#${t.number} · ${t.title}`),
     p(`${t.who} · ${t.project || 'no project'} · ${t.kind}, ${t.priority} priority${(t.files || []).length ? ` · ${t.files.length} file(s)` : ''}`),
     block(t.body || '(no description)'),
-    p(repos ? 'Claude has started on it. You’ll get another email with the change to review before anything goes live.'
+    p(repos ? 'Claude has started on it. You’ll get another email with the change to review before anything is saved.'
       : 'No repo is mapped for this project, so Claude won’t work on it automatically. Handle it by hand.'),
     button(actUrl(`job=${job.id}`), 'Open ticket', true), ticketButtons(`job=${job.id}`),
   ]);
@@ -435,7 +437,7 @@ async function work(job) {
     if (failed.length) {
       details.error = failed.map((c) => `${c.name}: ${c.out}`).join('\n\n');
       await setJob(job.id, { status: 'failed', summary, details, decision: null, note: null });
-      toast(`#${t.number}: build check failed`, 'Not going live. Open the email to decide.', actUrl(`job=${job.id}`));
+      toast(`#${t.number}: build check failed`, 'Nothing saved. Open the email to decide.', actUrl(`job=${job.id}`));
       return email(subject(t, 'Build check failed'), [h(`#${t.number}: the change doesn’t build`), block(summary), mono(details.diffstat), mono(details.error),
         button(actUrl(`job=${job.id}&do=changes`), 'Tell Claude to fix it', true), button(actUrl(`job=${job.id}&do=discard`), 'Discard'), ticketButtons(`job=${job.id}`)]);
     }
@@ -444,18 +446,18 @@ async function work(job) {
     const deadline = details.needsApproval ? null : new Date(Date.now() + CFG.reviewMinutes * 60_000);
     await setJob(job.id, { status: 'ready', summary, details, decision: null, note: null, deadline: deadline?.toISOString() ?? null });
     const at = deadline?.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
-    log(`#${t.number}: ready${at ? `, live at ${at}` : ' (needs approval)'}`);
-    toast(`#${t.number} ready${at ? ` · live at ${at}` : ' · needs your approval'}`, t.title, actUrl(`job=${job.id}`));
-    await email(subject(t, at ? `Goes live at ${at}` : 'Needs your approval'), [
+    log(`#${t.number}: ready${at ? `, saved + zipped at ${at}` : ' (needs approval)'}`);
+    toast(`#${t.number} ready${at ? ` · zips at ${at}` : ' · needs your approval'}`, t.title, actUrl(`job=${job.id}`));
+    await email(subject(t, at ? `Zips build at ${at}` : 'Needs your approval'), [
       h(`#${t.number} · ${t.title}`),
-      p(at ? `Claude finished the change and the build check ${details.check}. It goes live at ${at} unless you hold it.`
-        : `This change ${details.needsApproval}, so it will NOT go live until you approve it.`),
+      p(at ? `Claude finished the change and the build check ${details.check}. At ${at} it is saved and the upload zips are built, unless you hold it. Nothing goes live until you upload them.`
+        : `This change ${details.needsApproval}, so it waits for your approval before it is saved or zipped.`),
       block(summary), mono(details.diffstat),
       details.previews.length ? `<div style="margin:6px 0 14px">${details.previews.map((pv) => (pv.url
         ? button(pv.url, `Preview the ${pv.name} change ↗`, true)
         : p(`No preview for ${pv.name}: ${pv.error || 'the preview tunnel is down'}`))).join('')}
         <div style="color:#6E7585;font-size:12px">Secret link: works for anyone who has it, until the change is pushed or discarded.</div></div>` : '',
-      button(actUrl(`job=${job.id}&do=approve`), 'Approve & push now', !details.previews.length),
+      button(actUrl(`job=${job.id}&do=approve`), 'Approve & build zips now', !details.previews.length),
       button(actUrl(`job=${job.id}&do=hold`), 'Hold'), button(actUrl(`job=${job.id}&do=changes`), 'Request changes'),
       button(actUrl(`job=${job.id}&do=discard`), 'Discard'),
       `<div style="margin-top:10px">${ticketButtons(`job=${job.id}`)}</div>`,
@@ -483,22 +485,24 @@ async function ship(job) {
       const rb = await git(c.wt, 'rebase', `origin/${c.repo.base}`);
       if (rb.code !== 0) { await git(c.wt, 'rebase', '--abort'); throw new Error(`${c.repo.name}: main moved on and the change no longer applies cleanly. Ask Claude for changes to redo it on top.`); }
     }
+    // pushTo: a branch that deploys nothing, for repos whose base branch auto-deploys (owner's rule: nothing goes live by itself)
+    const target = (r) => (r.pushTo || r.base).replace('{n}', t.number);
     for (const c of changed) {
-      await gitOk(c.wt, 'push', 'origin', `HEAD:refs/heads/${c.repo.base}`);
+      await gitOk(c.wt, 'push', 'origin', `HEAD:refs/heads/${target(c.repo)}`);
       // keep your own checkout current when it sits on that branch (best effort, never forced)
-      if ((await git(c.repo.path, 'branch', '--show-current')).out === c.repo.base) await git(c.repo.path, 'pull', '--ff-only');
+      if ((await git(c.repo.path, 'branch', '--show-current')).out === target(c.repo)) await git(c.repo.path, 'pull', '--ff-only');
     }
     dropPreviews(details);
     details.previews = [];
     await setJob(job.id, { status: 'pushed', details });
-    details.released = await release(t);
+    details.released = await release(t, changed.map((c) => c.repo.name));
     await setJob(job.id, { details });
     await cleanup(t.number, repos);
     log(`#${t.number}: pushed (${changed.map((c) => c.repo.name).join(', ')})`);
-    toast(`#${t.number} is live`, t.title, actUrl(`job=${job.id}&do=message`));
-    await email(subject(t, 'Live'), [
-      h(`#${t.number} is live`),
-      p(`Pushed to ${changed.map((c) => `${c.repo.name} (${c.repo.base})`).join(', ')}${job.decision === 'approve' ? ' after your approval' : ' after the 30-minute window'}.`),
+    toast(`#${t.number}: zips ready`, `${t.title} — nothing is live until you upload`, actUrl(`job=${job.id}&do=message`));
+    await email(subject(t, 'Zips ready to upload'), [
+      h(`#${t.number}: ready for you to upload`),
+      p(`Code saved to ${changed.map((c) => `${c.repo.name} (${target(c.repo)})`).join(', ')}${job.decision === 'approve' ? ' after your approval' : ' after the 30-minute window'}. Nothing is live until you upload the zips yourself.`),
       ...(details.released || []).map((s) => (s.ok ? p(`✓ ${s.label}: ${s.out}`) : `${p(`✗ ${s.label} failed:`)}${mono(s.out)}`)),
       details.clientReply ? `${p('Draft reply for the client (it’s pre-filled on the page; nothing is sent until you press Send):')}${block(details.clientReply)}` : '',
       button(actUrl(`job=${job.id}&do=message`), 'Message client', true), button(actUrl(`job=${job.id}&do=done`), 'Mark done'),
@@ -515,9 +519,10 @@ async function ship(job) {
 
 // after a push: the project's release steps (e.g. build the cPanel/API zips),
 // run from the job folder so they build exactly what was pushed
-async function release(t) {
+async function release(t, changedRepos) {
   const out = [];
   for (const step of CFG.afterPush?.[t.slug] || []) {
+    if (step.when && !step.when.some((n) => changedRepos.includes(n))) continue;
     const r = await run(step.run, [], { cwd: path.join(jobDir(t.number), step.in), shell: true, timeout: 30 * 60_000 });
     if (r.code !== 0) { out.push({ label: step.label, ok: false, out: r.out.slice(-1200) }); continue; }
     const copied = [];

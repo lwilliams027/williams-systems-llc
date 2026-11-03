@@ -18,8 +18,8 @@ const qs = new URLSearchParams(location.search);
 const UUID = /^[0-9a-f-]{36}$/i;
 const STATUS = { open: 'Open', in_progress: 'In progress', waiting: 'Waiting on client', resolved: 'Done', closed: 'Closed' };
 const JOB = {
-  queued: 'Queued', working: 'Claude is working', ready: 'Ready — goes live when the timer ends', pushing: 'Pushing',
-  pushed: 'Live', no_change: 'No code change made', failed: 'Needs you', manual: 'No repo mapped — handle by hand', discarded: 'Discarded',
+  queued: 'Queued', working: 'Claude is working', ready: 'Ready — saved and zipped when the timer ends', pushing: 'Pushing',
+  pushed: 'Zips ready to upload', no_change: 'No code change made', failed: 'Needs you', manual: 'No repo mapped — handle by hand', discarded: 'Discarded',
 };
 
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -79,7 +79,7 @@ async function render() {
     <div class="act-section${/approve|hold|changes|discard|review/.test(focus) ? ' focus' : ''}" id="review">
       <h2>Claude’s change · ${esc(JOB[job.status] || job.status)}</h2>
       ${job.status === 'ready' && job.deadline && job.decision !== 'hold'
-        ? `<p>Goes live <span class="act-timer" id="timer"></span> unless you hold it.</p>` : ''}
+        ? `<p>Saved and zipped <span class="act-timer" id="timer"></span> unless you hold it. Nothing goes live until you upload the zips.</p>` : ''}
       ${job.decision === 'hold' ? '<p>On hold — the timer is stopped.</p>' : ''}
       ${job.summary ? `<p class="act-body">${esc(job.summary)}</p>` : ''}
       ${(d.previews || []).length ? `<div class="act-row">${d.previews.map((pv) => (pv.url
@@ -90,7 +90,7 @@ async function render() {
       ${d.error ? `<p class="auth-msg err">${esc(d.error)}</p>` : ''}
       ${canDecide ? `
         <div class="act-row">
-          ${job.status === 'ready' ? '<button class="btn btn-primary" data-decide="approve">Approve &amp; push now</button>' : ''}
+          ${job.status === 'ready' ? '<button class="btn btn-primary" data-decide="approve">Approve &amp; build zips now</button>' : ''}
           ${job.status === 'ready' && job.decision !== 'hold' ? '<button class="btn btn-ghost" data-decide="hold">Hold</button>' : ''}
           <button class="btn btn-ghost" data-decide="discard">Discard</button>
         </div>
@@ -137,7 +137,7 @@ async function render() {
     const { error } = await supabase.from('automation_jobs').update({ decision, note }).eq('id', job.id);
     if (error) return say(error.message, false);
     await render();
-    say({ approve: 'Approved — your PC will push it in a few seconds.', hold: 'On hold. Approve or discard it whenever you’re ready.',
+    say({ approve: 'Approved — your PC will save it and build the zips.', hold: 'On hold. Approve or discard it whenever you’re ready.',
           changes: 'Sent to Claude. You’ll get a new email when the update is ready.', discard: 'Discarded.' }[decision]);
   }));
 
