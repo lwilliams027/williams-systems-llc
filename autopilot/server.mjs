@@ -491,12 +491,15 @@ async function ship(job) {
     dropPreviews(details);
     details.previews = [];
     await setJob(job.id, { status: 'pushed', details });
+    details.released = await release(t);
+    await setJob(job.id, { details });
     await cleanup(t.number, repos);
     log(`#${t.number}: pushed (${changed.map((c) => c.repo.name).join(', ')})`);
     toast(`#${t.number} is live`, t.title, actUrl(`job=${job.id}&do=message`));
     await email(subject(t, 'Live'), [
       h(`#${t.number} is live`),
-      p(`Pushed to ${changed.map((c) => `${c.repo.name} (${c.repo.base})`).join(', ')}${job.decision === 'approve' ? ' after your approval' : ' after the 30-minute window'}. Deploys run from there.`),
+      p(`Pushed to ${changed.map((c) => `${c.repo.name} (${c.repo.base})`).join(', ')}${job.decision === 'approve' ? ' after your approval' : ' after the 30-minute window'}.`),
+      ...(details.released || []).map((s) => (s.ok ? p(`✓ ${s.label}: ${s.out}`) : `${p(`✗ ${s.label} failed:`)}${mono(s.out)}`)),
       details.clientReply ? `${p('Draft reply for the client (it’s pre-filled on the page; nothing is sent until you press Send):')}${block(details.clientReply)}` : '',
       button(actUrl(`job=${job.id}&do=message`), 'Message client', true), button(actUrl(`job=${job.id}&do=done`), 'Mark done'),
       button(actUrl(`job=${job.id}&do=close`), 'Close ticket'),
@@ -508,6 +511,26 @@ async function ship(job) {
     await email(subject(t, 'Push failed'), [h(`#${t.number}: couldn’t push`), mono(details.error),
       button(actUrl(`job=${job.id}&do=changes`), 'Ask Claude to redo it', true), button(actUrl(`job=${job.id}&do=discard`), 'Discard')]);
   }
+}
+
+// after a push: the project's release steps (e.g. build the cPanel/API zips),
+// run from the job folder so they build exactly what was pushed
+async function release(t) {
+  const out = [];
+  for (const step of CFG.afterPush?.[t.slug] || []) {
+    const r = await run(step.run, [], { cwd: path.join(jobDir(t.number), step.in), shell: true, timeout: 30 * 60_000 });
+    if (r.code !== 0) { out.push({ label: step.label, ok: false, out: r.out.slice(-1200) }); continue; }
+    const copied = [];
+    if (step.copy) {
+      const from = path.join(jobDir(t.number), step.copy.from);
+      await mkdir(step.copy.to, { recursive: true });
+      for (const f of existsSync(from) ? await readdir(from) : []) {
+        if (await isFile(path.join(from, f))) { await copyFile(path.join(from, f), path.join(step.copy.to, f)); copied.push(f); }
+      }
+    }
+    out.push({ label: step.label, ok: true, out: copied.length ? `${copied.join(', ')} → ${step.copy.to}` : 'done' });
+  }
+  return out;
 }
 
 async function discard(job) {
